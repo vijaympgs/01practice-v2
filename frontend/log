@@ -1,0 +1,259 @@
+ffe49a1 vijaympgs 2025-11-08 feat: capture interim settlement workflow updates
+2d337d4 vijaympgs 2025-11-07 chore: update trackers with session end timestamp - 07-Nov-2025 23:43
+c1e789b vijaympgs 2025-11-07 chore: update trackers with session end timestamp - 07-Nov-2025 14:34:20
+fb072a7 vijaympgs 2025-11-07 chore: move 00_CURRENT_STATUS_CONSOLIDATED.md to LEARNINGS-STANDARDS-CHECKLISTS and add references in protocol files
+1f3be09 vijaympgs 2025-11-07 chore: add sequence numbers to login/logout protocol files (01_LOGIN_PROTOCOL.md, 02_LOGOUT_PROTOCOL.md)
+5d5d541 vijaympgs 2025-11-07 chore: remove redundant root requirements.txt and package-lock.json (backend/frontend have their own)
+30d0f1d vijaympgs 2025-11-07 chore: remove empty 3.1.0 file
+a954d7c vijaympgs 2025-11-07 chore: move quick_ref and vite files to 02DOCUMENTS folder
+2a13a67 vijaympgs 2025-11-07 chore: remove duplicate END_HERE.md and START_HERE.md files (replaced by LOGIN_PROTOCOL and LOGOUT_PROTOCOL)
+0e367c6 vijaympgs 2025-11-07 chore: update LOGOUT_PROTOCOL references to LOGIN_PROTOCOL
+c6ca6d7 vijaympgs 2025-11-07 chore: rename START_HERE to LOGIN_PROTOCOL and END_HERE to LOGOUT_PROTOCOL
+70d407f vijaympgs 2025-11-07 chore: create END_HERE protocol and update logout timestamps
+568ee65 vijaympgs 2025-11-07 chore: update trackers and db client progress
+13f17b1 vijaympgs 2025-11-07 Refactor POS function buttons: Add scrollable navigation in identifier 6
+a3f8068 vijaympgs 2025-11-07 POS Desktop improvements: Move status chips to AppBar, renumber identifiers, add Sale Type section, move Sale Types to POSMaster
+b4e356d vijaympgs 2025-11-07 POS Desktop UI: Complete implementation with keyboard shortcuts and routing fixes
+21c0caa vijaympgs 2025-11-06 Update trackers and rename session files with current timestamp - 06-Nov-2025
+d593e1b vijaympgs 2025-11-06 Update tunnel setup, Windows Defender fix, and status tracking - 06-Nov-2025
+05f03d4 vijaympgs 2025-11-06 Session 06-Nov-2025: Tracking mechanism established, tunnel setup complete, laptop lid configuration added
+eb5f919 vijaympgs 2025-11-06 Add timestamp to 00_SETUP_GUIDE.md
+fff30e2 vijaympgs 2025-11-06 Update all trackers and tunnel docs with timestamp 06-Nov-2025 12:50:00 IST
+19118e1 vijaympgs 2025-11-06 Add npm install slow fix instructions to quick reference
+1033c57 vijaympgs 2025-11-06 Add optimized frontend setup script and troubleshooting guide
+6f8b751 vijaympgs 2025-11-06 Add tunnel-guide.md - Complete tunnel setup guide
+9d48d92 vijaympgs 2025-11-06 Add step-by-step details and public URLs info to batch file docs
+7e76c9b vijaympgs 2025-11-06 Update tunnel setup documentation with complete details
+33cadb2 vijaympgs 2025-11-06 Add simple brief explanation of 00_QUICK_SETUP.bat
+a69759a vijaympgs 2025-11-05 Add simple brief explanation of 00_COMPLETE_SETUP.bat
+e752401 vijaympgs 2025-11-05 Add one-click tunnel setup batch files
+b2b686f vijaympgs 2025-11-05 Add status confirmation - Everything working
+0d97e57 vijaympgs 2025-11-05 Add frontend restart guide
+b4b5dbd vijaympgs 2025-11-05 Fix tunnel connectivity - Add new tunnel URL to Vite config
+023b77d vijaympgs 2025-11-05 Add URL lifetime documentation and setup completion guide
+5ad4992 vijaympgs 2025-11-05 Add remote access tunnel setup for weekday access
+733cef7 vijaympgs 2025-11-05 Update session resume guide and README for next session
+8433600 vijaympgs 2025-11-05 Session 05-Nov-2025: Complete tracker updates and Form Load Test script
+63a02f0 vijaympgs 2025-11-05 Add comprehensive Form Load Test Plan
+3a95d5d vijaympgs 2025-11-05 Increase PageTitle top padding from pt:2 to pt:3 for better spacing
+f9ef12f vijaympgs 2025-11-05 Fix page titles and subtitles visibility by adding proper top padding
+6bd55f0 vijaympgs 2025-11-05 Remove 'Management' from all menu category items
+8908776 vijaympgs 2025-11-05 Reorder and rename menu categories with updated names
+cb64641 vijaympgs 2025-11-05 Update MENU_ITEMS_LIST to show module categories at top and fix StatusBar prop documentation
+1456ebb vijaympgs 2025-11-05 Remove System: Online from StatusBar and update MENU_ITEMS_LIST format
+5aec0ec vijaympgs 2025-11-05 Fix top sidebar height to minimal size and create menu items list
+5352946 vijaympgs 2025-11-05 Implement full top sidebar mode with horizontal menu and dropdowns
+3cb3d83 vijaympgs 2025-11-05 Add Layout Preferences to menu structure utility
+89d9f34 vijaympgs 2025-11-05 Add Layout Preferences route and menu item
+7f638d0 vijaympgs 2025-11-05 Fix Settings menu visibility - adjust z-index and maxHeight to account for StatusBar
+f8ebf3e vijaympgs 2025-11-05 Fix syntax error in AppLayout conditional rendering
+a1460ba vijaympgs 2025-11-05 Remove unused imports from Header (Wifi, Sync icons moved to StatusBar)
+6335a16 vijaympgs 2025-11-05 Add sidebar position settings (Left/Right/Top) and enable StatusBar with online/sync chips
+76c630e vijaympgs 2025-11-05 Fix duplicate token declaration in UnifiedOrganizationPage
+8aa7b71 vijaympgs 2025-11-05 Fix Organization Management API calls - use localhost directly
+59f30c9 vijaympgs 2025-11-05 Fix location selector and organization management data loading
+ae1e212 vijaympgs 2025-11-05 Update fixes documentation with login API timeout fix
+65efd1e vijaympgs 2025-11-05 Fix login timeout issue - reduce timeout to 5s with AbortController
+b441911 vijaympgs 2025-11-04 Update session start guide with new resume guide reference
+fc7c8d6 vijaympgs 2025-11-04 Add session resume guide for next AI session
+303c873 vijaympgs 2025-11-04 Fix login company loading timeout and location selector for admin users
+c493b19 vijaympgs 2025-11-04 Fix: Login network error - use axios directly with localhost fallback
+79964e9 vijaympgs 2025-11-04 Add quick fix guide for company loading timeout
+6f3348d vijaympgs 2025-11-04 Add backend health check before loading companies
+121f37b vijaympgs 2025-11-04 Fix: Improve company loading with localhost fallback and better error messages
+8b6cc17 vijaympgs 2025-11-04 Fix: Remove problematic for /f parsing in prerequisites check - causes crash
+e68c531 vijaympgs 2025-11-04 Fix: Start script crash - fix prerequisites check path resolution
+1bf1455 vijaympgs 2025-11-04 Fix: Location selector for admin users and Day Open loading timeout
+75785ac vijaympgs 2025-11-04 Create immediate testing action plan - clear steps to test 6 POS screens
+e068422 vijaympgs 2025-11-04 Final consolidation: Create single source of truth document, update README_SESSION_START
+14b28ae vijaympgs 2025-11-04 Update all trackers and MD files with timestamp 04-Nov-2025 03:39:48 IST, create consolidated status document
+48d4fa1 vijaympgs 2025-11-04 Major cleanup and organization: Consolidate scripts, fix POS spinning, add technical architecture doc, fix location selector and profile issues
+c88e2d7 vijaympgs 2025-11-03 ..
+beb960f vijaympgs 2025-11-03 docs: Add next session review notes and update POS implementation tracker
+97cbd74 vijaympgs 2025-11-03 feat: POS workflow fixes and documentation updates - Terminal selection dropdown for multiple terminals per location - Backend validation: Only one open session per terminal - Location mapping for admin/backoffice vs POS users - Session detection from backend API in billing page - IndexedDB stores: session, shift, shiftHistory (v2 upgrade) - Migration: Terminal and location fields in POSSession - All trackers and README updated with timestamp 03-Nov-2025 00:29:41 IST
+cb9b63a vijaympgs 2025-11-02 Session Open: Pre-populate user and location details from logged-in user object. Add pos_location_code to UserSerializer
+950466b vijaympgs 2025-11-02 Add default user credentials documentation
+3c116b3 vijaympgs 2025-11-02 Add comprehensive User Roles and Permissions documentation
+63a662f vijaympgs 2025-11-02 Add pos_location field to User admin interface for easy location assignment
+dec86b5 vijaympgs 2025-11-02 Fix Day Open API endpoints: Remove incorrect /sales/ prefix from day-opens URLs
+9c1d867 vijaympgs 2025-11-02 Enhanced Day Open error handling with detailed error messages and traceback logging
+7994132 vijaympgs 2025-11-02 POS Workflow Verification: Complete end-to-end workflow verified (Day Open to Day Close)
+365d48c vijaympgs 2025-11-02 Fix Day Open save issue: date parsing, notes handling, improved error messages. Enhanced Session Open validation to block when Day Open missing
+043d297 vijaympgs 2025-11-02 Session 02-Nov-2025: Terminal UI simplified, Procurement integration progress, Tunnel setup consolidated - Updated all trackers and docs with timestamp 02-Nov-2025 20:27:12 IST
+078aed9 vijaympgs 2025-11-02 Add multi-agent workflow guide - best practices for using multiple Cursor agents
+502f829 vijaympgs 2025-11-02 02-Nov-2025-1234p
+2e357ad vijaympgs 2025-11-02 Add Cloudflare Tunnel quick reference card
+c4b5854 vijaympgs 2025-11-02 Add complete Cloudflare Tunnel automation - 6 new scripts for one-click setup and start
+1471ba1 vijaympgs 2025-11-02 Add Cloudflare Tunnel complete setup with network access explanation
+6ea1f75 vijaympgs 2025-11-01 Session end: POS 100%, Procurement 95%, trackers updated, timestamps fixed
+90d659b vijaympgs 2025-11-01 Procurement backend models - deployment blocked by model name conflicts with inventory
+8aec80d vijaympgs 2025-11-01 Add clarification document for next steps
+b3b7438 vijaympgs 2025-11-01 Create next priority tasks document after POS workflow completion
+7435963 vijaympgs 2025-11-01 Update README with POS milestone announcement
+5fd2e9b vijaympgs 2025-11-01 Major milestone: POS Workflow 100% complete - all 6 steps implemented
+ac95d51 vijaympgs 2025-11-01 Complete POS workflow: Fix Day Open/Close menu integration, update tracker to 100%
+10a2293 vijaympgs 2025-11-01 Add step-by-step guide for onboarding new Form Builder agent
+dc0c76e vijaympgs 2025-11-01 Add copy-paste message for new Form Builder agent chat initiation
+5d4f5b5 vijaympgs 2025-11-01 Add comprehensive session summary for 01-Nov-2025
+040275a vijaympgs 2025-11-01 Add first message for Form Builder agent onboarding
+68f444b vijaympgs 2025-11-01 Update Form Builder onboarding docs with simplified structure
+d10f9d3 vijaympgs 2025-11-01 Clean Form Builder folder: Move context docs to BACKUP, simplify to essential onboarding docs only
+8b90345 vijaympgs 2025-11-01 Add Form Builder onboarding completion summary
+bb59d46 vijaympgs 2025-11-01 Add comprehensive Form Builder standards document with UI, dev, tracking, and checklist standards
+2fed567 vijaympgs 2025-11-01 Add timestamp reminder to Form Builder onboarding doc
+85f1828 vijaympgs 2025-11-01 Add timestamp reminder to README and session start doc
+d73643e vijaympgs 2025-11-01 Clean README header with current IST timestamp
+0f37a90 vijaympgs 2025-11-01 Update README last updated time to current IST
+9215bdd vijaympgs 2025-11-01 Add comprehensive startup message for Form Builder agent with partnership context
+0499806 vijaympgs 2025-11-01 Add START_HERE guide for Form Builder agent onboarding
+95c4e1e vijaympgs 2025-11-01 Add final session summary: Standards established for long-term development
+ba5f7a2 vijaympgs 2025-11-01 Fix date format to current IST
+54bbb26 vijaympgs 2025-11-01 Add SESSION START protocol document for onboarding new sessions
+2c43cf8 vijaympgs 2025-11-01 Add folder organization completion summary
+28e22e0 vijaympgs 2025-11-01 Organize folders: Add sequence numbers to all non-source folders (01-10)
+66c6c95 vijaympgs 2025-11-01 Brand update: NewBorn Retail AI-Powered
+82ea15e vijaympgs 2025-11-01 Update session summary with root folder organization and README updates
+88455e0 vijaympgs 2025-11-01 Organize root folder: Move batch files to app-scripts, update README with folder structure and quick reference
+4f6f4cb vijaympgs 2025-11-01 Update POS Blueprint: Day Open/Close UI complete, update status
+258dbae vijaympgs 2025-11-01 Add handoff summary for Form Builder review
+c0c3b94 vijaympgs 2025-11-01 Move folder structure guide to documents
+fa43171 vijaympgs 2025-11-01 Add final status document
+142937e vijaympgs 2025-11-01 Add session summary and folder structure README
+a333f27 vijaympgs 2025-11-01 Complete: Root folder cleanup, Day Open/Close UI, Form Builder docs organization
+1ebcbfa vijaympgs 2025-11-01 Documentation restructure: Create POS-Spec, Backoffice-SPEC, App-Scripts folders with comprehensive blueprints
+e21a197 vijaympgs 2025-11-01 Added POS action plan with complete Day Open implementation steps
+35afd06 vijaympgs 2025-11-01 Added review plan with key decisions for user approval
+69f4547 vijaympgs 2025-11-01 Session complete: Final summary and MVP strategy recommendations for Day Open and Terminal Preferences
+9d6efc2 vijaympgs 2025-11-01 Added MVP terminal preferences strategy: Modern simplified approach vs traditional complex setup
+cc5ca7e vijaympgs 2025-11-01 Added comprehensive terminal preferences research: 12 categories covering all enterprise POS needs
+47c4cf3 vijaympgs 2025-11-01 Added comprehensive POS workflow analysis: Day Open vs Session Open standard approach recommendation
+1ce4bfd vijaympgs 2025-11-01 Final update: README_TODAY session summary
+9882531 vijaympgs 2025-11-01 Updated 00_README with latest session summary and navigation
+d4cfce0 vijaympgs 2025-11-01 Updated TEST_REPORT with latest accomplishments
+297b9dc vijaympgs 2025-11-01 Day Close implementation: Added DayClose model, Session Open/Close UI, menu reorganization, and updated all trackers
+258631b vijaympgs 2025-10-31 Terminal Configuration: Complete backend implementation - Models, Serializers, Views, Admin, URLs
+dec3986 vijaympgs 2025-10-31 Terminal Configuration: Added new models and updated Terminal model with system_name and auto_login_pos fields
+f7d1bd7 vijaympgs 2025-10-31 Cleanup: Merged reference files, removed testing files, fixed Priority 1 & 2 issues, updated date formats
+f755604 vijaympgs 2025-10-31 Add Excel export/import for role permissions and update POS menu
+9d18665 vijaympgs 2025-10-31 Update Role Permission Templates based on testing
+0ee866a vijaympgs 2025-10-31 Implement Role-Based Permission Management System and User & Permissions UI
+27e86a1 vijaympgs 2025-10-29 Clean up: Remove duplicate README.md and INDEX.md from NEXT-SESSION folder
+9893a20 vijaympgs 2025-10-29 Organize NEXT-SESSION files with numbered sequences (00-16) - Set 00_README.md as primary entry point - Update all file references with numbered sequences - Complete file organization for next session
+ae70aae vijaympgs 2025-10-28 POS Core Screens: Terminal Configuration UI Complete - Menu reorganization, theme integration, and dialog form alignment applied. Core POS screens ready for testing. Session files archived.
+3c9a74f vijaympgs 2025-10-28 POS Core Screens: Terminal Configuration UI Complete - Menu reorganization, theme integration, and dialog form alignment applied. Core POS screens ready for testing.
+05640b0 Cursor Agent 2025-10-28 docs: Add comprehensive Git workflow and best practices to README
+4ea17eb Cursor Agent 2025-10-28 Add complete Finance Module development documentation
+eaaf8f3 Cursor Agent 2025-10-28 docs: Add standalone onboarding prompt for Procurement Module
+75b4bfb Cursor Agent 2025-10-28 docs: Add comprehensive README for developer documentation
+474b5c1 Cursor Agent 2025-10-28 docs: Add comprehensive Procurement Module Development Guide
+27b147c Cursor Agent 2025-10-28 docs: Organize developer documentation into dedicated folder
+31c1d23 Cursor Agent 2025-10-28 Refactor: Remove duplicate documentation files
+73381fc Cursor Agent 2025-10-28 feat: Add module developer guide and model reference
+1c22cf3 vijaympgs 2025-10-27 Merge pull request #6 from vijaympgs/cursor/generate-quick-document-575c
+80d7281 Cursor Agent 2025-10-27 feat: Add comprehensive technical documentation for RetailMind ERP
+0dd9f87 Cursor Agent 2025-10-27 feat: Add comprehensive technical documentation
+e326e24 vijaympgs 2025-10-26 feat: Apply UI pattern to Item Management screens and fix CardHeader
+8dd0c88 vijaympgs 2025-10-26 Apply master screen UI pattern to Customer and Vendor pages - PageTitle component, theme colors, Status toggle without label, rectangular borders, proper button hover states
+dcfa52c vijaympgs 2025-10-26 Remove section headers from UOM Setup and UOM Conversion forms - proper field alignment
+83b9409 vijaympgs 2025-10-26 Fix UOM Setup and UOM Conversion - remove Status header/label, remove Save icon
+d115f6b vijaympgs 2025-10-26 Add exception for multi-master forms in checklist and remove List header from ConfigurationPage
+e56dc52 vijaympgs 2025-10-26 Fix field alignment in GeneralMasterPage - Name and Currency Code properly aligned
+5cdc593 vijaympgs 2025-10-26 Remove unnecessary section headers and fix field alignment in GeneralMasterPage add dialog
+c6402e7 vijaympgs 2025-10-26 Apply PageTitle component and fix add dialog for GeneralMasterPage - remove Status label from toggle
+616254d vijaympgs 2025-10-26 Remove icons from card items (table rows) in Merchandise, General Masters, UOM Setup, UOM Conversion
+ac80eed vijaympgs 2025-10-26 Remove icons from tab labels in ConfigurationPage and update checklist
+58625c7 vijaympgs 2025-10-26 Apply full UI pattern to GeneralMasterPage - Fix dialog spacing, field order (Code, Name), Status toggle without label, theme colors, buttons
+d03e1da vijaympgs 2025-10-26 Update checklist - Add field order (Code, Name, Description) and Status toggle without label
+4734ad2 vijaympgs 2025-10-26 Complete Master Data Management screens - Apply full UI pattern checklist to Merchandise, UOM Conversion, and UOM Setup
+51c5a92 vijaympgs 2025-10-26 Update checklist and forms - Add line space before first field (mt: 1), enforce rectangular borders (borderRadius: 0)
+3d944c4 vijaympgs 2025-10-26 Fix UOMConversionPage form dialog per checklist - Remove dialog title icon, add overflow, theme colors, fix spacing, buttons
+b156873 vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN.md - Remove icons from checklist (icons to come from DB config later)
+60cfa7b vijaympgs 2025-10-26 Fix Merchandise (ConfigurationPage.jsx) form dialog per updated checklist - Remove dialog title icon, add overflow, theme colors for labels/toggles, fix button hover
+57261e2 vijaympgs 2025-10-26 Add dedicated Toggles/Switches section to MASTER_SCREEN_UI_PATTERN.md checklist
+3bf8883 vijaympgs 2025-10-26 Fix Form Dialog code example - Add proper section spacing, maxHeight, and clarify first field requirements
+718fb26 vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN.md - Remove line spacing before first field (name field)
+7603dae vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN.md - Add toggle/switch label text color requirement
+eb93de2 vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN.md - Add comprehensive form dialog checklist and code examples
+46301ff vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN.md - Add tab color fix requirements (textColor inherit, !important, TabIndicatorProps)
+fc04645 vijaympgs 2025-10-26 Fix: Force white color for selected tabs in Merchandise Setup (remove blue override)
+1ac04e5 vijaympgs 2025-10-26 Fix: Revert Merchandise Setup to use PageTitle component (UOM Setup standard)
+ef42ed1 vijaympgs 2025-10-26 Fix: Update MASTER_SCREEN_UI_PATTERN.md - Use PageTitle component as standard (UOM Setup reference)
+5a465d1 vijaympgs 2025-10-26 Apply complete UI pattern to Merchandise Setup - Full analysis and implementation
+6b642f1 vijaympgs 2025-10-26 Refactor: Cleanse MASTER_SCREEN_UI_PATTERN.md to be completely generic with zero screen-specific references
+3affd65 vijaympgs 2025-10-26 Fix: Apply theme color to status toggles in SimpleCustomerPage and UOMConversionPage
+d32c8f5 vijaympgs 2025-10-26 Apply UI pattern to SimpleVendorPage: card header List, theme-colored button, status toggle
+4a8d073 vijaympgs 2025-10-26 Update SimpleCustomerPage card header to List
+f4310ec vijaympgs 2025-10-26 Update UOMConversionPage card header to List
+36a00ae vijaympgs 2025-10-26 Apply UI pattern fixes: ConfigurationPage (status toggle), UOMSetupPage (card header, status toggle)
+401a245 vijaympgs 2025-10-26 Correction: Update checklist count from 47 to 62 items
+587bf9e vijaympgs 2025-10-26 Update timestamp to October 26, 2025, 8:15 AM IST
+d48f397 vijaympgs 2025-10-26 Add validation checklist to MASTER_SCREEN_UI_PATTERN.md for verifying 100% completeness of each screen
+8b5f449 vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN.md with comprehensive checklist including card header 'List' requirement, page title sizing, field values theme, status toggle theme, and line spacing
+61b99fb vijaympgs 2025-10-26 Fix GeneralMasterPage: Update page title, remove gradient, apply theme color to all list items and icons
+7579571 vijaympgs 2025-10-26 Fix SimpleCustomerPage: Update page title, remove Fade/Zoom transitions, standardize stat cards to match Dashboard pattern, add theme color card header
+9564a37 vijaympgs 2025-10-26 Fix GeneralMasterPage: Add theme color to table headers, status chips, dialog title, and tab icons
+584c24f vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN: Add Page Title spacing, Tab icon colors, and Status toggle requirements
+9260daf vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN: Mark SimpleVendorPage as completed
+36dcc01 vijaympgs 2025-10-26 Apply MASTER_SCREEN_UI_PATTERN to SimpleVendorPage: theme color, rectangular borders, compact spacing, status chips
+55c81e4 vijaympgs 2025-10-26 Apply MASTER_SCREEN_UI_PATTERN to SimpleCustomerPage: remove icons, rectangular borders, theme color, compact spacing
+3f874f0 vijaympgs 2025-10-26 Update timestamp to 7:24 AM IST in MASTER_SCREEN_UI_PATTERN
+83a5cfe vijaympgs 2025-10-26 Add standard MD file header with FullStack Agent timestamp to MASTER_SCREEN_UI_PATTERN
+fe8076f vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN: Add Status chip styling and completed screens tracking
+05166fe vijaympgs 2025-10-26 Apply theme color to all Status chips across master screens (Active/Inactive)
+cf5ba36 vijaympgs 2025-10-26 Remove PageTitle icons from Merchandise Masters; ensure selected tab icons are white
+b9679df vijaympgs 2025-10-26 Fix theme application: force page reload when theme is changed in selector to apply theme to all components
+7b551b7 vijaympgs 2025-10-26 Fix Master Data screens: rectangular borders (borderRadius: 0), no gradients on card headers, white text on headers
+827b041 vijaympgs 2025-10-26 Update MASTER_SCREEN_UI_PATTERN and start applying fixes to SimpleCustomerPage: rectangular borders, white text for card headers, no gradients
+c734b3d vijaympgs 2025-10-26 Apply Master Screen UI Pattern to all Master Data screens (UOM Conversion, Configuration, UOM Setup): theme colors, compact spacing, button styling, and simplified section headers
+7af2a54 vijaympgs 2025-10-26 Apply Master Screen UI Pattern to UOM Setup: theme colors, compact spacing, and button styling
+ddb0220 vijaympgs 2025-10-26 Apply Master Screen UI Pattern to Merchandise (ConfigurationPage): theme colors, compact spacing
+d7c6cb5 vijaympgs 2025-10-26 Add Master Screen UI Improvement Pattern documentation
+d8fca3e vijaympgs 2025-10-26 Maximize space usage: reduce grid to spacing 1, padding to 1, and logo button gaps to fit Logo and Status above footer
+7206230 vijaympgs 2025-10-26 Apply tighter spacing globally: reduce grid gap to 1.5, dialog padding, and section header margins
+3d3d1f7 vijaympgs 2025-10-26 Remove line spacing between section headers and first fields
+23fb107 vijaympgs 2025-10-26 Reduce line spacing after Basic and Address section headers
+4512c1b vijaympgs 2025-10-26 Reorganize form: move Phone/Email/Website to Address section, align Logo and Status on same row
+ae50dc8 vijaympgs 2025-10-26 Remove Branding section and Company Logo label, update button text to 'Upload Company Logo'
+b794784 vijaympgs 2025-10-26 Simplify section titles and apply theme color to all section headers
+a8a5b42 vijaympgs 2025-10-26 Optimize Add Company dialog: reduce spacing, remove scrollbar, apply theme to Cancel button
+1bdcd84 vijaympgs 2025-10-26 Apply theme color to all list items except Active chip and action buttons
+6b968f8 vijaympgs 2025-10-26 Apply theme color to table header columns
+0fe7f4e vijaympgs 2025-10-26 Remove gradient from Organization Setup - use solid theme color like Item Master
+4f92f2a vijaympgs 2025-10-26 Apply theme color to Organization Setup card header and buttons
+0ed771e vijaympgs 2025-10-26 Fix Organization Setup form loading error - Remove Fade/Zoom transitions causing scrollTop null error
+164eb6e vijaympgs 2025-10-26 Fix notification badge overlapping with star icon in Favourites - Use Chip for notifications matching bell format with orange background
+35c841a vijaympgs 2025-10-26 Add Accordion for Favourites section with expand/collapse functionality
+2554597 vijaympgs 2025-10-26 Fix theme switching: Apply background color and remove page reload for instant theme changes
+41c7202 vijaympgs 2025-10-25 Update START_HERE with Oct 26 session summary
+aa1a310 vijaympgs 2025-10-25 Theme system: Enable public API access for theme selector - Reorganized POS menu with visual separators - Removed old logo emoji from header - POS Masters moved to first position
+3c08a07 vijaympgs 2025-10-25 Session summary: Completed all JSX fixes and POS settlement business rules implementation
+d7a3e9b vijaympgs 2025-10-25 Fix JSX syntax error and missing imports in POSScreenIndexedDB
+6096aff vijaympgs 2025-10-25 Fix duplicate imports in UnifiedOrganizationPage
+79d2add vijaympgs 2025-10-25 Add missing imports in POSTestRunner (PageTitle and Science icon)
+b3b0a4a vijaympgs 2025-10-25 Fix JSX syntax errors in POSTestRunner and add missing PageTitle import in TerminalSetupPageEnhanced
+58c10f6 vijaympgs 2025-10-25 fix: JSX syntax error in TerminalSetupPageEnhanced - removed duplicate Paper closing tag
+113b75e vijaympgs 2025-10-25 fix: JSX syntax errors in ShiftManagementPage - added missing imports and removed duplicate tags
+0cb4779 vijaympgs 2025-10-25 fix: Case sensitivity issue in currency service master_type
+c6fed79 vijaympgs 2025-10-25 feat: Implement Deferred Settlement Flow - Priority 3 Complete
+b09f188 vijaympgs 2025-10-25 feat: Complete Settlement Settings UI and Integration
+990603f vijaympgs 2025-10-25 feat: Implement POS Settlement Flow - Currency Denominations, Settings, and Business Rules
+bdb9be8 vijaympgs 2025-10-25 FullStack Agent Session End: Simplified to single START_HERE file - Removed multiple reference files for clarity - Created single START_HERE_FullStack_Agent.md as only reference - Updated POS_BUSINESS_RULES_IMPLEMENTATION.md with current status - Ready for next session with clear single entry point
+5bfaa43 vijaympgs 2025-10-25 FullStack Agent Session End: Establish agent protocol and documentation - Created FullStack_Agent_Startup_Protocol.md with complete session workflow - Created FullStack_Agent_Next_Session_Guide.md with implementation priorities - Updated POS_BUSINESS_RULES_IMPLEMENTATION.md with session summary - Established agent identity and standards - Ready for business logic implementation phase
+cabb107 vijaympgs 2025-10-25 UI Agent Session End - Logoff Protocol Established - Updated tracker with logoff protocol configuration - Session completed successfully - Ready for next session continuation
+997e625 vijaympgs 2025-10-25 Complete Theme Implementation - NewBorn Retail Branding - Implemented PageTitle and CardHeader components across 79+ files - Created theme management system with database persistence - Updated branding from OptiMind to NewBorn Retail - Added themeService for API integration - Created comprehensive Theme Implementation Tracker - Established UI Agent role and session continuity - All modules now have consistent theming and branding
+891f54c vijaympgs 2025-10-25 Fix @mui/lab import issues and icon imports in Advanced POS modules
+33452a6 vijaympgs 2025-10-25 Complete Advanced POS Features Implementation - All 5 Advanced Modules
+14e397d vijaympgs 2025-10-25 Add Backend Support for POS System - Django Models and APIs
+6ad5039 vijaympgs 2025-10-25 Complete POS System Implementation - All Modules Operational
+1c6027c vijaympgs 2025-10-24 Fix Terminal Setup: Use public companies endpoint
+6b3bc1c vijaympgs 2025-10-24 Add Next Session Guide for POS testing
+652da7f vijaympgs 2025-10-24 Add testing readiness document
+59a327e vijaympgs 2025-10-24 Update trackers: Counter Settlement complete, ready for testing
+51befc7 vijaympgs 2025-10-24 Add Git commands reference for POS system
+41e9de7 vijaympgs 2025-10-24 Add testing action plan and status tracking
+031cb10 vijaympgs 2025-10-24 Fix AlertCircle icon error - replaced with Error icon
+41ecae8 vijaympgs 2025-10-24 Complete POS System Implementation with Counter Settlement
+0219800 vijaympgs 2025-10-24 Major POS System Implementation and UI Freeze - Phase 1 Complete
+6c15094 vijaympgs 2025-10-13 Fix Material-UI icon import error: replace GiftCard with CardGiftcard
+6617da1 vijaympgs 2025-10-13 Implement modern POS interface matching reference image design
+669d1e4 vijaympgs 2025-10-13 Archive mobile and restaurant POS interfaces, maintain only desktop POS version
