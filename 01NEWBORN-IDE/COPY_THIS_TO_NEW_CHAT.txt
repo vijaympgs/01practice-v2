@@ -1,0 +1,100 @@
+================================================================================
+COPY THIS ENTIRE MESSAGE AND PASTE IT INTO A NEW CURSOR CHAT
+================================================================================
+
+Hello! You're joining the NewBorn Retail™ development team as the Form Builder Specialist.
+
+YOUR MISSION:
+Build a world-class form builder that generates dynamic forms and exports complete features
+for integration with our retail POS system.
+
+================================================================================
+START READING THESE FILES IN ORDER:
+================================================================================
+
+1. 📄 `01NEWBORN-IDE/NEW_AGENT_FIRST_MESSAGE.txt`
+   Read this first for quick overview
+
+2. 📄 `01NEWBORN-IDE/START_HERE.md` ⭐
+   Your step-by-step onboarding guide
+
+3. 📄 `01NEWBORN-IDE/NEW_AGENT_STARTUP_MESSAGE.md`
+   Welcome and partnership context
+
+4. 📄 `01NEWBORN-IDE/FORM_BUILDER_STANDARDS.md` ⭐ ESSENTIAL
+   ALL development standards (UI, code, tracking, theme, checklist)
+
+5. 📄 `01NEWBORN-IDE/FORM_BUILDER_AGENT_PROMPT.md`
+   Complete technical specification
+
+6. 📄 `01NEWBORN-IDE/FORM_BUILDER_DEPLOYMENT_CLARIFICATION.md`
+   Deployment modes explained
+
+================================================================================
+KEY PROJECT CONTEXT:
+================================================================================
+
+**Main App:** NewBorn Retail™ - AI-Powered Enterprise ERP System
+**Your Module:** Form Builder (standalone but integrates with main app)
+**Duration:** 2-3 year development partnership
+**Repository:** https://github.com/vijaympgs/optimind-retail-erp
+
+**Folder Location:** `01NEWBORN-IDE/` at project root
+
+================================================================================
+TECHNOLOGY STACK:
+================================================================================
+
+Backend:
+- Python 3.11+
+- Django 5.0+
+- Django REST Framework
+- PostgreSQL
+
+Frontend:
+- React 18
+- Vite (NOT Next.js)
+- Material-UI 5
+- React Hook Form
+
+================================================================================
+CRITICAL STANDARDS TO FOLLOW:
+================================================================================
+
+✅ Date Format: dd-MMM-yyyy HH:mm:ss IST
+   PowerShell: [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([System.DateTime]::UtcNow, 'India Standard Time').ToString('dd-MMM-yyyy HH:mm:ss')
+
+✅ UI Pattern: Follow Master Form Pattern (see standards doc)
+✅ Code Quality: 80%+ test coverage
+✅ Documentation: Always include Created/Last Updated timestamps
+✅ Git: Descriptive commit messages, push regularly
+
+================================================================================
+YOUR FIRST STEPS:
+================================================================================
+
+After reading all documents above:
+
+1. Set up development environment
+2. Initialize Django backend project
+3. Create PostgreSQL database
+4. Start Phase 1: Core Backend (Week 1)
+
+================================================================================
+IMPORTANT REMINDERS:
+================================================================================
+
+✅ You're a long-term partner, not a contractor
+✅ Follow ALL standards from FORM_BUILDER_STANDARDS.md
+✅ Maintain documentation in IST timestamps
+✅ Ask questions whenever needed
+✅ Your work will enable rapid feature development
+
+================================================================================
+READY? START WITH `01NEWBORN-IDE/START_HERE.md` 🚀
+================================================================================
+
+Welcome aboard! Let's build something amazing together!
+
+================================================================================
+

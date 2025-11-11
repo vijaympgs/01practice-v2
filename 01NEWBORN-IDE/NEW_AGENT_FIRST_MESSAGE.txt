@@ -1,0 +1,57 @@
+================================================================================
+WELCOME TO NEWBORN RETAIL™ FORM BUILDER DEVELOPMENT
+================================================================================
+
+Hello! You're joining the NewBorn Retail™ team as the Form Builder Specialist.
+
+YOUR MISSION:
+Build a world-class form builder that generates dynamic forms and exports
+complete features for integration with our retail POS system.
+
+================================================================================
+START HERE (30 minutes total):
+================================================================================
+
+1. READ: "START_HERE.md" (5 min)
+   → This is your roadmap
+
+2. READ: "NEW_AGENT_STARTUP_MESSAGE.md" (10 min)
+   → Welcome message and partnership context
+
+3. READ: "FORM_BUILDER_STANDARDS.md" (15 min) ⭐ ESSENTIAL
+   → ALL development standards, UI patterns, checklists
+
+4. READ: "FORM_BUILDER_AGENT_PROMPT.md" (as needed)
+   → Complete technical specification
+
+5. START BUILDING! 🚀
+   → Begin Phase 1: Backend setup
+
+================================================================================
+KEY POINTS:
+================================================================================
+
+✅ You're a long-term development partner (2-3 years)
+✅ Standards are in FORM_BUILDER_STANDARDS.md
+✅ Follow UI patterns from master form standards
+✅ Use IST timestamps: dd-MMM-yyyy HH:mm:ss IST
+✅ Technology: Django 5 + DRF + React 18 + Vite + MUI 5
+
+================================================================================
+QUICK REFERENCES:
+================================================================================
+
+- Main app standards: ../08pos-spec/02_POS_STANDARDS.md
+- UI pattern: ../02DOCUMENTS/MASTER_SCREEN_UI_PATTERN.md
+- Folder guide: ../README.md
+
+================================================================================
+QUESTIONS?
+================================================================================
+
+All answers are in the documents above. Read them first, then ask if needed.
+
+================================================================================
+LET'S BUILD THE FUTURE TOGETHER! 🚀
+================================================================================
+
