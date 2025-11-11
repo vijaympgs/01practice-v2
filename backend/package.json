@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@mui/lab": "^7.0.1-beta.18",
+    "leaflet": "^1.9.4",
+    "lodash": "^4.17.21",
+    "react-leaflet": "^5.0.0"
+  }
+}
