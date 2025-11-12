@@ -184,8 +184,8 @@ class MenuItemType(models.Model):
     class Meta:
         db_table = 'menu_item_types'
         ordering = ['category', 'order', 'display_name']
-        verbose_name = 'Menu Item Type'
-        verbose_name_plural = 'Menu Item Types'
+        verbose_name = 'Menu Controller'
+        verbose_name_plural = 'Menu Controller'
         indexes = [
             models.Index(fields=['menu_type']),
             models.Index(fields=['transaction_subtype']),

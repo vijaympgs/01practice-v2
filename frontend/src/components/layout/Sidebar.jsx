@@ -79,6 +79,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useLayout } from '../../contexts/LayoutContext';
 import { getMenuCategories } from '../../utils/menuStructure';
+import menuService from '../../services/menuService';
 
 // Icon mapping object to convert string names to actual icon components
 const iconComponents = {
@@ -154,6 +155,10 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
   // Get layout context - hooks must be called at top level
   const layoutContext = useLayout();
   
+  // State for dynamic menu from backend
+  const [dynamicMenuCategories, setDynamicMenuCategories] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+  
   // Load hidden menu categories from localStorage
   const [hiddenMenuCategories, setHiddenMenuCategories] = useState(new Set());
   
@@ -190,6 +195,36 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
+  }, []);
+
+  // Load dynamic menu from backend on component mount
+  useEffect(() => {
+    const loadDynamicMenu = async () => {
+      try {
+        setMenuLoading(true);
+        console.log('🔄 Loading dynamic menu from backend...');
+        
+        const menuData = await menuService.getCompleteMenuStructure();
+        console.log('📊 Backend menu data:', menuData);
+        
+        if (menuData && menuData.categories && menuData.categories.length > 0) {
+          setDynamicMenuCategories(menuData.categories);
+          console.log('✅ Dynamic menu loaded with categories:', menuData.categories.map(cat => cat.title));
+        } else {
+          console.log('⚠️ No dynamic menu data, using static fallback');
+          // Fallback to static menu structure
+          setDynamicMenuCategories([]);
+        }
+      } catch (error) {
+        console.error('❌ Error loading dynamic menu:', error);
+        // Fallback to static menu structure
+        setDynamicMenuCategories([]);
+      } finally {
+        setMenuLoading(false);
+      }
+    };
+
+    loadDynamicMenu();
   }, []);
 
   const shouldShowCategory = (category) => {
@@ -942,58 +977,56 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       
       {/* Scrollable Menu Categories */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
-        {getMenuCategories(menuVisibility)
-          .filter(shouldShowCategory)
-          .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
-          .filter(category => category.type !== 'DASHBOARD')
-          .map((category) => (
-            <Box key={category.title} sx={{ mb: category.type ? 0.5 : 0.125 }}>
-              <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
-                {category.type && (
-                  <>
-                    {renderCategoryHeader(category)}
-                    <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
-                      <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
-                        {(category.items || []).filter(isItemVisible).map((item, index) => {
-                          // Safety check - skip null/undefined items
-                          if (!item || !item.path) {
-                            return null;
-                          }
-                          
-                          // Handle sub-categories (like "Point Of Sale - Phase 2")
-                          const subItems = (category.items || []).filter(i => i && i.parentCategory === item.moduleName && isItemVisible(i));
-                          const hasSubItems = subItems.length > 0;
-                          
-                          // Skip items that are sub-items
-                          if (item.parentCategory) {
-                            return null;
-                          }
-                          
-                          return (
-                            <React.Fragment key={`menu-${index}`}>
-                              {renderMenuItem(item, true, hasSubItems)}
-                              {hasSubItems && (
-                                <Collapse in={expandedSections[item.moduleName]} timeout="auto" unmountOnExit>
-                                  <List component="div" disablePadding>
-                                    {subItems.filter(Boolean).map((subItem, subIndex) => 
-                                      subItem ? (
-                                        <Box key={`sub-${subIndex}`} sx={{ pl: 4 }}>
-                                          {renderMenuItem(subItem, true)}
-                                        </Box>
-                                      ) : null
-                                    )}
-                                  </List>
-                                </Collapse>
-                              )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </List>
-                    </Collapse>
-                  </>
-                )}
-              </List>
-              {category.type && (
+        {/* Use dynamic menu if available, otherwise fall back to static */}
+        {(dynamicMenuCategories && dynamicMenuCategories.length > 0) ? (
+          // Dynamic menu from backend
+          dynamicMenuCategories
+            .filter(category => shouldShowCategory(category))
+            .filter(category => category.title !== 'Archive')  // Hide Archive category
+            .filter(category => category.title !== 'Home')  // Home is handled separately
+            .map((category) => (
+              <Box key={category.title} sx={{ mb: 0.5 }}>
+                <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
+                  {renderCategoryHeader(category)}
+                  <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
+                    <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
+                      {(category.items || []).filter(isItemVisible).map((item, index) => {
+                        // Safety check - skip null/undefined items
+                        if (!item || !item.path) {
+                          return null;
+                        }
+                        
+                        // Handle sub-categories
+                        const subItems = (category.items || []).filter(i => i && i.parentCategory === item.moduleName && isItemVisible(i));
+                        const hasSubItems = subItems.length > 0;
+                        
+                        // Skip items that are sub-items
+                        if (item.parentCategory) {
+                          return null;
+                        }
+                        
+                        return (
+                          <React.Fragment key={`dynamic-menu-${index}`}>
+                            {renderMenuItem(item, true, hasSubItems)}
+                            {hasSubItems && (
+                              <Collapse in={expandedSections[item.moduleName]} timeout="auto" unmountOnExit>
+                                <List component="div" disablePadding>
+                                  {subItems.filter(Boolean).map((subItem, subIndex) => 
+                                    subItem ? (
+                                      <Box key={`dynamic-sub-${subIndex}`} sx={{ pl: 4 }}>
+                                        {renderMenuItem(subItem, true)}
+                                      </Box>
+                                    ) : null
+                                  )}
+                                </List>
+                              </Collapse>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </List>
+                  </Collapse>
+                </List>
                 <Divider 
                   sx={{ 
                     mx: 2, 
@@ -1001,9 +1034,73 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
                     borderColor: 'rgba(0,0,0,0.06)'
                   }} 
                 />
-              )}
-            </Box>
-          ))}
+              </Box>
+            ))
+        ) : (
+          // Fallback to static menu structure
+          getMenuCategories(menuVisibility)
+            .filter(shouldShowCategory)
+            .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
+            .filter(category => category.type !== 'DASHBOARD')
+            .map((category) => (
+              <Box key={category.title} sx={{ mb: category.type ? 0.5 : 0.125 }}>
+                <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
+                  {category.type && (
+                    <>
+                      {renderCategoryHeader(category)}
+                      <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
+                        <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
+                          {(category.items || []).filter(isItemVisible).map((item, index) => {
+                            // Safety check - skip null/undefined items
+                            if (!item || !item.path) {
+                              return null;
+                            }
+                            
+                            // Handle sub-categories (like "Point Of Sale - Phase 2")
+                            const subItems = (category.items || []).filter(i => i && i.parentCategory === item.moduleName && isItemVisible(i));
+                            const hasSubItems = subItems.length > 0;
+                            
+                            // Skip items that are sub-items
+                            if (item.parentCategory) {
+                              return null;
+                            }
+                            
+                            return (
+                              <React.Fragment key={`static-menu-${index}`}>
+                                {renderMenuItem(item, true, hasSubItems)}
+                                {hasSubItems && (
+                                  <Collapse in={expandedSections[item.moduleName]} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                      {subItems.filter(Boolean).map((subItem, subIndex) => 
+                                        subItem ? (
+                                          <Box key={`static-sub-${subIndex}`} sx={{ pl: 4 }}>
+                                            {renderMenuItem(subItem, true)}
+                                          </Box>
+                                        ) : null
+                                      )}
+                                    </List>
+                                  </Collapse>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </List>
+                      </Collapse>
+                    </>
+                  )}
+                </List>
+                {category.type && (
+                  <Divider 
+                    sx={{ 
+                      mx: 2, 
+                      my: 0.5,
+                      borderColor: 'rgba(0,0,0,0.06)'
+                  }} 
+                />
+                )}
+              </Box>
+            ))
+        )}
       </Box>
     </Drawer>
   );

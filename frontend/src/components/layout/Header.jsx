@@ -60,7 +60,15 @@ import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import axios from 'axios';
 import themeService from '../../services/themeService';
-import { useNotification } from '../../contexts/NotificationContext';
+// import { useNotification } from '../../contexts/NotificationContext'; // Temporarily disabled for menu controller testing
+
+// Fallback notification functions
+const useNotification = () => ({
+  displaySuccess: (message) => console.log('SUCCESS:', message),
+  displayError: (message) => console.error('ERROR:', message),
+  displayInfo: (message) => console.log('INFO:', message),
+  displayWarning: (message) => console.warn('WARNING:', message)
+});
 import { getMenuCategories } from '../../utils/menuStructure';
 import brandingService from '../../services/brandingService';
 

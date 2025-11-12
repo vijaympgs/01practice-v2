@@ -18,6 +18,11 @@ from .views import (
     ExportRolePermissionsExcelView,
     ImportRolePermissionsExcelView,
     UserPOSPermissionsView,
+    # Menu Visibility Control Views
+    MenuItemTypeViewSet,
+    MenuVisibilityView,
+    UserMenuPermissionsView,
+    MenuStatisticsView,
 )
 try:
     from .views import (
@@ -88,6 +93,12 @@ urlpatterns = [
     path('users/<uuid:user_id>/accessible-locations/', UserAccessibleLocationsView.as_view(), name='user-accessible-locations'),
     path('users/<uuid:user_id>/default-location/', UserDefaultLocationView.as_view(), name='user-default-location'),
     path('users/sync-location-mappings/', SyncUserLocationMappingsView.as_view(), name='sync-user-location-mappings'),
+    
+    # Menu Visibility Control URLs
+    path('menu-items/', MenuItemTypeViewSet.as_view({'get': 'list'}), name='menu-items'),
+    path('menu-visibility/', MenuVisibilityView.as_view(), name='menu-visibility'),
+    path('menu-permissions/', UserMenuPermissionsView.as_view(), name='user-menu-permissions'),
+    path('menu-statistics/', MenuStatisticsView.as_view(), name='menu-statistics'),
     
     # Include router URLs
     path('', include(router.urls)),

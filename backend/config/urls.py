@@ -68,6 +68,9 @@ urlpatterns = [
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/', include('users.urls')),
     
+    # Users and Permissions
+    path('api/users/', include('users.urls')),
+    
     # Dashboard
     path('api/dashboard/metrics/', dashboard_metrics, name='dashboard_metrics'),
     

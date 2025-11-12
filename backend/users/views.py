@@ -1001,6 +1001,351 @@ class UserPOSPermissionsView(APIView):
             return Response({})
 
 
+# Menu Visibility Control Views
+class MenuItemTypeViewSet(ModelViewSet):
+    """
+    ViewSet for managing menu items and their visibility.
+    Provides API endpoints for the Django admin menu controller.
+    """
+    queryset = MenuItemType.objects.all()
+    serializer_class = None  # We'll define this inline
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        """Return different serializers based on action"""
+        if self.action == 'list':
+            from rest_framework.serializers import Serializer
+            from rest_framework import serializers
+            
+            class MenuItemListSerializer(Serializer):
+                id = serializers.UUIDField(read_only=True)
+                display_name = serializers.CharField(read_only=True)
+                menu_item_id = serializers.CharField(read_only=True)
+                menu_type = serializers.CharField(read_only=True)
+                transaction_subtype = serializers.CharField(read_only=True, allow_null=True)
+                category = serializers.CharField(read_only=True)
+                path = serializers.CharField(read_only=True, allow_null=True)
+                description = serializers.CharField(read_only=True, allow_null=True, allow_blank=True)
+                is_active = serializers.BooleanField(read_only=True)
+                order = serializers.IntegerField(read_only=True)
+                created_at = serializers.DateTimeField(read_only=True)
+                updated_at = serializers.DateTimeField(read_only=True)
+            
+            return MenuItemListSerializer
+        return None
+    
+    def get_queryset(self):
+        """Filter by active status if requested"""
+        queryset = MenuItemType.objects.all()
+        is_active = self.request.query_params.get('is_active')
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == 'true')
+        return queryset.order_by('category', 'order', 'display_name')
+    
+    def list(self, request, *args, **kwargs):
+        """Get all menu items with filtering options"""
+        queryset = self.get_queryset()
+        
+        # Group by category for better organization
+        categories = {}
+        for item in queryset:
+            category = item.category or 'Other'
+            if category not in categories:
+                categories[category] = []
+            
+            categories[category].append({
+                'id': str(item.id),
+                'menu_item_id': item.menu_item_id,
+                'display_name': item.display_name,
+                'menu_type': item.menu_type,
+                'transaction_subtype': item.transaction_subtype,
+                'category': item.category,
+                'path': item.path,
+                'description': item.description,
+                'is_active': item.is_active,
+                'order': item.order,
+                'created_at': item.created_at,
+                'updated_at': item.updated_at,
+            })
+        
+        return Response({
+            'categories': categories,
+            'total_items': queryset.count(),
+            'active_items': queryset.filter(is_active=True).count(),
+            'inactive_items': queryset.filter(is_active=False).count(),
+        })
+
+
+class MenuVisibilityView(APIView):
+    """
+    Global menu visibility controller.
+    Provides endpoints for managing menu visibility through Django admin.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get current menu visibility settings and statistics"""
+        try:
+            # Get all menu items
+            all_menu_items = MenuItemType.objects.all()
+            active_menu_items = all_menu_items.filter(is_active=True)
+            
+            # Group by category
+            categories = {}
+            for item in active_menu_items:
+                category = item.category or 'Other'
+                if category not in categories:
+                    categories[category] = []
+                
+                categories[category].append({
+                    'id': str(item.id),
+                    'menu_item_id': item.menu_item_id,
+                    'display_name': item.display_name,
+                    'menu_type': item.menu_type,
+                    'transaction_subtype': item.transaction_subtype,
+                    'path': item.path,
+                    'is_active': item.is_active,
+                    'order': item.order,
+                })
+            
+            # Calculate statistics
+            total_items = all_menu_items.count()
+            active_count = active_menu_items.count()
+            inactive_count = total_items - active_count
+            
+            return Response({
+                'categories': categories,
+                'statistics': {
+                    'total_items': total_items,
+                    'active_items': active_count,
+                    'inactive_items': inactive_count,
+                    'active_percentage': round((active_count / total_items * 100) if total_items > 0 else 0, 1)
+                },
+                'last_updated': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching menu visibility: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def post(self, request):
+        """Update menu visibility settings"""
+        # Only admin can update menu visibility
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can update menu visibility'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            data = request.data
+            updated_count = 0
+            
+            # Handle bulk activation/deactivation
+            if 'activate_all' in data:
+                MenuItemType.objects.all().update(is_active=True)
+                updated_count = MenuItemType.objects.count()
+            
+            elif 'deactivate_all' in data:
+                MenuItemType.objects.all().update(is_active=False)
+                updated_count = MenuItemType.objects.count()
+            
+            # Handle individual item updates
+            elif 'items' in data:
+                items_data = data['items']
+                for item_data in items_data:
+                    try:
+                        menu_item = MenuItemType.objects.get(id=item_data['id'])
+                        menu_item.is_active = item_data.get('is_active', menu_item.is_active)
+                        menu_item.save()
+                        updated_count += 1
+                    except MenuItemType.DoesNotExist:
+                        continue
+            
+            # Handle category-level updates
+            elif 'categories' in data:
+                categories_data = data['categories']
+                for category_name, category_data in categories_data.items():
+                    try:
+                        # Update all items in this category
+                        MenuItemType.objects.filter(
+                            category=category_name
+                        ).update(is_active=category_data.get('is_active', True))
+                        updated_count += MenuItemType.objects.filter(category=category_name).count()
+                    except Exception:
+                        continue
+            
+            return Response({
+                'message': f'Successfully updated {updated_count} menu items',
+                'updated_count': updated_count,
+                'timestamp': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error updating menu visibility: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class UserMenuPermissionsView(APIView):
+    """
+    Get user's menu permissions filtered by active menu items.
+    Integrates with existing permission system and global visibility.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get user's menu permissions considering global visibility"""
+        user = request.user
+        
+        try:
+            # Get currently active menu items
+            active_menu_items = MenuItemType.objects.filter(is_active=True)
+            active_menu_ids = [str(item.id) for item in active_menu_items]
+            active_menu_item_ids = [item.menu_item_id for item in active_menu_items]
+            
+            # Get user's direct permissions
+            user_permissions = UserPermission.objects.filter(
+                user=user,
+                menu_item__is_active=True
+            ).select_related('menu_item')
+            
+            # Get user's role permissions (group permissions)
+            user_groups = user.groups.all()
+            role_permissions = GroupPermission.objects.filter(
+                group__in=user_groups,
+                menu_item__is_active=True
+            ).select_related('menu_item')
+            
+            # Merge permissions with global visibility
+            final_permissions = {}
+            
+            # Process user permissions (highest priority)
+            for perm in user_permissions:
+                if perm.menu_item and perm.menu_item.menu_item_id in active_menu_item_ids:
+                    menu_item_id = perm.menu_item.menu_item_id
+                    final_permissions[menu_item_id] = {
+                        'can_access': perm.can_access,
+                        'can_view': perm.can_view,
+                        'can_create': perm.can_create,
+                        'can_edit': perm.can_edit,
+                        'can_delete': perm.can_delete,
+                        'override': perm.override,
+                        'source': 'user_permission'
+                    }
+            
+            # Process role permissions (lower priority, only if no user permission)
+            for perm in role_permissions:
+                if perm.menu_item and perm.menu_item.menu_item_id in active_menu_item_ids:
+                    menu_item_id = perm.menu_item.menu_item_id
+                    
+                    # Skip if user already has direct permission
+                    if menu_item_id not in final_permissions:
+                        final_permissions[menu_item_id] = {
+                            'can_access': perm.can_access,
+                            'can_view': perm.can_view,
+                            'can_create': perm.can_create,
+                            'can_edit': perm.can_edit,
+                            'can_delete': perm.can_delete,
+                            'source': 'role_permission'
+                        }
+            
+            return Response({
+                'permissions': final_permissions,
+                'active_menu_items': active_menu_item_ids,
+                'total_permissions': len(final_permissions),
+                'user_role': user.role,
+                'timestamp': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching user menu permissions: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class MenuStatisticsView(APIView):
+    """
+    Get menu statistics and analytics.
+    Useful for admin dashboard and monitoring.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get comprehensive menu statistics"""
+        # Only admin can view detailed statistics
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can view menu statistics'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            all_menu_items = MenuItemType.objects.all()
+            active_menu_items = all_menu_items.filter(is_active=True)
+            
+            # Statistics by category
+            category_stats = {}
+            for item in all_menu_items:
+                category = item.category or 'Other'
+                if category not in category_stats:
+                    category_stats[category] = {'total': 0, 'active': 0, 'inactive': 0}
+                
+                category_stats[category]['total'] += 1
+                if item.is_active:
+                    category_stats[category]['active'] += 1
+                else:
+                    category_stats[category]['inactive'] += 1
+            
+            # Statistics by menu type
+            menu_type_stats = {}
+            for item in all_menu_items:
+                menu_type = item.menu_type or 'UNKNOWN'
+                if menu_type not in menu_type_stats:
+                    menu_type_stats[menu_type] = {'total': 0, 'active': 0, 'inactive': 0}
+                
+                menu_type_stats[menu_type]['total'] += 1
+                if item.is_active:
+                    menu_type_stats[menu_type]['active'] += 1
+                else:
+                    menu_type_stats[menu_type]['inactive'] += 1
+            
+            # Permission statistics
+            user_permission_count = UserPermission.objects.count()
+            group_permission_count = GroupPermission.objects.count()
+            
+            return Response({
+                'overview': {
+                    'total_menu_items': all_menu_items.count(),
+                    'active_menu_items': active_menu_items.count(),
+                    'inactive_menu_items': all_menu_items.count() - active_menu_items.count(),
+                    'active_percentage': round((active_menu_items.count() / all_menu_items.count() * 100) if all_menu_items.count() > 0 else 0, 1)
+                },
+                'by_category': category_stats,
+                'by_menu_type': menu_type_stats,
+                'permissions': {
+                    'user_permissions': user_permission_count,
+                    'group_permissions': group_permission_count,
+                    'total_permissions': user_permission_count + group_permission_count
+                },
+                'last_updated': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching menu statistics: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# Import timezone for timestamp generation
+from django.utils import timezone
+
+
 class UserAccessibleLocationsView(APIView):
     """
     Get locations accessible to a user based on their role.

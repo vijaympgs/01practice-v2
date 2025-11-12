@@ -13,6 +13,7 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Event as DayManagementIcon,
@@ -24,6 +25,9 @@ import {
 } from '@mui/icons-material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import api from '../../services/api';
+import { useNotification } from '../../contexts/NotificationContext';
 import PageTitle from '../../components/common/PageTitle';
 
 // Import existing components for consolidation
@@ -39,7 +43,7 @@ import DayEndProcessModule from './DayEndProcessModule';
 const DayManagementConsole = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('day-open');
   const [loading, setLoading] = useState(false);
   
   // State for tracking day operations
@@ -58,13 +62,13 @@ const DayManagementConsole = () => {
     setLoading(true);
     try {
       // Check for active day open
-      const dayResponse = await fetch('/api/day-opens/active/');
-      const hasActiveDay = dayResponse.ok && dayResponse.data;
+      const dayResponse = await api.get('/day-opens/active/');
+      const hasActiveDay = dayResponse.data;
       
       // Check for active session
       let activeSession = null;
       try {
-        const sessionResponse = await fetch('/pos-sessions/', {
+        const sessionResponse = await api.get('/pos-sessions/', {
           params: { status: 'open', page_size: 1 }
         });
         const sessions = sessionResponse.data?.results || [];
@@ -80,6 +84,12 @@ const DayManagementConsole = () => {
       });
     } catch (error) {
       console.error('Error checking day status:', error);
+      // Set default values on error
+      setDayStatus({
+        hasActiveDay: false,
+        activeSession: null,
+        dayEndCompleted: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -155,12 +165,19 @@ const DayManagementConsole = () => {
     }
   };
 
-  const renderTabContent = (tab) => {
-    const TabComponent = tabs.find(t => t.id === tab.id)?.component;
-    if (TabComponent) {
-      return <TabComponent {...tab.props} />;
+  const renderTabContent = () => {
+    const activeTabData = tabs.find(t => t.id === activeTab);
+    if (activeTabData && activeTabData.component) {
+      const TabComponent = activeTabData.component;
+      return <TabComponent {...activeTabData.props} />;
     }
-    return null;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <Typography variant="body1" color="text.secondary">
+          Component not found for tab: {activeTab}
+        </Typography>
+      </Box>
+    );
   };
 
   return (
@@ -231,25 +248,32 @@ const DayManagementConsole = () => {
               bgcolor: 'background.paper',
             }}
           >
-            {/* Tab Navigation */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-              <Stack direction="row" spacing={1}>
-                {tabs.map((tab, index) => (
+            {/* Tab Navigation - Styled as Action Buttons */}
+            <Box sx={{ mb: 3 }}>
+              <Stack direction="row" spacing={2} justifyContent="center">
+                {tabs.map((tab) => (
                   <Button
                     key={tab.id}
-                    variant={activeTab === tab.id ? 'contained' : 'outlined'}
+                    variant="contained"
                     onClick={() => setActiveTab(tab.id)}
                     startIcon={tab.icon}
                     sx={{
-                      backgroundColor: activeTab === tab.id ? getTabColor(tab.id) : 'transparent',
-                      color: activeTab === tab.id ? 'white' : 'text.primary',
-                      borderColor: activeTab === tab.id ? getTabColor(tab.id) : 'divider',
+                      backgroundColor: activeTab === tab.id ? getTabColor(tab.id) : 'grey.500',
+                      color: 'white',
                       px: 3,
-                      py: 1,
+                      py: 1.5,
+                      minWidth: 160,
                       borderRadius: 1,
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      boxShadow: activeTab === tab.id ? 2 : 1,
                       '&:hover': {
-                        backgroundColor: activeTab === tab.id ? alpha(getTabColor(tab.id), 0.08) : 'transparent',
+                        backgroundColor: getTabColor(tab.id),
+                        boxShadow: 3,
+                        transform: 'translateY(-1px)',
                       },
+                      transition: 'all 0.2s ease-in-out',
                     }}
                   >
                     {tab.label}
@@ -260,45 +284,13 @@ const DayManagementConsole = () => {
 
             {/* Tab Content */}
             <Box sx={{ minHeight: 400 }}>
-              {renderTabContent(tabs[activeTab])}
-            </Box>
-
-            {/* Quick Actions */}
-            <Box sx={{ 
-              borderTop: 1, 
-              borderColor: 'divider', 
-              pt: 2, 
-              mt: 2 
-            }}>
-              <Stack direction="row" spacing={2} justifyContent="center">
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<DayOpenIcon />}
-                  onClick={() => setActiveTab('day-open')}
-                  sx={{ minWidth: 140 }}
-                >
-                  Quick Day Open
-                </Button>
-                <Button
-                  variant="contained"
-                  color="info"
-                  startIcon={<SessionIcon />}
-                  onClick={() => setActiveTab('session-open')}
-                  sx={{ minWidth: 160 }}
-                >
-                  Quick Session Open
-                </Button>
-                <Button
-                  variant="contained"
-                  color="warning"
-                  startIcon={<DayEndIcon />}
-                  onClick={() => setActiveTab('day-end')}
-                  sx={{ minWidth: 140 }}
-                >
-                  Quick Day End
-                </Button>
-              </Stack>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                renderTabContent()
+              )}
             </Box>
 
             {/* Information Panel */}
@@ -308,7 +300,7 @@ const DayManagementConsole = () => {
             >
               <Typography variant="body2">
                 <strong>Day Management Console</strong> provides a unified interface for all day operations. 
-                Navigate between tabs for detailed functions or use the quick action buttons above for immediate access.
+                Navigate between tabs to access detailed functions for day management.
               </Typography>
             </Alert>
           </Paper>

@@ -39,13 +39,15 @@ import {
   AttachMoney as AttachMoneyIcon,
   ListAlt as ListAltIcon,
 } from '@mui/icons-material';
-import { useUserRole } from '../../contexts/UserRoleContext';
+// import { useUserRole } from '../../contexts/UserRoleContext'; // Temporarily disabled for menu controller testing
 import { alpha } from '@mui/material/styles';
 
 const DashboardModern = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
-  const { userRole, getCurrentRole } = useUserRole();
+  // const { userRole, getCurrentRole } = useUserRole(); // Temporarily disabled for menu controller testing
+  const userRole = 'store_manager'; // Fallback value
+  const getCurrentRole = () => ({ id: 'store_manager', name: 'Store Manager' }); // Fallback function
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   

@@ -24,6 +24,16 @@ import {
   Divider,
   Stack,
   InputAdornment,
+  Card,
+  CardContent,
+  Avatar,
+  LinearProgress,
+  Badge,
+  Tooltip,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
 } from '@mui/material';
 import {
   AccountBalance as CashDrawerIcon,
@@ -34,6 +44,17 @@ import {
   CheckCircle as CheckIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
+  MonetizationOn as MoneyIcon,
+  CreditCard as CardIcon,
+  AccountBalanceWallet as WalletIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  Assignment as AssignmentIcon,
+  Schedule as ScheduleIcon,
+  DoneAll as DoneAllIcon,
+  Error as ErrorIcon,
+  Warning as WarningIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { useTheme, alpha } from '@mui/material/styles';
 import { currencyService } from '../../services/currencyService';
@@ -508,161 +529,442 @@ const SettlementModule = () => {
     switch (stepKey) {
       case 'cash':
         return (
-          <Stack spacing={2.5}>
+          <Stack spacing={3}>
+            {/* Enhanced Summary Cards */}
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    Opening Float
-                    </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(settlement.openingBalance)}
-                    </Typography>
-                  </Paper>
-                </Grid>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.primary.main, mr: 1.5 }}>
+                      <MoneyIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Opening Float
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                        {formatCurrency(settlement.openingBalance)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                      Expected Cash
-                    </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(settlement.expectedCash)}
-                    </Typography>
-                  </Paper>
-                </Grid>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #f0f9ff 0%, #e3f2fd 100%)',
+                    border: '1px solid #e3f2fd',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.info.main, mr: 1.5 }}>
+                      <TrendingUpIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Expected Cash
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
+                        {formatCurrency(settlement.expectedCash)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    Counted Cash
-                    </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(settlement.actualCash)}
-                    </Typography>
-                  </Paper>
-                </Grid>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #f3e5f5 0%, #e8eaf6 100%)',
+                    border: '1px solid #e8eaf6',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.success.main, mr: 1.5 }}>
+                      <DoneAllIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Counted Cash
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                        {formatCurrency(settlement.actualCash)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    Variance
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      mt: 1,
-                      fontWeight: 600,
-                      color:
-                        settlement.difference === 0
-                          ? theme.palette.success.main
-                          : settlement.difference > 0
-                          ? theme.palette.warning.main
-                          : theme.palette.error.main,
-                    }}
-                  >
-                    {formatCurrency(settlement.difference)}
-              </Typography>
-                </Paper>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: settlement.difference === 0 
+                      ? 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)'
+                      : settlement.difference > 0
+                      ? 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)'
+                      : 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+                    border: '1px solid',
+                    borderColor: settlement.difference === 0 ? '#c8e6c9' : settlement.difference > 0 ? '#ffe0b2' : '#ffcdd2',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Avatar sx={{ 
+                      bgcolor: settlement.difference === 0 
+                        ? theme.palette.success.main 
+                        : settlement.difference > 0 
+                        ? theme.palette.warning.main 
+                        : theme.palette.error.main, 
+                      mr: 1.5 
+                    }}>
+                      {settlement.difference === 0 ? <CheckIcon /> : settlement.difference > 0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Variance
+                      </Typography>
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          fontWeight: 700, 
+                          color: settlement.difference === 0 
+                            ? theme.palette.success.main 
+                            : settlement.difference > 0 
+                            ? theme.palette.warning.main 
+                            : theme.palette.error.main 
+                        }}
+                      >
+                        {formatCurrency(settlement.difference)}
+                      </Typography>
+                      {settlement.difference !== 0 && (
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          {settlement.difference > 0 ? 'Excess' : 'Shortage'}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Card>
               </Grid>
             </Grid>
 
+            {/* Enhanced Denomination Section */}
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MoneyIcon sx={{ color: theme.palette.primary.main }} />
                 Denomination Breakdown
               </Typography>
-              <Grid container spacing={1.5}>
+              <Grid container spacing={2}>
                 {Object.entries(settlement.denominations).map(([denomination, data]) => (
-                  <Grid item xs={6} sm={4} md={3} key={denomination}>
-                    <Paper
-                      variant="outlined"
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={denomination}>
+                    <Card
                       sx={{
-                        p: 1.5,
-                        borderRadius: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 1,
-                        alignItems: 'stretch',
+                        p: 2,
+                        borderRadius: 2,
+                        border: '1px solid #e0e0e0',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                          transform: 'translateY(-2px)',
+                        }
                       }}
                     >
-                      <Typography variant="body2" color="text.secondary">
-                        {`${getCurrencySymbol()}${denomination}`}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => updateDenomination(denomination, data.count - 1)}
-                          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
-                        >
-                          <RemoveIcon fontSize="small" />
-                        </IconButton>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {data.count}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                          {getCurrencySymbol()}{denomination}
                         </Typography>
-                        <IconButton 
+                        <Chip 
+                          label={formatCurrency(data.amount)} 
                           size="small" 
-                          onClick={() => updateDenomination(denomination, data.count + 1)}
-                          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
-                        >
-                          <AddIcon fontSize="small" />
-                        </IconButton>
+                          color="primary" 
+                          variant="outlined"
+                          sx={{ fontWeight: 600 }}
+                        />
                       </Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatCurrency(data.amount)}
-                      </Typography>
-                    </Paper>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => updateDenomination(denomination, Math.max(0, data.count - 10))}
+                          sx={{ 
+                            minWidth: 40, 
+                            height: 40,
+                            borderRadius: 2,
+                            '&:hover': { bgcolor: 'error.main', color: 'white' }
+                          }}
+                        >
+                          <RemoveIcon />
+                        </Button>
+                        <TextField
+                          type="number"
+                          value={data.count}
+                          onChange={(e) => updateDenomination(denomination, parseInt(e.target.value) || 0)}
+                          inputProps={{ 
+                            min: 0, 
+                            style: { textAlign: 'center', fontSize: '1.1rem', fontWeight: 600 }
+                          }}
+                          sx={{ 
+                            width: 80,
+                            '& .MuiOutlinedInput-input': { textAlign: 'center' }
+                          }}
+                        />
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => updateDenomination(denomination, data.count + 10)}
+                          sx={{ 
+                            minWidth: 40, 
+                            height: 40,
+                            borderRadius: 2,
+                            '&:hover': { bgcolor: 'success.main' }
+                          }}
+                        >
+                          <AddIcon />
+                        </Button>
+                      </Box>
+                    </Card>
                   </Grid>
                 ))}
               </Grid>
-              </Box>
+            </Box>
           </Stack>
         );
       case 'card':
         return (
-          <Stack spacing={2.5}>
+          <Stack spacing={3}>
+            {/* Enhanced Payment Breakdown Cards */}
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    Card Payments
-                </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(paymentBreakdown.card)}
-                  </Typography>
-                </Paper>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb3 100%)',
+                    border: '1px solid #bbdefb3',
+                    boxShadow: '0 4px 12px rgba(187, 222, 240, 0.15)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 8px 24px rgba(187, 222, 240, 0.25)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.info.main, mr: 1.5 }}>
+                      <CardIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Card Payments
+                      </Typography>
+                      <Typography variant="h6" sx={{ mt: 1, fontWeight: 700, color: theme.palette.info.main }}>
+                        {formatCurrency(paymentBreakdown.card)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {paymentBreakdown.card} transactions
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    UPI & Wallets
-                  </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(paymentBreakdown.digital)}
-                  </Typography>
-                </Paper>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #e8f5e8 0%, #c5cae1 100%)',
+                    border: '1px solid #c5cae1',
+                    boxShadow: '0 4px 12px rgba(197, 215, 240, 0.15)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 8px 24px rgba(197, 215, 240, 0.25)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.success.main, mr: 1.5 }}>
+                      <WalletIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        UPI & Wallets
+                      </Typography>
+                      <Typography variant="h6" sx={{ mt: 1, fontWeight: 700, color: theme.palette.success.main }}>
+                        {formatCurrency(paymentBreakdown.digital)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {paymentBreakdown.digital} transactions
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    Other Methods
-                  </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(paymentBreakdown.others)}
-                  </Typography>
-                </Paper>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #f3e5f5 0%, #e8eaf6 100%)',
+                    border: '1px solid #e8eaf6',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.warning.main, mr: 1.5 }}>
+                      <AssignmentIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Other Methods
+                      </Typography>
+                      <Typography variant="h6" sx={{ mt: 1, fontWeight: 700, color: theme.palette.warning.main }}>
+                        {formatCurrency(paymentBreakdown.others)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {paymentBreakdown.others} transactions
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.4 }}>
-                    Non-Cash Total
-                  </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {formatCurrency(nonCashTotal)}
-                  </Typography>
-                </Paper>
+                <Card 
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    background: 'linear-gradient(135deg, #fafafa 0%, #f5f7fa 100%)',
+                    border: '1px solid #e0e0e0',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.grey[600], mr: 1.5 }}>
+                      <ScheduleIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                        Non-Cash Total
+                      </Typography>
+                      <Typography variant="h6" sx={{ mt: 1, fontWeight: 700 }}>
+                        {formatCurrency(nonCashTotal)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {nonCashTotal} transactions
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
               </Grid>
             </Grid>
 
-            <Alert severity="info" sx={{ borderRadius: 1 }}>
-              Verify the totals above with processor reports before closing the session. Capture any mismatches in the adjustments
-              step.
+            {/* Payment Summary Card */}
+            <Card 
+              sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                background: 'linear-gradient(135deg, #f8fafc 0%, #eef2f8 40%, #f8fafc 100%)',
+                border: '1px solid #e0e0e0',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: theme.palette.primary.main, mr: 2 }}>
+                  <DoneAllIcon />
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                    Payment Summary
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Expected: {formatCurrency(settlement.expectedCash + nonCashTotal)}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'gap': 2 }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" color="text.secondary">
+                    {formatCurrency(settlement.expectedCash)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Cash Expected
+                  </Typography>
+                </Box>
+                <Divider orientation="vertical" flexItem />
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" color="text.secondary">
+                    {formatCurrency(nonCashTotal)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Non-Cash Expected
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            <Alert 
+              severity="info" 
+              sx={{ 
+                borderRadius: 2,
+                '& .MuiAlert-message': {
+                  alignItems: 'flex-start'
+                }
+              }}
+            >
+              <InfoIcon sx={{ mr: 1, mt: 0.5 }} />
+              <Box>
+                <Typography variant="body2" fontWeight={600}>
+                  Verification Required
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Match processor reports for card, UPI and wallet payments before closing the session. Capture any mismatches in the adjustments step.
+                </Typography>
+              </Box>
             </Alert>
           </Stack>
         );
@@ -997,22 +1299,74 @@ const SettlementModule = () => {
             )}
           </Paper>
 
-          <Box
-            sx={{
-              position: 'relative',
-              pl: { xs: 3, md: 6 },
-              mt: 1,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                left: { xs: 8, md: 16 },
-                top: 0,
-                bottom: 0,
-                width: '2px',
-                background: `linear-gradient(${alpha(theme.palette.primary.main, 0.3)}, ${alpha(theme.palette.grey[400], 0.2)})`,
-              },
-            }}
-          >
+          {/* Horizontal Timeline Navigation */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, textAlign: 'center', color: theme.palette.primary.main }}>
+              Settlement Workflow Steps
+            </Typography>
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
+              {timelineSteps.map((step, index) => {
+                const statusMeta = getTimelineStatusMeta(step.status);
+                const statusColorValue =
+                  statusMeta.color !== 'default' && theme.palette[statusMeta.color]
+                    ? theme.palette[statusMeta.color].main
+                    : theme.palette.grey[400];
+
+                return (
+                  <Button
+                    key={step.key}
+                    variant={step.status === 'complete' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      // Scroll to the step content
+                      const element = document.getElementById(`settlement-step-${step.key}`);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }}
+                    startIcon={
+                      step.status === 'complete' ? <CheckIcon /> : 
+                      step.status === 'in-progress' ? <CircularProgress size={16} /> : 
+                      <ScheduleIcon />
+                    }
+                    sx={{
+                      backgroundColor: step.status === 'complete' ? statusColorValue : 'transparent',
+                      color: step.status === 'complete' ? 'white' : statusColorValue,
+                      borderColor: statusColorValue,
+                      borderWidth: 2,
+                      px: 2,
+                      py: 1,
+                      minWidth: 180,
+                      borderRadius: 2,
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      boxShadow: step.status === 'complete' ? 2 : 0,
+                      '&:hover': {
+                        backgroundColor: statusColorValue,
+                        color: 'white',
+                        transform: 'translateY(-2px)',
+                        boxShadow: 3,
+                      },
+                      transition: 'all 0.2s ease-in-out',
+                      position: 'relative',
+                    }}
+                  >
+                    <Box sx={{ textAlign: 'left' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                        {step.title.split('.')[1]}
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: '0.7rem', opacity: 0.8 }}>
+                        {statusMeta.label}
+                      </Typography>
+                    </Box>
+                  </Button>
+                );
+              })}
+            </Stack>
+          </Box>
+
+          {/* Step Content Sections */}
+          <Box>
             {timelineSteps.map((step, index) => {
               const statusMeta = getTimelineStatusMeta(step.status);
               const statusColorValue =
@@ -1021,63 +1375,83 @@ const SettlementModule = () => {
                   : theme.palette.grey[400];
 
               return (
-                <Paper
+                <Box
                   key={step.key}
-                  variant="outlined"
+                  id={`settlement-step-${step.key}`}
                   sx={{
-                    position: 'relative',
-                    ml: { xs: 2.5, md: 5 },
-                    mb: index === timelineSteps.length - 1 ? 0 : 3,
-                    borderRadius: 2,
-                    borderColor: alpha(statusColorValue, 0.3),
-                    boxShadow: '0 24px 48px rgba(15, 23, 42, 0.08)',
-                    background: '#ffffff',
-                    overflow: 'hidden',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      left: { xs: -22, md: -36 },
-                      top: 30,
-                      width: 18,
-                      height: 18,
-                      borderRadius: '50%',
-                      border: '4px solid',
-                      borderColor: statusColorValue,
-                      backgroundColor: '#fff',
-                      boxShadow: `0 0 0 6px ${alpha(statusColorValue, 0.18)}`,
-                    },
+                    mb: 3,
+                    scrollMarginTop: 100, // Add space when scrolling to this element
                   }}
                 >
-                  <Box
+                  <Paper
+                    variant="outlined"
                     sx={{
-                      display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      gap: 1.5,
-                      alignItems: { xs: 'flex-start', sm: 'center' },
-                      justifyContent: 'space-between',
-                      px: { xs: 2, md: 3 },
-                      py: 2,
-                      background: `linear-gradient(90deg, ${alpha(statusColorValue, 0.16)}, transparent)`,
+                      borderRadius: 2,
+                      borderColor: alpha(statusColorValue, 0.3),
+                      boxShadow: '0 8px 32px rgba(15, 23, 42, 0.08)',
+                      background: '#ffffff',
+                      overflow: 'hidden',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 12px 48px rgba(15, 23, 42, 0.12)',
+                        transform: 'translateY(-2px)',
+                      }
                     }}
                   >
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {step.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {step.subtitle}
-                      </Typography>
-              </Box>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip label={statusMeta.label} color={statusMeta.color === 'default' ? 'default' : statusMeta.color} size="small" />
-                      <Typography variant="caption" color="text.secondary">
-                        {step.timestamp}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                  <Divider />
-                  <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>{renderStepContent(step.key)}</Box>
-                </Paper>
+                    {/* Step Header */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        gap: 1.5,
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                        justifyContent: 'space-between',
+                        px: { xs: 2, md: 3 },
+                        py: 2,
+                        background: `linear-gradient(90deg, ${alpha(statusColorValue, 0.08)}, transparent)`,
+                        borderBottom: `1px solid ${alpha(statusColorValue, 0.1)}`,
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar
+                          sx={{
+                            bgcolor: statusColorValue,
+                            width: 40,
+                            height: 40,
+                          }}
+                        >
+                          {step.status === 'complete' ? <CheckIcon /> : 
+                           step.status === 'in-progress' ? <CircularProgress size={20} color="inherit" /> : 
+                           <ScheduleIcon />}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {step.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {step.subtitle}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip 
+                          label={statusMeta.label} 
+                          color={statusMeta.color === 'default' ? 'default' : statusMeta.color} 
+                          size="small"
+                          sx={{ fontWeight: 600 }}
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {step.timestamp}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    
+                    {/* Step Content */}
+                    <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+                      {renderStepContent(step.key)}
+                    </Box>
+                  </Paper>
+                </Box>
               );
             })}
           </Box>
