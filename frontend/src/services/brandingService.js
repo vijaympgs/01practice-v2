@@ -6,6 +6,8 @@
 class BrandingService {
   constructor() {
     this.config = null;
+    this.loadPromise = null;
+    this.isLoaded = false;
     this.loadConfig();
   }
 
@@ -67,6 +69,16 @@ class BrandingService {
    * Load branding configuration from the config file
    */
   async loadConfig() {
+    // Prevent multiple concurrent loads
+    if (this.loadPromise) {
+      return this.loadPromise;
+    }
+
+    this.loadPromise = this._doLoadConfig();
+    return this.loadPromise;
+  }
+
+  async _doLoadConfig() {
     try {
       // Default configuration
       const defaultConfig = {
@@ -81,6 +93,9 @@ class BrandingService {
           show_trademark: true
         }
       };
+
+      // Set default config immediately for faster access
+      this.config = defaultConfig;
 
       // Try to load from .cfg file first
       try {
@@ -97,12 +112,10 @@ class BrandingService {
             }
           };
           
-          console.log('Branding configuration loaded from file:', this.config);
         } else {
           throw new Error('Config file not found');
         }
       } catch (fileError) {
-        console.warn('Could not load branding.cfg file, using defaults:', fileError.message);
         this.config = defaultConfig;
       }
 
@@ -112,14 +125,14 @@ class BrandingService {
         try {
           const parsedConfig = JSON.parse(localConfig);
           this.config = { ...this.config, ...parsedConfig };
-          console.log('Branding configuration merged with localStorage:', this.config);
         } catch (error) {
-          console.warn('Invalid branding config in localStorage, using file/defaults:', error);
+          // Invalid localStorage config, ignore
         }
       }
 
+      this.isLoaded = true;
+
     } catch (error) {
-      console.error('Error loading branding configuration:', error);
       // Fallback to default configuration
       this.config = {
         company: {
@@ -133,6 +146,7 @@ class BrandingService {
           show_trademark: true
         }
       };
+      this.isLoaded = true;
     }
   }
 
@@ -194,7 +208,6 @@ class BrandingService {
       // Dispatch custom event for immediate UI updates
       window.dispatchEvent(new CustomEvent('brandingChanged', { detail: this.config }));
       
-      console.log('Branding configuration updated:', this.config);
       return true;
     } catch (error) {
       console.error('Error updating branding configuration:', error);

@@ -102,6 +102,7 @@ import SessionManagementPage from './pages/POS/SessionManagementPage';
 import SessionOpenPage from './pages/POS/SessionOpenPage';
 import SessionClosePage from './pages/POS/SessionClosePage';
 import DayOpenPage from './pages/POS/DayOpenPage';
+import DayManagementConsole from './pages/POS/DayManagementConsole';
 import DayClosePage from './pages/POS/DayClosePage';
 import POSBillingEnhanced from './pages/POS/POSBillingEnhanced';
 import POSDesktop from './pages/POS/POSDesktop';
@@ -346,6 +347,7 @@ const App = React.memo(() => {
                   <Route path="/pos-sessions" element={<POSSessionManagement />} />
                   <Route path="/pos/terminal-setup" element={<TerminalSetupPage />} />
                   <Route path="/pos/terminal-configuration" element={<TerminalConfigurationPageV2 />} />
+                  <Route path="/pos/day-management-console" element={<DayManagementConsole />} />
                   <Route path="/pos/day-open" element={<DayOpenPage />} />
                   <Route path="/pos/session-open" element={<SessionOpenPage />} />
                   <Route path="/pos/shift-management" element={<ShiftManagementPage />} />

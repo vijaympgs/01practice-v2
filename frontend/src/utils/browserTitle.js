@@ -9,6 +9,8 @@ class BrowserTitleManager {
   constructor() {
     this.defaultTitle = 'NewBorn Retail™ - AI-Powered ERP System';
     this.currentConfig = null;
+    this.isInitialized = false;
+    this.initPromise = null;
     this.init();
   }
 
@@ -16,21 +18,41 @@ class BrowserTitleManager {
    * Initialize the browser title manager
    */
   async init() {
+    // Prevent multiple initializations
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = this._doInit();
+    return this.initPromise;
+  }
+
+  async _doInit() {
     try {
-      // Wait for branding configuration to be loaded
-      await new Promise(resolve => {
-        const checkConfig = () => {
-          const config = brandingService.getConfig();
-          if (config) {
-            this.currentConfig = config;
-            resolve();
-          } else {
-            // If config is not ready yet, wait a bit and check again
-            setTimeout(checkConfig, 100);
-          }
-        };
-        checkConfig();
-      });
+      // Wait for branding configuration to be fully loaded
+      await brandingService.loadConfig();
+      
+      // Get the config after loading is complete
+      let config = brandingService.getConfig();
+      
+      if (!config) {
+        // Wait for branding configuration to be loaded
+        await new Promise(resolve => {
+          const checkConfig = () => {
+            const currentConfig = brandingService.getConfig();
+            if (currentConfig) {
+              config = currentConfig;
+              resolve();
+            } else {
+              // If config is not ready yet, wait a bit and check again
+              setTimeout(checkConfig, 50);
+            }
+          };
+          checkConfig();
+        });
+      }
+      
+      this.currentConfig = config;
       
       // Listen for branding changes
       const cleanup = brandingService.onBrandingChange((newConfig) => {
@@ -40,11 +62,12 @@ class BrowserTitleManager {
       
       // Set initial title
       this.updateTitle();
-      
+      this.isInitialized = true;
       return cleanup;
     } catch (error) {
-      console.error('Error initializing browser title manager:', error);
+      console.error('🔖 BrowserTitleManager: Error initializing:', error);
       this.setTitle(this.defaultTitle);
+      this.isInitialized = true;
     }
   }
 
@@ -82,7 +105,6 @@ class BrowserTitleManager {
   setTitle(title) {
     if (typeof document !== 'undefined') {
       document.title = title;
-      console.log('🔖 Browser title updated:', title);
     }
   }
 

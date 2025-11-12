@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
 import themeService from '../../services/themeService';
+import brandingService from '../../services/brandingService';
 
 const PageTitle = ({ 
   title, 
@@ -8,10 +9,12 @@ const PageTitle = ({
   showIcon = false, 
   icon = null,
   variant = 'h4',
-  sx = {} 
+  sx = {},
+  useBranding = false // New prop to enable branding
 }) => {
   const [themeColor, setThemeColor] = useState('#1565C0'); // Default Deep Blue
   const [isLoading, setIsLoading] = useState(true);
+  const [brandingConfig, setBrandingConfig] = useState(null);
   
   useEffect(() => {
     const loadTheme = async () => {
@@ -29,6 +32,47 @@ const PageTitle = ({
 
     loadTheme();
   }, []);
+
+  useEffect(() => {
+    if (useBranding) {
+      // Load branding configuration
+      const loadBranding = () => {
+        const config = brandingService.getConfig();
+        if (config) {
+          setBrandingConfig(config);
+        }
+      };
+
+      loadBranding();
+
+      // Listen for branding changes
+      const cleanup = brandingService.onBrandingChange((newConfig) => {
+        setBrandingConfig(newConfig);
+      });
+
+      return cleanup;
+    }
+  }, [useBranding]);
+
+  // Helper function to get branded company name
+  const getBrandedCompanyName = () => {
+    if (!brandingConfig?.company) return null;
+    
+    const { main_name, sub_name, trademark, show_trademark } = brandingConfig.company;
+    const tm = show_trademark !== false ? (trademark || '™') : '';
+    return `${main_name} ${sub_name}${tm}`;
+  };
+
+  // Helper function to process subtitle with branding
+  const processSubtitle = () => {
+    if (!useBranding || !subtitle || !brandingConfig?.company) return subtitle;
+    
+    const brandedName = getBrandedCompanyName();
+    if (!brandedName) return subtitle;
+    
+    // Replace "NewBorn Retail™" with the branded name
+    return subtitle.replace(/NewBorn Retail™/g, brandedName);
+  };
 
   const titleStyles = {
     background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}dd 100%)`,
@@ -77,7 +121,7 @@ const PageTitle = ({
                   mt: 0
                 }}
               >
-                {subtitle}
+                {processSubtitle()}
               </Typography>
             </>
           )}
@@ -117,7 +161,7 @@ const PageTitle = ({
                 mt: 0 // No top margin
               }}
             >
-              {subtitle}
+              {processSubtitle()}
             </Typography>
           </>
         )}

@@ -64,6 +64,14 @@ import {
   Keyboard,
   Public,
   Launch,
+  Computer,
+  PlayArrow,
+  Stop,
+  RequestQuote,
+  SettingsSuggest,
+  ViewQuilt,
+  Language,
+  Preview,
 } from '@mui/icons-material';
 
 import { iconMap } from '../../utils/menuStructure';
@@ -102,6 +110,30 @@ const iconComponents = {
   'Keyboard': Keyboard,
   'Public': Public,
   'Launch': Launch,
+  // New icons for missing menu items
+  'SettingsApplications': Settings,
+  'Computer': Computer,
+  'TerminalConfiguration': Computer,
+  'DayOpen': PlayArrow,
+  'SessionClose': Stop,
+  'PlayArrow': PlayArrow,
+  'Stop': Stop,
+  'PurchaseQuotation': RequestQuote,
+  'RequestQuote': RequestQuote,
+  'InitialSetup': SettingsSuggest,
+  'SettingsSuggest': SettingsSuggest,
+  'ViewQuilt': ViewQuilt,
+  'Web': Language,
+  'Preview': Preview,
+  // Admin Tools icons (should already work but ensuring completeness)
+  'DatabaseIcon': DatabaseIcon,
+  'CodeIcon': CodeIcon,
+  'SettingsIcon': Settings,
+  'LayoutPreferences': ViewQuilt,
+  // Day Management Console icon
+  'DayManagementConsole': Event,
+  // Fallback icons for missing ones
+  'SalesOrder': ShoppingCart,
 };
 
 // Helper function to get icon component from string name

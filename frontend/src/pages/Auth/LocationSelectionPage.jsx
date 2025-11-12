@@ -73,7 +73,7 @@ const LocationSelectionPage = () => {
       setError('');
 
       // Get user's accessible locations based on role
-      const response = await api.get(`/users/${user.id}/accessible-locations/`);
+      const response = await api.get(`/auth/users/${user.id}/accessible-locations/`);
       
       const locationsData = Array.isArray(response.data)
         ? response.data
@@ -85,7 +85,7 @@ const LocationSelectionPage = () => {
       if (locationsData.length > 0) {
         // Try to get user's default location
         try {
-          const defaultResponse = await api.get(`/users/${user.id}/default-location/`);
+          const defaultResponse = await api.get(`/auth/users/${user.id}/default-location/`);
           if (defaultResponse.data && defaultResponse.data.id) {
             setSelectedLocationId(defaultResponse.data.id);
           } else {

@@ -364,8 +364,9 @@ const Login = () => {
           <Box>
             <PageTitle 
               title="Sign In" 
-              subtitle="Access your NewBorn Retail™ account"
+              subtitle="Access your account"
               variant="h4"
+              useBranding={true}
             />
 
           {error && (
@@ -594,8 +595,8 @@ const Login = () => {
                       onClick={() => setFormData(prev => ({ ...prev, theme: theme.theme_name }))}
                       sx={{
                         position: 'relative',
-                        width: 24,
-                        height: 24,
+                        width: 16,
+                        height: 16,
                         borderRadius: '0px',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -642,7 +643,7 @@ const Login = () => {
                           height: '100%',
                           borderRadius: '0px',
                           background: theme.primary_color || '#1976D2',
-                          border: formData.theme === theme.theme_name ? '2px solid #1976D2' : '2px solid rgba(0,0,0,0.2)',
+                          border: 'none',
                           boxShadow: formData.theme === theme.theme_name ? '0 0 6px rgba(25, 118, 210, 0.3)' : '0 1px 3px rgba(0,0,0,0.2)',
                         }}
                       />

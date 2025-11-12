@@ -33,6 +33,18 @@ const iconMap = {
   'Keyboard': 'Keyboard',
   'Public': 'Public',
   'Launch': 'Launch',
+  'POSFunctionMapping': 'SettingsApplications',
+  'TerminalConfiguration': 'Computer',
+  'DayOpen': 'PlayArrow',
+  'SessionClose': 'Stop',
+  'PurchaseQuotation': 'RequestQuote',
+  'InitialSetup': 'SettingsSuggest',
+  'SalesOrder': 'ShoppingCart',
+  'DatabaseConfiguration': 'Storage',
+  'LayoutPreferences': 'ViewQuilt',
+  'WebConsole': 'Web',
+  'HTMLPreviewTool': 'Preview',
+  'DayManagementConsole': 'Event',
 };
 
 export const getMenuCategories = (menuVisibility) => [
@@ -53,7 +65,7 @@ export const getMenuCategories = (menuVisibility) => [
     path: '/user-permissions',
     items: [
       { text: 'Role Permissions', icon: 'AdminPanelSettings', path: '/user-permissions', moduleName: 'user_permissions' },
-      { text: 'POS Function Mapping', icon: 'SettingsIcon', path: '/user-permissions/pos-functions', moduleName: 'pos_function_mapping' },
+      { text: 'POS Function Mapping', icon: 'POSFunctionMapping', path: '/user-permissions/pos-functions', moduleName: 'pos_function_mapping' },
     ]
   },
   {
@@ -101,12 +113,13 @@ export const getMenuCategories = (menuVisibility) => [
     color: 'success',
     description: 'Point of Sale operations and management',
     items: [
-      { text: 'Terminal Configuration', icon: 'SettingsIcon', path: '/pos/terminal-configuration', moduleName: 'pos_terminal_configuration' },
-      { text: 'Day Open', icon: 'DayOpenIcon', path: '/pos/day-open', moduleName: 'pos_day_open' },
+      { text: 'Terminal Configuration', icon: 'TerminalConfiguration', path: '/pos/terminal-configuration', moduleName: 'pos_terminal_configuration' },
+      { text: 'Day Management Console', icon: 'DayManagementConsole', path: '/pos/day-management-console', moduleName: 'pos_day_management_console' },
+      { text: 'Day Open', icon: 'DayOpen', path: '/pos/day-open', moduleName: 'pos_day_open' },
       { text: 'Session Open', icon: 'AccessTime', path: '/pos/session-open', moduleName: 'pos_session_open' },
       { text: 'POS Billing', icon: 'PointOfSale', path: '/pos/desktop', moduleName: 'pos_billing' },
       { text: 'Settlement', icon: 'Receipt', path: '/pos/settlement', moduleName: 'pos_settlement' },
-      { text: 'Session Close', icon: 'DayCloseIcon', path: '/pos/session-close', moduleName: 'pos_session_close' },
+      { text: 'Session Close', icon: 'SessionClose', path: '/pos/session-close', moduleName: 'pos_session_close' },
       { text: 'Home Delivery', icon: 'LocalShipping', path: '/pos/home-delivery', moduleName: 'pos_home_delivery', hidden: true },
       { text: 'Customer Receivables', icon: 'AccountBalance', path: '/pos/customer-receivables', moduleName: 'pos_customer_receivables', hidden: true },
       { text: 'Day End', icon: 'Event', path: '/pos/day-end', moduleName: 'pos_day_end' },
@@ -150,7 +163,7 @@ export const getMenuCategories = (menuVisibility) => [
     items: [
       { text: 'Purchase Request', icon: 'ShoppingCartCheckout', path: '/procurement/purchase-request', moduleName: 'procurement_purchase_request' },
       { text: 'Purchase Enquiry', icon: 'Public', path: '/procurement/purchase-enquiry', moduleName: 'procurement_purchase_enquiry' },
-      { text: 'Purchase Quotation', icon: 'OrderIcon', path: '/procurement/purchase-quotation', moduleName: 'procurement_purchase_quotation' },
+      { text: 'Purchase Quotation', icon: 'PurchaseQuotation', path: '/procurement/purchase-quotation', moduleName: 'procurement_purchase_quotation' },
       { text: 'Purchase Order', icon: 'ShoppingCart', path: '/procurement/purchase-order', moduleName: 'procurement_purchase_order' },
       { text: 'Goods Received Note', icon: 'LocalShipping', path: '/procurement/goods-received-note', moduleName: 'procurement_goods_received' },
       { text: 'Purchase Invoice', icon: 'Receipt', path: '/procurement/purchase-invoice', moduleName: 'procurement_purchase_invoice' },
@@ -165,7 +178,7 @@ export const getMenuCategories = (menuVisibility) => [
     color: 'success',
     description: 'Stock transfer and movement management',
     items: [
-      { text: 'Initial Setup', icon: 'SettingsIcon', path: '/stock-nexus/initial-setup', moduleName: 'stock_nexus_initial_setup' },
+      { text: 'Initial Setup', icon: 'InitialSetup', path: '/stock-nexus/initial-setup', moduleName: 'stock_nexus_initial_setup' },
       { text: 'Movement Tracking', icon: 'TrendingUp', path: '/stock-nexus/movement-tracking', moduleName: 'stock_nexus_movement_tracking' },
       { text: 'Transfer Confirm', icon: 'CheckCircle', path: '/stock-nexus/transfer-confirm', moduleName: 'stock_nexus_transfer_confirm' },
       { text: 'Count Adjust', icon: 'Assessment', path: '/stock-nexus/count-adjust', moduleName: 'stock_nexus_count_adjust' },
