@@ -1,0 +1,343 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Menu Controller Custom Styles */
+    .menu-controller-stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu-controller-stats h3 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .category-group {
+        margin-bottom: 30px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .category-header {
+        padding: 15px 20px;
+        font-weight: 600;
+        font-size: 14px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .category-count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+    
+    .category-items {
+        padding: 0;
+    }
+    
+    .menu-item-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid #f5f5f5;
+        transition: background-color 0.2s ease;
+    }
+    
+    .menu-item-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .menu-item-row:last-child {
+        border-bottom: none;
+    }
+    
+    .menu-item-checkbox {
+        margin-right: 15px;
+    }
+    
+    .menu-item-name {
+        flex: 1;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .menu-item-id {
+        color: #666;
+        font-size: 12px;
+        margin-right: 15px;
+        font-family: monospace;
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+    
+    .menu-item-type {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        margin-right: 10px;
+        font-weight: 500;
+    }
+    
+    .menu-item-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .status-active {
+        color: #4caf50;
+        font-weight: 600;
+    }
+    
+    .status-inactive {
+        color: #f44336;
+        font-weight: 600;
+    }
+    
+    .bulk-actions {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .bulk-actions h4 {
+        margin: 0 0 10px 0;
+        color: #856404;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .action-btn.activate {
+        background: #4caf50;
+        color: white;
+    }
+    
+    .action-btn.activate:hover {
+        background: #45a049;
+    }
+    
+    .action-btn.deactivate {
+        background: #f44336;
+        color: white;
+    }
+    
+    .action-btn.deactivate:hover {
+        background: #da190b;
+    }
+    
+    .action-btn.reset {
+        background: #ff9800;
+        color: white;
+    }
+    
+    .action-btn.reset:hover {
+        background: #f57c00;
+    }
+    
+    /* Category colors */
+    .category-home { background: #4caf50; }
+    .category-user-permissions { background: #2196f3; }
+    .category-master-data-management { background: #ff9800; }
+    .category-organization-setup { background: #9c27b0; }
+    .category-item { background: #673ab7; }
+    .category-point-of-sale { background: #f44336; }
+    .category-inventory-management { background: #009688; }
+    .category-procurement { background: #795548; }
+    .category-stock-nexus { background: #607d8b; }
+    .category-sales { background: #e91e63; }
+    .category-reports { background: #3f51b5; }
+    .category-system { background: #9e9e9e; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="menu-controller-stats">
+    <h3>🎛️ Menu Controller Dashboard</h3>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">{{ menu_stats.total }}</div>
+            <div class="stat-label">Total Items</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ menu_stats.active }}</div>
+            <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ menu_stats.inactive }}</div>
+            <div class="stat-label">Inactive</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ menu_stats.active_percentage }}%</div>
+            <div class="stat-label">Active Rate</div>
+        </div>
+    </div>
+</div>
+
+<div class="bulk-actions">
+    <h4>🚀 Quick Bulk Actions</h4>
+    <div class="action-buttons">
+        <button type="submit" name="action" value="bulk_activate_menu_items" class="action-btn activate">
+            ✅ Activate Selected
+        </button>
+        <button type="submit" name="action" value="bulk_deactivate_menu_items" class="action-btn deactivate">
+            ❌ Deactivate Selected
+        </button>
+        <button type="submit" name="action" value="reset_menu_order" class="action-btn reset">
+            🔄 Reset Order
+        </button>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+<script>
+// Enhanced category grouping functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Group menu items by category
+    const rows = document.querySelectorAll('#result_list tbody tr');
+    const categories = {};
+    
+    rows.forEach(row => {
+        const categoryCell = row.querySelector('td:first-child');
+        if (categoryCell) {
+            const categoryText = categoryCell.textContent.trim();
+            if (!categories[categoryText]) {
+                categories[categoryText] = [];
+            }
+            categories[categoryText].push(row);
+        }
+    });
+    
+    // Create grouped view
+    const tbody = document.querySelector('#result_list tbody');
+    tbody.innerHTML = '';
+    
+    Object.keys(categories).sort().forEach(category => {
+        const categoryClass = category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+        
+        // Create category header
+        const categoryHeader = document.createElement('div');
+        categoryHeader.className = `category-header category-${categoryClass}`;
+        categoryHeader.innerHTML = `
+            <span>${category}</span>
+            <span class="category-count">${categories[category].length} items</span>
+        `;
+        
+        // Create category group
+        const categoryGroup = document.createElement('div');
+        categoryGroup.className = 'category-group';
+        categoryGroup.appendChild(categoryHeader);
+        
+        // Create items container
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'category-items';
+        
+        // Add items to category
+        categories[category].forEach(row => {
+            // Convert table row to custom row format
+            const customRow = document.createElement('div');
+            customRow.className = 'menu-item-row';
+            
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 7) {
+                customRow.innerHTML = `
+                    <input type="checkbox" class="menu-item-checkbox" name="_selected_action" value="${row.querySelector('input[type=checkbox]').value}">
+                    <div class="menu-item-name">${cells[1].textContent.trim()}</div>
+                    <div class="menu-item-id">${cells[2].textContent.trim()}</div>
+                    <div class="menu-item-type">${cells[3].textContent.trim()}</div>
+                    <div class="menu-item-status">
+                        <span class="${cells[5].textContent.trim() === 'Yes' ? 'status-active' : 'status-inactive'}">
+                            ${cells[5].textContent.trim() === 'Yes' ? '✅ Active' : '❌ Inactive'}
+                        </span>
+                    </div>
+                `;
+            }
+            
+            itemsContainer.appendChild(customRow);
+        });
+        
+        categoryGroup.appendChild(itemsContainer);
+        tbody.appendChild(categoryGroup);
+    });
+    
+    // Add select all functionality for each category
+    document.querySelectorAll('.category-header').forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            const categoryGroup = this.parentElement;
+            const checkboxes = categoryGroup.querySelectorAll('.menu-item-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+            });
+        });
+    });
+});
+</script>
+
+{{ block.super }}
+{% endblock %}
