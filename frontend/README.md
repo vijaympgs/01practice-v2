@@ -1,3 +1,33 @@
+--- 
+title: "Documentation File" 
+description: "Documentation file with automatic timestamp" 
+date: "2025-11-14 10:28:50" 
+modified: "2025-11-14 10:28:50" 
+author: "Development Team" 
+version: "1.0.0" 
+category: "documentation" 
+tags: [docs, timestamp] 
+project: "Django POS System" 
+path: "d:\Python\01practice\frontend\README.md" 
+last_reviewed: "2025-11-14 10:28:50" 
+review_status: "draft" 
+--- 
+ 
+--- 
+title: "Documentation File" 
+description: "Documentation file with automatic timestamp" 
+date: "2025-11-14 10:12:37" 
+modified: "2025-11-14 10:12:37" 
+author: "Development Team" 
+version: "1.0.0" 
+category: "documentation" 
+tags: [docs, timestamp] 
+project: "Django POS System" 
+path: "d:\Python\01practice\frontend\README.md" 
+last_reviewed: "2025-11-14 10:12:37" 
+review_status: "draft" 
+--- 
+ 
 # Flow Retail - Frontend
 
 React frontend for the Flow Retail system built with Vite and Material-UI.

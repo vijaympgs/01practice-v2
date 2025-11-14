@@ -9,11 +9,11 @@ REM Set your Git repository path
 SET REPO_PATH=d:\Python\01practice
 
 REM Set your Git credentials (update with your actual credentials)
-SET GIT_NAME=Your Name
-SET GIT_EMAIL=your.email@example.com
+SET GIT_NAME=pratice
+SET GIT_EMAIL=vijaymgs@gmail.com
 
 REM Set your remote repository URL
-SET REMOTE_URL=https://github.com/yourusername/your-repo.git
+SET REMOTE_URL=https://github.com/vijaympgs/01practice.git
 
 REM Set branch name
 SET BRANCH_NAME=main
