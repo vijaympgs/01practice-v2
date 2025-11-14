@@ -18,6 +18,8 @@ from .serializers import (
     UserPermissionSerializer,
     BulkUserPermissionSerializer,
     CustomTokenObtainPairSerializer,
+    UserLocationMappingSerializer,
+    BulkUserLocationMappingSerializer,
 )
 from .models import UserPermission, MenuItemType, GroupPermission
 
@@ -997,6 +999,690 @@ class UserPOSPermissionsView(APIView):
                 }
                 return Response(permissions)
             return Response({})
+
+
+# Menu Visibility Control Views
+class MenuItemTypeViewSet(ModelViewSet):
+    """
+    ViewSet for managing menu items and their visibility.
+    Provides API endpoints for the Django admin menu controller.
+    """
+    queryset = MenuItemType.objects.all()
+    serializer_class = None  # We'll define this inline
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        """Return different serializers based on action"""
+        if self.action == 'list':
+            from rest_framework.serializers import Serializer
+            from rest_framework import serializers
+            
+            class MenuItemListSerializer(Serializer):
+                id = serializers.UUIDField(read_only=True)
+                display_name = serializers.CharField(read_only=True)
+                menu_item_id = serializers.CharField(read_only=True)
+                menu_type = serializers.CharField(read_only=True)
+                transaction_subtype = serializers.CharField(read_only=True, allow_null=True)
+                category = serializers.CharField(read_only=True)
+                subcategory = serializers.CharField(read_only=True, allow_null=True, allow_blank=True)
+                path = serializers.CharField(read_only=True, allow_null=True)
+                description = serializers.CharField(read_only=True, allow_null=True, allow_blank=True)
+                is_active = serializers.BooleanField(read_only=True)
+                order = serializers.IntegerField(read_only=True)
+                created_at = serializers.DateTimeField(read_only=True)
+                updated_at = serializers.DateTimeField(read_only=True)
+            
+            return MenuItemListSerializer
+        return None
+    
+    def get_queryset(self):
+        """Filter by active status if requested"""
+        queryset = MenuItemType.objects.all()
+        is_active = self.request.query_params.get('is_active')
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == 'true')
+        return queryset.order_by('category', 'order', 'display_name')
+    
+    def list(self, request, *args, **kwargs):
+        """Get all menu items with filtering options"""
+        queryset = self.get_queryset()
+        
+        # Group by category for better organization
+        categories = {}
+        for item in queryset:
+            category = item.category or 'Other'
+            if category not in categories:
+                categories[category] = []
+            
+            categories[category].append({
+                'id': str(item.id),
+                'menu_item_id': item.menu_item_id,
+                'display_name': item.display_name,
+                'menu_type': item.menu_type,
+                'transaction_subtype': item.transaction_subtype,
+                'category': item.category,
+                'subcategory': item.subcategory,
+                'path': item.path,
+                'description': item.description,
+                'is_active': item.is_active,
+                'order': item.order,
+                'created_at': item.created_at,
+                'updated_at': item.updated_at,
+            })
+        
+        return Response({
+            'categories': categories,
+            'total_items': queryset.count(),
+            'active_items': queryset.filter(is_active=True).count(),
+            'inactive_items': queryset.filter(is_active=False).count(),
+        })
+
+
+class MenuVisibilityView(APIView):
+    """
+    Global menu visibility controller.
+    Provides endpoints for managing menu visibility through Django admin.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get current menu visibility settings and statistics"""
+        try:
+            # Get all menu items
+            all_menu_items = MenuItemType.objects.all()
+            active_menu_items = all_menu_items.filter(is_active=True)
+            
+            # Group by category
+            categories = {}
+            for item in active_menu_items:
+                category = item.category or 'Other'
+                if category not in categories:
+                    categories[category] = []
+                
+                categories[category].append({
+                    'id': str(item.id),
+                    'menu_item_id': item.menu_item_id,
+                    'display_name': item.display_name,
+                    'menu_type': item.menu_type,
+                    'transaction_subtype': item.transaction_subtype,
+                    'path': item.path,
+                    'is_active': item.is_active,
+                    'order': item.order,
+                })
+            
+            # Calculate statistics
+            total_items = all_menu_items.count()
+            active_count = active_menu_items.count()
+            inactive_count = total_items - active_count
+            
+            return Response({
+                'categories': categories,
+                'statistics': {
+                    'total_items': total_items,
+                    'active_items': active_count,
+                    'inactive_items': inactive_count,
+                    'active_percentage': round((active_count / total_items * 100) if total_items > 0 else 0, 1)
+                },
+                'last_updated': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching menu visibility: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def post(self, request):
+        """Update menu visibility settings"""
+        # Only admin can update menu visibility
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can update menu visibility'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            data = request.data
+            updated_count = 0
+            
+            # Handle bulk activation/deactivation
+            if 'activate_all' in data:
+                MenuItemType.objects.all().update(is_active=True)
+                updated_count = MenuItemType.objects.count()
+            
+            elif 'deactivate_all' in data:
+                MenuItemType.objects.all().update(is_active=False)
+                updated_count = MenuItemType.objects.count()
+            
+            # Handle individual item updates
+            elif 'items' in data:
+                items_data = data['items']
+                for item_data in items_data:
+                    try:
+                        menu_item = MenuItemType.objects.get(id=item_data['id'])
+                        menu_item.is_active = item_data.get('is_active', menu_item.is_active)
+                        menu_item.save()
+                        updated_count += 1
+                    except MenuItemType.DoesNotExist:
+                        continue
+            
+            # Handle category-level updates
+            elif 'categories' in data:
+                categories_data = data['categories']
+                for category_name, category_data in categories_data.items():
+                    try:
+                        # Update all items in this category
+                        MenuItemType.objects.filter(
+                            category=category_name
+                        ).update(is_active=category_data.get('is_active', True))
+                        updated_count += MenuItemType.objects.filter(category=category_name).count()
+                    except Exception:
+                        continue
+            
+            return Response({
+                'message': f'Successfully updated {updated_count} menu items',
+                'updated_count': updated_count,
+                'timestamp': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error updating menu visibility: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class UserMenuPermissionsView(APIView):
+    """
+    Get user's menu permissions filtered by active menu items.
+    Integrates with existing permission system and global visibility.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get user's menu permissions considering global visibility"""
+        user = request.user
+        
+        try:
+            # Get currently active menu items
+            active_menu_items = MenuItemType.objects.filter(is_active=True)
+            active_menu_ids = [str(item.id) for item in active_menu_items]
+            active_menu_item_ids = [item.menu_item_id for item in active_menu_items]
+            
+            # Get user's direct permissions
+            user_permissions = UserPermission.objects.filter(
+                user=user,
+                menu_item__is_active=True
+            ).select_related('menu_item')
+            
+            # Get user's role permissions (group permissions)
+            user_groups = user.groups.all()
+            role_permissions = GroupPermission.objects.filter(
+                group__in=user_groups,
+                menu_item__is_active=True
+            ).select_related('menu_item')
+            
+            # Merge permissions with global visibility
+            final_permissions = {}
+            
+            # Process user permissions (highest priority)
+            for perm in user_permissions:
+                if perm.menu_item and perm.menu_item.menu_item_id in active_menu_item_ids:
+                    menu_item_id = perm.menu_item.menu_item_id
+                    final_permissions[menu_item_id] = {
+                        'can_access': perm.can_access,
+                        'can_view': perm.can_view,
+                        'can_create': perm.can_create,
+                        'can_edit': perm.can_edit,
+                        'can_delete': perm.can_delete,
+                        'override': perm.override,
+                        'source': 'user_permission'
+                    }
+            
+            # Process role permissions (lower priority, only if no user permission)
+            for perm in role_permissions:
+                if perm.menu_item and perm.menu_item.menu_item_id in active_menu_item_ids:
+                    menu_item_id = perm.menu_item.menu_item_id
+                    
+                    # Skip if user already has direct permission
+                    if menu_item_id not in final_permissions:
+                        final_permissions[menu_item_id] = {
+                            'can_access': perm.can_access,
+                            'can_view': perm.can_view,
+                            'can_create': perm.can_create,
+                            'can_edit': perm.can_edit,
+                            'can_delete': perm.can_delete,
+                            'source': 'role_permission'
+                        }
+            
+            return Response({
+                'permissions': final_permissions,
+                'active_menu_items': active_menu_item_ids,
+                'total_permissions': len(final_permissions),
+                'user_role': user.role,
+                'timestamp': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching user menu permissions: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class MenuStatisticsView(APIView):
+    """
+    Get menu statistics and analytics.
+    Useful for admin dashboard and monitoring.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get comprehensive menu statistics"""
+        # Only admin can view detailed statistics
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can view menu statistics'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            all_menu_items = MenuItemType.objects.all()
+            active_menu_items = all_menu_items.filter(is_active=True)
+            
+            # Statistics by category
+            category_stats = {}
+            for item in all_menu_items:
+                category = item.category or 'Other'
+                if category not in category_stats:
+                    category_stats[category] = {'total': 0, 'active': 0, 'inactive': 0}
+                
+                category_stats[category]['total'] += 1
+                if item.is_active:
+                    category_stats[category]['active'] += 1
+                else:
+                    category_stats[category]['inactive'] += 1
+            
+            # Statistics by menu type
+            menu_type_stats = {}
+            for item in all_menu_items:
+                menu_type = item.menu_type or 'UNKNOWN'
+                if menu_type not in menu_type_stats:
+                    menu_type_stats[menu_type] = {'total': 0, 'active': 0, 'inactive': 0}
+                
+                menu_type_stats[menu_type]['total'] += 1
+                if item.is_active:
+                    menu_type_stats[menu_type]['active'] += 1
+                else:
+                    menu_type_stats[menu_type]['inactive'] += 1
+            
+            # Permission statistics
+            user_permission_count = UserPermission.objects.count()
+            group_permission_count = GroupPermission.objects.count()
+            
+            return Response({
+                'overview': {
+                    'total_menu_items': all_menu_items.count(),
+                    'active_menu_items': active_menu_items.count(),
+                    'inactive_menu_items': all_menu_items.count() - active_menu_items.count(),
+                    'active_percentage': round((active_menu_items.count() / all_menu_items.count() * 100) if all_menu_items.count() > 0 else 0, 1)
+                },
+                'by_category': category_stats,
+                'by_menu_type': menu_type_stats,
+                'permissions': {
+                    'user_permissions': user_permission_count,
+                    'group_permissions': group_permission_count,
+                    'total_permissions': user_permission_count + group_permission_count
+                },
+                'last_updated': timezone.now().isoformat(),
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching menu statistics: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# Import timezone for timestamp generation
+from django.utils import timezone
+
+
+class UserAccessibleLocationsView(APIView):
+    """
+    Get locations accessible to a user based on their role.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, user_id=None):
+        # If user_id not provided, use current user
+        target_user_id = user_id or request.user.id
+        
+        # Check if requesting user has permission
+        requesting_user = request.user
+        try:
+            target_user = User.objects.get(id=target_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Users can see their own accessible locations, admin can see all
+        if requesting_user.id != target_user.id and requesting_user.role != 'admin' and not requesting_user.is_superuser:
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get accessible locations based on role
+        accessible_locations = target_user.get_accessible_locations()
+        
+        # Serialize locations
+        locations_data = []
+        for location in accessible_locations:
+            locations_data.append({
+                'id': str(location.id),
+                'name': location.name,
+                'code': location.code,
+                'location_type': location.location_type,
+                'is_active': location.is_active,
+                'address': location.address,
+                'city': location.city,
+                'state': location.state,
+                'country': location.country,
+                'phone': location.phone,
+                'email': location.email,
+            })
+        
+        return Response(locations_data)
+
+
+class UserDefaultLocationView(APIView):
+    """
+    Get the default location for a user based on their role and mappings.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, user_id=None):
+        # If user_id not provided, use current user
+        target_user_id = user_id or request.user.id
+        
+        # Check if requesting user has permission
+        requesting_user = request.user
+        try:
+            target_user = User.objects.get(id=target_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Users can see their own default location, admin can see all
+        if requesting_user.id != target_user.id and requesting_user.role != 'admin' and not requesting_user.is_superuser:
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get default location
+        default_location = target_user.get_default_location()
+        
+        if default_location:
+            return Response({
+                'id': str(default_location.id),
+                'name': default_location.name,
+                'code': default_location.code,
+                'location_type': default_location.location_type,
+                'is_active': default_location.is_active,
+                'address': default_location.address,
+                'city': default_location.city,
+                'state': default_location.state,
+                'country': default_location.country,
+                'phone': default_location.phone,
+                'email': default_location.email,
+            })
+        else:
+            return Response(None)
+
+
+class SyncUserLocationMappingsView(APIView):
+    """
+    Sync user location mappings based on their role.
+    This creates or updates mappings according to role-based rules.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, user_id=None):
+        # Only admin can sync mappings
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can sync location mappings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # If user_id not provided, sync all users
+        target_user_id = user_id or request.data.get('user_id')
+        
+        if target_user_id:
+            # Sync specific user
+            try:
+                target_user = User.objects.get(id=target_user_id)
+                result = self.sync_user_mappings(target_user)
+                return Response(result)
+            except User.DoesNotExist:
+                return Response(
+                    {'error': 'User not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            # Sync all users
+            users = User.objects.all()
+            results = []
+            for user in users:
+                result = self.sync_user_mappings(user)
+                results.append({
+                    'user_id': str(user.id),
+                    'username': user.username,
+                    'role': user.role,
+                    'result': result
+                })
+            
+            return Response({
+                'message': 'All users synced successfully',
+                'results': results
+            })
+    
+    def sync_user_mappings(self, user):
+        """Sync location mappings for a single user based on their role."""
+        from .models import UserLocationMapping
+        from organization.models import Location
+        
+        # Get accessible locations based on role
+        accessible_locations = user.get_accessible_locations()
+        
+        # Remove existing mappings that are no longer accessible
+        UserLocationMapping.objects.filter(user=user).exclude(
+            location__in=accessible_locations
+        ).delete()
+        
+        created_count = 0
+        updated_count = 0
+        
+        # Create or update mappings for accessible locations
+        for location in accessible_locations:
+            # Determine access type based on role and location type
+            if user.role == 'posuser':
+                access_type = 'pos'
+            elif user.role in ['backofficemanager', 'backofficeuser']:
+                access_type = 'back_office'
+            elif user.role == 'posmanager':
+                access_type = 'both'  # POS managers can access both POS and back office
+            elif user.role == 'admin':
+                access_type = 'both'  # Admins can access both
+            else:
+                access_type = 'back_office'
+            
+            # For POS users, only create one mapping (first location)
+            if user.role == 'posuser':
+                existing_mapping = UserLocationMapping.objects.filter(
+                    user=user,
+                    access_type__in=['pos', 'both']
+                ).first()
+                
+                if existing_mapping:
+                    if existing_mapping.location_id != location.id:
+                        existing_mapping.location = location
+                        existing_mapping.save()
+                        updated_count += 1
+                else:
+                    UserLocationMapping.objects.create(
+                        user=user,
+                        location=location,
+                        access_type=access_type,
+                        is_default=True,
+                        created_by=self.request.user
+                    )
+                    created_count += 1
+                break  # Only one location for POS users
+            else:
+                # For other roles, create mapping for each accessible location
+                mapping, created = UserLocationMapping.objects.get_or_create(
+                    user=user,
+                    location=location,
+                    access_type=access_type,
+                    defaults={
+                        'is_active': True,
+                        'is_default': False,
+                        'created_by': self.request.user,
+                    }
+                )
+                
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+        
+        return {
+            'message': f'User {user.username} synced successfully',
+            'accessible_locations': accessible_locations.count(),
+            'created': created_count,
+            'updated': updated_count,
+        }
+
+
+# User Location Mapping Views
+class UserLocationMappingViewSet(ModelViewSet):
+    """
+    ViewSet for managing user-location mappings.
+    Only admin role can manage mappings.
+    """
+    serializer_class = UserLocationMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Only admin role can manage mappings
+        if user.role != 'admin' and not user.is_superuser:
+            return UserLocationMapping.objects.none()
+        
+        return UserLocationMapping.objects.select_related('user', 'location', 'created_by')
+    
+    def create(self, request, *args, **kwargs):
+        # Check admin permission
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can manage user-location mappings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().create(request, *args, **kwargs)
+    
+    def update(self, request, *args, **kwargs):
+        # Check admin permission
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can manage user-location mappings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        # Check admin permission
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can manage user-location mappings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
+
+
+class BulkUserLocationMappingView(APIView):
+    """
+    Bulk create/update user-location mappings.
+    Only admin role can perform bulk operations.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        # Check admin permission
+        if request.user.role != 'admin' and not request.user.is_superuser:
+            return Response(
+                {'error': 'Only admin can manage user-location mappings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = BulkUserLocationMappingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        mappings_data = serializer.validated_data['mappings']
+        created_count = 0
+        updated_count = 0
+        
+        # Import UserLocationMapping model
+        from .models import UserLocationMapping
+        
+        for mapping_data in mappings_data:
+            try:
+                user = User.objects.get(id=mapping_data['user_id'])
+                location = None  # Will be set below
+                access_type = mapping_data['access_type']
+                is_active = mapping_data.get('is_active', True)
+                is_default = mapping_data.get('is_default', False)
+                
+                # Get location by ID
+                from organization.models import Location
+                location = Location.objects.get(id=mapping_data['location_id'])
+                
+                # Create or update mapping
+                mapping, created = UserLocationMapping.objects.update_or_create(
+                    user=user,
+                    location=location,
+                    access_type=access_type,
+                    defaults={
+                        'is_active': is_active,
+                        'is_default': is_default,
+                        'created_by': request.user,
+                    }
+                )
+                
+                if created:
+                    created_count += 1
+                else:
+                    # Update existing mapping
+                    mapping.is_active = is_active
+                    mapping.is_default = is_default
+                    mapping.save()
+                    updated_count += 1
+                    
+            except (User.DoesNotExist, Location.DoesNotExist) as e:
+                continue  # Skip invalid mappings
+        
+        return Response({
+            'message': 'User-location mappings updated successfully',
+            'created': created_count,
+            'updated': updated_count,
+        }, status=status.HTTP_200_OK)
         
         # Get role-based permissions
         role = user.role

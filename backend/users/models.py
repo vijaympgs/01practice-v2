@@ -47,6 +47,99 @@ class User(AbstractUser):
         if self.first_name or self.last_name:
             return f"{self.first_name} {self.last_name}".strip()
         return self.username
+    
+    def get_accessible_locations(self):
+        """
+        Get locations this user can access based on their role.
+        Implements role-based location access rules.
+        """
+        from organization.models import Location
+        
+        if self.role == 'admin':
+            # Admin: All locations
+            return Location.objects.filter(is_active=True)
+        elif self.role == 'backofficemanager':
+            # BO Admin: All locations except headquarters
+            return Location.objects.filter(is_active=True).exclude(location_type='headquarters')
+        elif self.role == 'posmanager':
+            # POS Admin: All POS locations (stores only)
+            return Location.objects.filter(is_active=True, location_type='store')
+        elif self.role == 'backofficeuser':
+            # BO User: All locations except headquarters
+            return Location.objects.filter(is_active=True).exclude(location_type='headquarters')
+        elif self.role == 'posuser':
+            # POS User: Only assigned POS location from UserLocationMapping
+            return self.get_pos_user_locations()
+        else:
+            # Default: No access
+            return Location.objects.none()
+    
+    def get_accessible_location_types(self):
+        """
+        Get location types this user can access based on their role.
+        """
+        if self.role == 'admin':
+            return ['store', 'headquarters', 'warehouse', 'distribution', 'factory', 'showroom']
+        elif self.role in ['backofficemanager', 'backofficeuser']:
+            return ['store', 'warehouse', 'distribution', 'factory', 'showroom']
+        elif self.role in ['posmanager', 'posuser']:
+            return ['store']
+        else:
+            return []
+    
+    def get_pos_user_locations(self):
+        """
+        Get POS locations assigned to this POS user through UserLocationMapping.
+        """
+        if self.role != 'posuser':
+            from organization.models import Location
+            return Location.objects.none()
+        
+        from organization.models import Location
+        from .models import UserLocationMapping
+        return Location.objects.filter(
+            user_mappings__user=self,
+            user_mappings__access_type__in=['pos', 'both'],
+            user_mappings__is_active=True,
+            is_active=True
+        ).distinct()
+    
+    def can_access_location(self, location):
+        """
+        Check if user can access a specific location based on their role.
+        """
+        if not location or not location.is_active:
+            return False
+        
+        accessible_locations = self.get_accessible_locations()
+        return accessible_locations.filter(id=location.id).exists()
+    
+    def get_default_location(self):
+        """
+        Get the default location for this user based on their role and mappings.
+        """
+        if self.role == 'posuser':
+            # For POS users, get their assigned POS location
+            pos_locations = self.get_pos_user_locations()
+            if pos_locations.exists():
+                # Try to get the default mapped location first
+                from .models import UserLocationMapping
+                default_mapping = UserLocationMapping.objects.filter(
+                    user=self,
+                    access_type__in=['pos', 'both'],
+                    is_default=True,
+                    is_active=True
+                ).first()
+                
+                if default_mapping:
+                    return default_mapping.location
+                else:
+                    # Return first available POS location
+                    return pos_locations.first()
+        
+        # For other roles, return first accessible location
+        accessible_locations = self.get_accessible_locations()
+        return accessible_locations.first()
 
 
 class MenuItemType(models.Model):
@@ -81,6 +174,12 @@ class MenuItemType(models.Model):
         help_text="Only applicable for TRANSACTION type"
     )
     category = models.CharField(max_length=100, help_text="Menu category (e.g., 'Master Data Management')")
+    subcategory = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True,
+        help_text="Menu subcategory for grouping (e.g., 'Admin Tools', 'Business Rules')"
+    )
     path = models.CharField(max_length=200, help_text="Frontend route path")
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -91,8 +190,8 @@ class MenuItemType(models.Model):
     class Meta:
         db_table = 'menu_item_types'
         ordering = ['category', 'order', 'display_name']
-        verbose_name = 'Menu Item Type'
-        verbose_name_plural = 'Menu Item Types'
+        verbose_name = 'Menu Controller'
+        verbose_name_plural = 'Menu Controller'
         indexes = [
             models.Index(fields=['menu_type']),
             models.Index(fields=['transaction_subtype']),
@@ -292,3 +391,83 @@ class RolePOSFunctionMapping(models.Model):
     
     def __str__(self):
         return f"{self.role} - {self.function.function_code}"
+
+
+class UserLocationMapping(models.Model):
+    """
+    User-Location Mapping - Maps users to locations with different access types
+    Allows users to have access to multiple locations with different permission levels
+    """
+    
+    ACCESS_TYPE_CHOICES = [
+        ('back_office', 'Back Office'),
+        ('pos', 'POS'),
+        ('both', 'Both'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='location_mappings')
+    location = models.ForeignKey(
+        'organization.Location',
+        on_delete=models.CASCADE,
+        related_name='user_mappings'
+    )
+    access_type = models.CharField(
+        max_length=20,
+        choices=ACCESS_TYPE_CHOICES,
+        default='back_office',
+        help_text="Type of access user has at this location"
+    )
+    is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(
+        default=False,
+        help_text="Mark as default location for this user"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_location_mappings'
+    )
+    
+    class Meta:
+        db_table = 'user_location_mappings'
+        unique_together = ['user', 'location', 'access_type']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['location', 'is_active']),
+            models.Index(fields=['access_type', 'is_active']),
+        ]
+        verbose_name = 'User Location Mapping'
+        verbose_name_plural = 'User Location Mappings'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.location.name} ({self.get_access_type_display()})"
+    
+    def clean(self):
+        """Custom validation for the model"""
+        from django.core.exceptions import ValidationError
+        
+        # Ensure only one default location per user per access type
+        if self.is_default:
+            existing_default = UserLocationMapping.objects.filter(
+                user=self.user,
+                access_type=self.access_type,
+                is_default=True,
+                is_active=True
+            ).exclude(id=self.id)
+            
+            if existing_default.exists():
+                raise ValidationError({
+                    'is_default': f'Only one default location is allowed per user for {self.get_access_type_display()} access.'
+                })
+    
+    def save(self, *args, **kwargs):
+        """Override save to run clean validation"""
+        self.clean()
+        super().save(*args, **kwargs)

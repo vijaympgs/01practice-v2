@@ -7,13 +7,14 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 try:
-    from .models import MenuItemType, UserPermission, GroupPermission, POSFunction, RolePOSFunctionMapping
+    from .models import MenuItemType, UserPermission, GroupPermission, POSFunction, RolePOSFunctionMapping, UserLocationMapping
 except ImportError:
     MenuItemType = None
     UserPermission = None
     GroupPermission = None
     POSFunction = None
     RolePOSFunctionMapping = None
+    UserLocationMapping = None
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -264,3 +265,77 @@ if RolePOSFunctionMapping:
         def update(self, instance, validated_data):
             """Update mapping."""
             return super().update(instance, validated_data)
+
+
+if UserLocationMapping:
+    class UserLocationMappingSerializer(serializers.ModelSerializer):
+        """Serializer for User Location Mapping."""
+        
+        user_username = serializers.CharField(source='user.username', read_only=True)
+        user_full_name = serializers.CharField(source='user.full_name', read_only=True)
+        location_name = serializers.CharField(source='location.name', read_only=True)
+        location_code = serializers.CharField(source='location.code', read_only=True)
+        location_type = serializers.CharField(source='location.location_type', read_only=True)
+        access_type_display = serializers.CharField(source='get_access_type_display', read_only=True)
+        created_by_username = serializers.CharField(source='created_by.username', read_only=True, allow_null=True)
+        
+        class Meta:
+            model = UserLocationMapping
+            fields = [
+                'id', 'user', 'user_username', 'user_full_name', 'location', 
+                'location_name', 'location_code', 'location_type', 'access_type', 
+                'access_type_display', 'is_active', 'is_default', 'created_at', 
+                'updated_at', 'created_by', 'created_by_username'
+            ]
+            read_only_fields = ['id', 'created_at', 'updated_at', 'created_by']
+        
+        def create(self, validated_data):
+            """Set created_by to current user."""
+            validated_data['created_by'] = self.context['request'].user
+            return super().create(validated_data)
+        
+        def update(self, instance, validated_data):
+            """Update mapping."""
+            return super().update(instance, validated_data)
+
+
+class UserLocationMappingGridSerializer(serializers.Serializer):
+    """Serializer for user-location mapping grid data."""
+    
+    user_id = serializers.UUIDField()
+    username = serializers.CharField()
+    full_name = serializers.CharField()
+    role = serializers.CharField()
+    location_mappings = serializers.DictField(
+        child=serializers.DictField(
+            child=serializers.BooleanField()
+        )
+    )
+    
+    def to_representation(self, instance):
+        """Custom representation for grid format."""
+        if isinstance(instance, dict):
+            return instance
+        return super().to_representation(instance)
+
+
+class BulkUserLocationMappingSerializer(serializers.Serializer):
+    """Serializer for bulk user-location mapping updates."""
+    
+    mappings = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.CharField()
+        )
+    )
+    
+    def validate(self, attrs):
+        """Validate the mappings structure."""
+        mappings = attrs.get('mappings', [])
+        for mapping in mappings:
+            if 'user_id' not in mapping:
+                raise serializers.ValidationError("Each mapping must have 'user_id'")
+            if 'location_id' not in mapping:
+                raise serializers.ValidationError("Each mapping must have 'location_id'")
+            if 'access_type' not in mapping:
+                raise serializers.ValidationError("Each mapping must have 'access_type'")
+        return attrs
