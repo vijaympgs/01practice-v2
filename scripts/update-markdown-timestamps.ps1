@@ -1,12 +1,95 @@
-# Update Markdown Timestamps Script
+# Update Markdown Timestamps Script (Enhanced)
 # This script updates all markdown files in the project with current timestamps and metadata
+# Uses configuration-first approach for better customization and maintainability
 
 param(
     [switch]$All,
     [switch]$Modified,
     [string]$Path = ".",
-    [switch]$DryRun
+    [switch]$DryRun,
+    [string]$ConfigFile = "timestamp-config.bat"
 )
+
+# Load configuration from external file
+function Load-Configuration {
+    param([string]$ConfigPath)
+    
+    if (-not (Test-Path $ConfigPath)) {
+        Write-Host "========================================" -ForegroundColor Red
+        Write-Host "ERROR: Timestamp Configuration Not Found!" -ForegroundColor Red
+        Write-Host "========================================" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Please follow these steps to set up timestamp configuration:" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "1. Copy the configuration template:" -ForegroundColor Cyan
+        Write-Host "   copy `"02-timestamp-config.template.bat`" `"timestamp-config.bat`"" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "2. Edit timestamp-config.bat with your actual values:" -ForegroundColor Cyan
+        Write-Host "   - Project name and description" -ForegroundColor Gray
+        Write-Host "   - Author information" -ForegroundColor Gray
+        Write-Host "   - File processing settings" -ForegroundColor Gray
+        Write-Host "   - Frontmatter preferences" -ForegroundColor Gray
+        Write-Host "   - Advanced options" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "3. Run this script again" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "========================================" -ForegroundColor Red
+        Write-Host ""
+        exit 1
+    }
+    
+    Write-Host "Loading timestamp configuration..." -ForegroundColor Green
+    
+    # Execute the batch file to load environment variables
+    cmd /c "$ConfigPath" 2>nul | Out-Null
+    
+    # Read and parse the configuration file
+    $config = @{}
+    $content = Get-Content $ConfigPath
+    
+    foreach ($line in $content) {
+        if ($line -match '^SET\s+(\w+)=(.+)$') {
+            $config[$matches[1]] = $matches[2]
+        }
+    }
+    
+    return $config
+}
+
+# Get configuration
+$config = Load-Configuration -ConfigPath $ConfigFile
+
+# Extract configuration values
+$PROJECT_NAME = $config["PROJECT_NAME"] ?? "Retail System"
+$PROJECT_VERSION = $config["PROJECT_VERSION"] ?? "2.0.0"
+$DEFAULT_AUTHOR = $config["DEFAULT_AUTHOR"] ?? "Development Team"
+$TIMESTAMP_FORMAT = $config["TIMESTAMP_FORMAT"] ?? "FORMAT1"
+$BASE_DIRECTORY = $config["BASE_DIRECTORY"] ?? ".."
+$INCLUDE_PATTERNS = $config["INCLUDE_PATTERNS"] ?? "*.md"
+$EXCLUDE_DIRECTORIES = $config["EXCLUDE_DIRECTORIES"] ?? "node_modules,venv,__pycache__,.git,dist,build"
+$EXCLUDE_FILES = $config["EXCLUDE_FILES"] ?? "*.tmp.md,*~.md"
+$CREATE_BACKUP = $config["CREATE_BACKUP"] ?? "true"
+$BACKUP_DIRECTORY = $config["BACKUP_DIRECTORY"] ?? "timestamp_backups"
+$VERBOSE_OUTPUT = $config["VERBOSE_OUTPUT"] ?? "true"
+$GENERATE_REPORT = $config["GENERATE_REPORT"] ?? "true"
+$REPORT_FILE = $config["REPORT_FILE"] ?? "timestamp_report.json"
+
+# Frontmatter settings
+$INCLUDE_TITLE = $config["INCLUDE_TITLE"] ?? "true"
+$INCLUDE_DESCRIPTION = $config["INCLUDE_DESCRIPTION"] ?? "true"
+$INCLUDE_DATE = $config["INCLUDE_DATE"] ?? "true"
+$INCLUDE_MODIFIED = $config["INCLUDE_MODIFIED"] ?? "true"
+$INCLUDE_AUTHOR = $config["INCLUDE_AUTHOR"] ?? "true"
+$INCLUDE_VERSION = $config["INCLUDE_VERSION"] ?? "true"
+$INCLUDE_CATEGORY = $config["INCLUDE_CATEGORY"] ?? "true"
+$INCLUDE_TAGS = $config["INCLUDE_TAGS"] ?? "true"
+$INCLUDE_PROJECT = $config["INCLUDE_PROJECT"] ?? "true"
+$INCLUDE_PATH = $config["INCLUDE_PATH"] ?? "true"
+$INCLUDE_REVIEW_STATUS = $config["INCLUDE_REVIEW_STATUS"] ?? "true"
+
+$DEFAULT_CATEGORY = $config["DEFAULT_CATEGORY"] ?? "documentation"
+$DEFAULT_REVIEW_STATUS = $config["DEFAULT_REVIEW_STATUS"] ?? "draft"
+$DEFAULT_TAGS = $config["DEFAULT_TAGS"] ?? "docs,timestamp"
 
 # Get current timestamp
 $currentTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss zzz"

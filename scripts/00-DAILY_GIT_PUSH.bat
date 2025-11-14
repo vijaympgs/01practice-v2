@@ -1,40 +1,45 @@
 @echo off
 echo ========================================
-echo Daily Git Push - NewBorn Retail POS
+echo    Retail System Daily Git Push
 echo ========================================
 echo.
 
-REM === CONFIGURATION - PLEASE UPDATE THESE VALUES ===
-REM Set your Git repository path
-SET REPO_PATH=d:\Python\01practice
-
-REM Set your Git credentials (update with your actual credentials)
-SET GIT_NAME=pratice
-SET GIT_EMAIL=vijaymgs@gmail.com
-
-REM Set your remote repository URL
-SET REMOTE_URL=https://github.com/vijaympgs/01practice.git
-
-REM Set branch name
-SET BRANCH_NAME=main
-
-REM === END OF CONFIGURATION ===
-
-echo Configuration:
-echo - Repository Path: %REPO_PATH%
-echo - Git User: %GIT_NAME%
-echo - Git Email: %GIT_EMAIL%
-echo - Remote URL: %REMOTE_URL%
-echo - Branch: %BRANCH_NAME%
-echo.
-
-REM Ask for confirmation
-set /p CONFIRM="Is this configuration correct? (y/n): "
-if /i not "%CONFIRM%"=="y" (
-    echo Please update the configuration in this batch file.
+REM Load Git configuration from external file
+if exist git-config.bat (
+    echo Loading Git configuration...
+    call git-config.bat
+) else (
+    echo.
+    echo ========================================
+    echo    ERROR: Git Configuration Not Found!
+    echo ========================================
+    echo.
+    echo Please follow these steps to set up Git configuration:
+    echo.
+    echo 1. Copy the configuration template:
+    echo    copy "01-git-config.template.bat" "git-config.bat"
+    echo.
+    echo 2. Edit git-config.bat with your actual values:
+    echo    - Your name and email
+    echo    - Repository URL (GitHub, GitLab, etc.)
+    echo    - Branch name (main, master, develop, etc.)
+    echo.
+    echo 3. Run this script again
+    echo.
+    echo ========================================
+    echo.
     pause
     exit /b 1
 )
+
+echo.
+echo Configuration loaded successfully:
+echo - Name: %GIT_NAME%
+echo - Email: %GIT_EMAIL%
+echo - Repository: %REPO_PATH%
+echo - Remote: %REMOTE_URL%
+echo - Branch: %BRANCH_NAME%
+echo.
 
 echo.
 echo Starting Git operations...

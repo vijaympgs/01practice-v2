@@ -31,12 +31,14 @@ review_status: "draft"
 ## Problem Identification
 
 ### Original Issue
+
 - **Symptom**: No `.git` folder in project directory
 - **Root Cause**: Project directory was not a Git repository
 - **Complication**: Accidental `git push origin HEAD:master` executed from a different location
 - **Result**: Commits pushed to wrong branch (`master` instead of `main`)
 
 ### Initial Diagnosis Process
+
 1. Checked for `.git` folder - **Not found**
 2. Discovered user had both `main` and `master` branches on remote
 3. Identified that `main` was the default branch (`origin/HEAD -> origin/main`)
@@ -47,6 +49,7 @@ review_status: "draft"
 ## Git Repository Analysis
 
 ### Understanding Remote Branch Structure
+
 ```bash
 git branch -r
 # Output showed:
@@ -56,7 +59,9 @@ git branch -r
 ```
 
 ### Commit History Analysis
+
 **Main branch commits:**
+
 ```
 0958c43 1111-test
 ed9ec42 ites]
@@ -64,6 +69,7 @@ ed9ec42 ites]
 ```
 
 **Master branch commits:**
+
 ```
 bb0b7a3 12-Nov-12am
 38d6477 commitpractice2
@@ -74,6 +80,7 @@ e0d619a 111125
 ```
 
 ### Key Findings
+
 - `main` was the default branch (GitHub standard)
 - `master` contained more recent commits (including accidental push)
 - Branches had completely different histories (unrelated)
@@ -84,6 +91,7 @@ e0d619a 111125
 ## Step-by-Step Solution Process
 
 ### Step 1: Initialize Git Repository
+
 ```bash
 cd d:\Python\01practice
 git init
@@ -92,28 +100,33 @@ git config user.email "vijaymgs@gmail.com"
 ```
 
 ### Step 2: Connect to Remote Repository
+
 ```bash
 git remote add origin https://github.com/vijaympgs/01practice.git
 git fetch --all
 ```
 
 ### Step 3: Create and Switch to Main Branch
+
 ```bash
 git checkout -b main origin/main
 ```
 
 ### Step 4: Commit Current Local Work
+
 ```bash
 git add .
 git commit -m "Save current work before switching branches"
 ```
 
 ### Step 5: Merge Unrelated Histories
+
 ```bash
 git merge origin/master --allow-unrelated-histories --no-ff -m "Merge master branch into main - bringing all recent commits"
 ```
 
 ### Step 6: Resolve Merge Conflicts
+
 ```bash
 # When conflicts occurred, kept local versions:
 git checkout --ours .
@@ -122,11 +135,13 @@ git commit -m "Merge master branch into main - bringing all recent commits"
 ```
 
 ### Step 7: Push to Remote
+
 ```bash
 git push origin main
 ```
 
 ### Step 8: Verify Final Result
+
 ```bash
 git log --oneline --graph
 ```
@@ -136,6 +151,7 @@ git log --oneline --graph
 ## Key Git Commands Learned
 
 ### Repository Setup Commands
+
 - `git init` - Initialize new Git repository
 - `git remote add origin <url>` - Add remote repository
 - `git fetch --all` - Download all remote branch information
@@ -143,18 +159,21 @@ git log --oneline --graph
 - `git config user.email "<email>" - Set Git user email
 
 ### Branch Management Commands
+
 - `git branch -r` - List remote branches
 - `git checkout -b <branch> origin/<branch>` - Create local branch tracking remote
 - `git log --oneline origin/<branch>` - Show commit history for specific branch
 - `git log --oneline --graph` - Show visual commit history
 
 ### Merge Commands
+
 - `git merge origin/<branch> --allow-unrelated-histories` - Merge unrelated histories
 - `git merge --abort` - Abort merge in progress
 - `git checkout --ours .` - Keep local versions in conflicts
 - `git checkout --theirs .` - Keep remote versions in conflicts
 
 ### Status and Verification Commands
+
 - `git status` - Show current repository status
 - `git log --oneline --graph` - Visual commit history
 - `git diff --cached --quiet` - Check if there are staged changes
@@ -164,6 +183,7 @@ git log --oneline --graph
 ## Batch Script Optimization
 
 ### Original Problem
+
 The batch file had a multi-line commit message that doesn't work in DOS:
 
 ```batch
@@ -179,6 +199,7 @@ Commit Date: %TIMESTAMP%"
 ```
 
 ### Solution Applied
+
 Converted to single-line format for DOS compatibility:
 
 ```batch
@@ -187,6 +208,7 @@ git commit -m "Daily update - %TIMESTAMP%"
 ```
 
 ### Key DOS Batch File Learnings
+
 1. **Multi-line strings**: DOS batch files don't handle multi-line strings within quotes properly
 2. **Line breaks**: Literal line breaks break commands in DOS
 3. **Variable expansion**: `%TIMESTAMP%` variables must be on single lines
@@ -197,7 +219,9 @@ git commit -m "Daily update - %TIMESTAMP%"
 ## Daily Workflow Setup
 
 ### Automated Script Configuration
+
 The `00-DAILY_GIT_PUSH.bat` script is configured with:
+
 - **Repository Path**: `d:\Python\01practice`
 - **Git User**: `practice`
 - **Git Email**: `vijaymgs@gmail.com`
@@ -205,12 +229,14 @@ The `00-DAILY_GIT_PUSH.bat` script is configured with:
 - **Branch**: `main`
 
 ### Script Execution Options
+
 1. **From Any Directory**: `scripts\00-DAILY_GIT_PUSH.bat`
 2. **From Project Directory**: `cd d:\Python\01practice` then `scripts\00-DAILY_GIT_PUSH.bat`
 3. **From Scripts Folder**: `cd d:\Python\01practice\scripts` then `00-DAILY_GIT_PUSH.bat`
 4. **Double-click**: Navigate to file and double-click in Explorer
 
 ### What the Script Does Automatically
+
 1. Changes to repository directory (`cd /d "%REPO_PATH%"`)
 2. Configures Git user if needed
 3. Initializes repository if it doesn't exist
@@ -220,6 +246,7 @@ The `00-DAILY_GIT_PUSH.bat` script is configured with:
 7. Pushes changes to remote
 
 ### Daily Workflow Process
+
 1. **Make changes** to your project files
 2. **Run the script**: `scripts\00-DAILY_GIT_PUSH.bat`
 3. **Script handles**: Add → Commit → Pull → Push automatically
@@ -232,15 +259,19 @@ The `00-DAILY_GIT_PUSH.bat` script is configured with:
 ### Common Error Messages and Solutions
 
 #### "fatal: refusing to merge unrelated histories"
+
 **Cause**: Trying to merge branches with no common ancestor
 **Solution**: Add `--allow-unrelated-histories` flag
+
 ```bash
 git merge origin/master --allow-unrelated-histories
 ```
 
 #### "Automatic merge failed; fix conflicts and then commit the result"
+
 **Cause**: Same files modified differently in both branches
 **Solution**: Choose which version to keep
+
 ```bash
 # Keep your local versions
 git checkout --ours .
@@ -254,8 +285,10 @@ git commit -m "Merge completed"
 ```
 
 #### "git checkout: aborting"
+
 **Cause**: Uncommitted changes in working directory
 **Solution**: Commit or stash changes first
+
 ```bash
 # Option 1: Commit changes
 git add .
@@ -266,8 +299,10 @@ git stash
 ```
 
 #### "no .git folder"
+
 **Cause**: Directory is not a Git repository
 **Solution**: Initialize Git repository
+
 ```bash
 git init
 git remote add origin <your-repo-url>
@@ -276,6 +311,7 @@ git remote add origin <your-repo-url>
 ### Merge Conflict Resolution Strategies
 
 #### Strategy 1: Keep Local Versions (Most Common)
+
 ```bash
 git checkout --ours .
 git add .
@@ -283,6 +319,7 @@ git commit -m "Resolved conflicts - kept local versions"
 ```
 
 #### Strategy 2: Keep Remote Versions
+
 ```bash
 git checkout --theirs .
 git add .
@@ -290,6 +327,7 @@ git commit -m "Resolved conflicts - kept remote versions"
 ```
 
 #### Strategy 3: Manual Resolution
+
 1. Open conflicted files in text editor
 2. Look for conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`)
 3. Edit files to keep desired content
@@ -301,6 +339,7 @@ git commit -m "Resolved conflicts - kept remote versions"
 ## Quick Reference Commands
 
 ### Essential Daily Commands
+
 ```bash
 # Check current status
 git status
@@ -322,6 +361,7 @@ git log --oneline --graph
 ```
 
 ### Emergency Recovery Commands
+
 ```bash
 # Abort current merge
 git merge --abort
@@ -340,6 +380,7 @@ git stash pop
 ```
 
 ### Branch Management
+
 ```bash
 # List all branches
 git branch -a
@@ -358,6 +399,7 @@ git push origin --delete <branch-name>
 ```
 
 ### Remote Repository Management
+
 ```bash
 # Show remote URLs
 git remote -v
@@ -377,6 +419,7 @@ git fetch --all
 ## Final Result and Verification
 
 ### Successful Git Repository Structure
+
 After completing the setup, your repository should show:
 
 ```
@@ -394,6 +437,7 @@ After completing the setup, your repository should show:
 ```
 
 ### Key Success Indicators
+
 - ✅ `.git` folder exists in project directory
 - ✅ `main` branch is active and tracking remote
 - ✅ All commits from both branches are preserved
@@ -402,6 +446,7 @@ After completing the setup, your repository should show:
 - ✅ Daily automation script working correctly
 
 ### Ongoing Maintenance
+
 1. **Daily**: Run `scripts\00-DAILY_GIT_PUSH.bat` after making changes
 2. **Weekly**: Check `git log --oneline --graph` to verify history
 3. **Monthly**: Review remote branches and clean up if needed
@@ -412,6 +457,7 @@ After completing the setup, your repository should show:
 ## Summary
 
 This comprehensive guide documents the complete process of:
+
 1. **Diagnosing** Git repository issues
 2. **Setting up** a proper Git repository from scratch
 3. **Merging** unrelated branch histories
@@ -447,6 +493,7 @@ This Git workflow guide integrates seamlessly with:
 5. **Team Collaboration** - Provides clear workflow guidelines for team members
 
 ### **Last Updated**
+
 - **Date**: 2025-11-14 10:29:10
 - **Status**: Current and ready for use
 - **Version**: 1.0.0

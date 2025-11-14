@@ -1,33 +1,52 @@
-# Markdown Timestamping System
+# Markdown Timestamping System (Enhanced)
 
 ## 🎯 Overview
 
-This system automatically updates all markdown files in the project with current timestamps and metadata, ensuring documentation is always current and properly tracked.
+This system automatically updates all markdown files in the project with current timestamps and metadata, ensuring documentation is always current and properly tracked. **Now features a configuration-first approach** for better customization and maintainability.
 
 ## 📁 Files
 
-### **Primary Script**
-- `update-markdown-timestamps.bat` - Main batch file for updating markdown timestamps
+### **Configuration Files**
+- `02-timestamp-config.template.bat` - Configuration template for timestamp settings
+- `timestamp-config.bat` - Your actual timestamp configuration (create from template)
 
-### **Advanced Script (PowerShell)**
-- `update-markdown-timestamps.ps1` - Advanced PowerShell script with more features (in development)
+### **Processing Scripts**
+- `update-markdown-timestamps.bat` - Enhanced batch file with configuration-first approach
+- `update-markdown-timestamps.ps1` - Advanced PowerShell script with configuration support
 
 ## 🚀 Usage
 
-### **Quick Start**
-```batch
-cd scripts
-update-markdown-timestamps.bat
-```
+### **First Time Setup**
+1. **Copy Configuration Template:**
+   ```batch
+   copy "02-timestamp-config.template.bat" "timestamp-config.bat"
+   ```
+
+2. **Edit Configuration:**
+   - Open `timestamp-config.bat` in a text editor
+   - Update with your project details and preferences
+   - Configure file processing settings
+   - Customize frontmatter options
+
+3. **Run Timestamp Updates:**
+   ```batch
+   cd scripts
+   update-markdown-timestamps.bat
+   ```
+
+### **Configuration-First Approach**
+- **Validation**: Scripts check for configuration before processing
+- **Customization**: Extensive configuration options for all aspects
+- **Flexibility**: Choose which frontmatter fields to include
+- **Control**: Configure file patterns, exclusions, and processing options
 
 ### **What It Does**
-1. **Scans entire project** for all `.md` files
-2. **Excludes** `node_modules` and `venv` directories
-3. **Adds frontmatter metadata** to each file:
-   - Current timestamp
-   - File information
-   - Project details
-   - Review status
+1. **Loads configuration** from external file
+2. **Validates settings** before processing
+3. **Scans project** for markdown files based on configuration
+4. **Creates backups** if enabled
+5. **Adds frontmatter metadata** based on your preferences
+6. **Generates reports** with processing statistics
 
 ## 📊 Frontmatter Format
 

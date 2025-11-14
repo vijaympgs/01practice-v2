@@ -15,8 +15,8 @@ REM   STEP 1: PERSONAL INFORMATION
 REM ========================================
 
 REM Your Git user information (required)
-SET GIT_NAME=Your Full Name
-SET GIT_EMAIL=your.email@example.com
+SET GIT_NAME=practice01
+SET GIT_EMAIL=vijaymgs@gmail.com
 
 REM ========================================
 REM   STEP 2: REPOSITORY INFORMATION
@@ -30,7 +30,8 @@ REM Examples:
 REM - GitHub: https://github.com/yourusername/retail-system.git
 REM - GitLab: https://gitlab.com/yourusername/retail-system.git
 REM - Bitbucket: https://bitbucket.org/yourusername/retail-system.git
-SET REMOTE_URL=https://github.com/yourusername/retail-system.git
+SET REMOTE_URL=https://github.com/vijaympgs/01practice.git
+
 
 REM Branch name (common: main, master, develop)
 SET BRANCH_NAME=main
