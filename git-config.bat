@@ -32,7 +32,6 @@ REM - GitLab: https://gitlab.com/yourusername/retail-system.git
 REM - Bitbucket: https://bitbucket.org/yourusername/retail-system.git
 SET REMOTE_URL=https://github.com/vijaympgs/01practice.git
 
-
 REM Branch name (common: main, master, develop)
 SET BRANCH_NAME=main
 
