@@ -123,14 +123,7 @@ if %errorlevel% equ 0 (
 
 REM Create commit with timestamp
 echo Creating commit...
-git commit -m "Daily update - %TIMESTAMP%
-
-- Backend API fixes and improvements
-- Frontend configuration updates
-- Database schema changes
-- Bug fixes and optimizations
-
-Commit Date: %TIMESTAMP%"
+git commit -m "Daily update - 2025-11-14 10:48:11"
 if %errorlevel% neq 0 (
     echo ERROR: Failed to create commit
     pause
