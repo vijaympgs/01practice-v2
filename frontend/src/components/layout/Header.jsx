@@ -50,6 +50,9 @@ import {
   Sync,
   SyncProblem,
   ChatBubbleOutline,
+  Lightbulb as FlashlightIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -57,8 +60,17 @@ import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import axios from 'axios';
 import themeService from '../../services/themeService';
-import { useNotification } from '../../contexts/NotificationContext';
+// import { useNotification } from '../../contexts/NotificationContext'; // Temporarily disabled for menu controller testing
+
+// Fallback notification functions
+const useNotification = () => ({
+  displaySuccess: (message) => console.log('SUCCESS:', message),
+  displayError: (message) => console.error('ERROR:', message),
+  displayInfo: (message) => console.log('INFO:', message),
+  displayWarning: (message) => console.warn('WARNING:', message)
+});
 import { getMenuCategories } from '../../utils/menuStructure';
+import brandingService from '../../services/brandingService';
 
 const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVisible = true, onToggleChatBot = () => {} }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -79,6 +91,13 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
   const [locations, setLocations] = useState([]);
   const [sessionLocationId, setSessionLocationId] = useState('');
   const [loadingLocations, setLoadingLocations] = useState(false);
+  
+  // Branding configuration state
+  const [brandingConfig, setBrandingConfig] = useState(null);
+  
+  // Company data state
+  const [companyData, setCompanyData] = useState(null);
+  const [loadingCompany, setLoadingCompany] = useState(false);
   
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -235,6 +254,7 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
     }
   };
 
+
   // Helper functions for sync status
   const getSyncIcon = () => {
     switch (syncStatus) {
@@ -317,6 +337,52 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
   }, [user, userRole, isSuperuser, canSelectLocation, locationSelectionRoles]);
   
   // Location selector visibility determined by canSelectLocation
+
+  // Load branding configuration
+  useEffect(() => {
+    const loadBrandingConfig = async () => {
+      try {
+        // Wait for branding service to load
+        await brandingService.loadConfig();
+        const config = brandingService.getConfig();
+        setBrandingConfig(config);
+        console.log('🎯 Header branding config loaded:', config?.company);
+        
+        // Listen for branding changes
+        const cleanup = brandingService.onBrandingChange((newConfig) => {
+          setBrandingConfig(newConfig);
+          console.log('🔄 Header branding config updated:', newConfig?.company);
+        });
+        
+        return cleanup;
+      } catch (error) {
+        console.error('❌ Error loading branding configuration:', error);
+        // Set fallback config
+        setBrandingConfig({
+          company: {
+            main_name: 'NewBorn',
+            sub_name: 'Retail',
+            trademark: '™',
+            tagline: 'AI-Powered',
+            main_color: '#FF5722',
+            text_color: '#ffffff',
+            show_tagline: true,
+            show_trademark: true
+          }
+        });
+      }
+    };
+
+    loadBrandingConfig();
+    
+    return () => {
+      // Cleanup branding listener on unmount
+      const cleanup = brandingService.onBrandingChange(() => {});
+      if (cleanup) {
+        cleanup();
+      }
+    };
+  }, []);
 
   // Load themes from database
   useEffect(() => {
@@ -607,42 +673,82 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
     }
   };
 
-  // Fetch company logo (only if authenticated)
+  // Fetch company data (name and logo) when authenticated
   useEffect(() => {
-    const fetchCompanyLogo = async () => {
+    const fetchCompanyData = async () => {
       // Check if user is authenticated
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        // Not authenticated, skip logo fetch
+        // Not authenticated, skip company data fetch
+        setCompanyData(null);
+        setCompanyLogo(null);
         return;
       }
+
+      setLoadingCompany(true);
+      console.log('🔄 Fetching company data for authenticated user...');
 
       try {
         // Try authenticated endpoint first
         const response = await api.get('/organization/companies/');
         const companies = response.data.results || response.data;
-        if (companies.length > 0 && companies[0].logo) {
-          setCompanyLogo(companies[0].logo);
+        
+        if (companies.length > 0) {
+          const company = companies[0];
+          console.log('✅ Company data fetched:', company);
+          
+          // Set company data (name and other details)
+          setCompanyData(company);
+          
+          // Set company logo if available
+          if (company.logo) {
+            setCompanyLogo(company.logo);
+          }
+        } else {
+          console.warn('⚠️ No company data found');
+          setCompanyData(null);
+          setCompanyLogo(null);
         }
       } catch (error) {
+        console.error('❌ Error fetching company data:', error);
+        
         // Only log non-401 errors (401 is expected if not authenticated)
         if (error.response?.status !== 401) {
-          console.error('Error fetching company logo:', error);
+          console.error('Error details:', error.response?.data);
         }
+        
         // Try public endpoint as fallback
         try {
           const publicResponse = await api.get('/organization/companies/public/');
           const companies = publicResponse.data.results || publicResponse.data;
-          if (companies.length > 0 && companies[0].logo) {
-            setCompanyLogo(companies[0].logo);
+          
+          if (companies.length > 0) {
+            const company = companies[0];
+            console.log('🌐 Using public company data:', company);
+            
+            // Set company data (name and other details)
+            setCompanyData(company);
+            
+            // Set company logo if available
+            if (company.logo) {
+              setCompanyLogo(company.logo);
+            }
+          } else {
+            console.warn('⚠️ No public company data found');
+            setCompanyData(null);
+            setCompanyLogo(null);
           }
         } catch (publicError) {
-          // Silently fail - logo is optional
+          console.warn('⚠️ No public company data available:', publicError.message);
+          setCompanyData(null);
+          setCompanyLogo(null);
         }
+      } finally {
+        setLoadingCompany(false);
       }
     };
 
-    fetchCompanyLogo();
+    fetchCompanyData();
   }, [user]); // Re-fetch when user changes
 
   const handleMenu = (event) => {
@@ -731,8 +837,30 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
         )}
         
         <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Company Logo Placeholder */}
-          {/* Company Name and Tagline */}
+          {/* Company Logo */}
+          {companyLogo ? (
+            <Box
+              component="img"
+              src={companyLogo}
+              alt="Company Logo"
+              sx={{
+                height: 40,
+                width: 'auto',
+                maxWidth: 120,
+                objectFit: 'contain',
+                filter: 'brightness(0) invert(1)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  filter: 'brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,0.5))'
+                }
+              }}
+            />
+          ) : loadingCompany ? (
+            <CircularProgress size={24} sx={{ color: 'white' }} />
+          ) : null}
+
+          {/* Company Name and Branding Details */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Typography 
               variant="h5" 
@@ -751,174 +879,100 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
                 opacity: 0.95
               }}
             >
-              <Typography 
-                component="span" 
-                sx={{ 
-                  color: '#FF5722',
-                  fontWeight: 700,
-                  fontSize: '1em',
-                  textShadow: '0 2px 4px rgba(255,87,34,0.4), 0 0 8px rgba(255,87,34,0.2)'
-                }}
-              >
-                NewBorn
-              </Typography>
-              <Typography 
-                component="span" 
-                sx={{ 
-                  color: 'white',
-                  fontWeight: 700,
-                  fontSize: '1em'
-                }}
-              >
-                Retail
-              </Typography>
-              <Typography 
-                component="span" 
-                sx={{ 
-                  fontSize: '0.7rem',
-                  color: '#FF5722',
-                  fontWeight: 600,
-                  fontStyle: 'italic',
-                  textShadow: '0 2px 4px rgba(255,87,34,0.4), 0 0 8px rgba(255,87,34,0.2)'
-                }}
-              >
-                ™
-              </Typography>
-              <Typography 
-                component="span" 
-                sx={{ 
-                  color: 'white',
-                  fontWeight: 500,
-                  fontSize: '0.5em',
-                  opacity: 0.9
-                }}
-              >
-                AI-Powered
-              </Typography>
+              {loadingCompany ? (
+                <CircularProgress size={20} sx={{ color: 'white' }} />
+              ) : (
+                <>
+                  {/* Company Name (from logged-in company data) */}
+                  {companyData && (
+                    <Typography 
+                      component="span" 
+                      sx={{ 
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '1em'
+                      }}
+                    >
+                      {companyData.name || 'Company'}
+                    </Typography>
+                  )}
+                  
+                  {/* Branding Details (from .cfg file) */}
+                  {brandingConfig && brandingConfig.company && (
+                    <>
+                      <Typography 
+                        component="span" 
+                        sx={{ 
+                          color: brandingConfig.company?.main_color || '#FF5722',
+                          fontWeight: 700,
+                          fontSize: '1em',
+                          textShadow: `0 2px 4px ${brandingConfig.company?.main_color ? brandingConfig.company.main_color + '40' : 'rgba(255,87,34,0.4)'}, 0 0 8px ${brandingConfig.company?.main_color ? brandingConfig.company.main_color + '20' : 'rgba(255,87,34,0.2)'}`
+                        }}
+                      >
+                        {brandingConfig.company?.main_name || 'NewBorn'}
+                      </Typography>
+                      <Typography 
+                        component="span" 
+                        sx={{ 
+                          color: brandingConfig.company?.text_color || 'white',
+                          fontWeight: 700,
+                          fontSize: '1em'
+                        }}
+                      >
+                        {brandingConfig.company?.sub_name || 'Retail'}
+                      </Typography>
+                      {brandingConfig.company?.show_trademark !== false && (
+                        <Typography 
+                          component="span" 
+                          sx={{ 
+                            fontSize: '0.7rem',
+                            color: brandingConfig.company?.main_color || '#FF5722',
+                            fontWeight: 600,
+                            fontStyle: 'italic',
+                            textShadow: `0 2px 4px ${brandingConfig.company?.main_color ? brandingConfig.company.main_color + '40' : 'rgba(255,87,34,0.4)'}, 0 0 8px ${brandingConfig.company?.main_color ? brandingConfig.company.main_color + '20' : 'rgba(255,87,34,0.2)'}`
+                          }}
+                        >
+                          {brandingConfig.company?.trademark || '™'}
+                        </Typography>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Company Tagline (from company data) */}
+                  {companyData?.tagline && (
+                    <Typography 
+                      component="span" 
+                      sx={{ 
+                        color: 'rgba(255,255,255,0.9)',
+                        fontWeight: 500,
+                        fontSize: '0.5em',
+                        opacity: 0.8
+                      }}
+                    >
+                      {companyData.tagline}
+                    </Typography>
+                  )}
+                  
+                  {/* Branding Tagline (from .cfg file) */}
+                  {brandingConfig && brandingConfig.company && brandingConfig.company?.show_tagline !== false && !companyData?.tagline && (
+                    <Typography 
+                      component="span" 
+                      sx={{ 
+                        color: brandingConfig.company?.text_color || 'white',
+                        fontWeight: 500,
+                        fontSize: '0.5em',
+                        opacity: 0.9
+                      }}
+                    >
+                      {brandingConfig.company?.tagline || 'AI-Powered'}
+                    </Typography>
+                  )}
+                </>
+              )}
             </Typography>
-            
           </Box>
         </Box>
 
-        {/* Theme Selector - Match Login Screen Pattern */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 2 }}>
-          {[
-            { theme_name: 'blue', primary_color: '#1565C0' },
-            { theme_name: 'black', primary_color: '#333333' }
-          ].map((theme) => {
-            // Check if this theme matches current theme (by color or name)
-            const isActive = currentTheme?.theme_name === theme.theme_name || 
-                            currentTheme?.primary_color === theme.primary_color ||
-                            (theme.theme_name === 'blue' && !currentTheme); // Default to blue if no theme set
-            return (
-              <Box
-                key={theme.theme_name}
-                onClick={async () => {
-                  try {
-                    // Find theme in availableThemes by name or create default
-                    const themeToUse = availableThemes.find(t => t.theme_name === theme.theme_name) || 
-                                       { theme_name: theme.theme_name, primary_color: theme.primary_color };
-                    
-                    // Set theme as active in database
-                    if (themeToUse.id) {
-                      await themeService.setActiveTheme(themeToUse.id);
-                    }
-                    
-                    // Store in localStorage (matching login screen pattern)
-                    const themeData = {
-                      theme_name: theme.theme_name,
-                      primary_color: theme.primary_color,
-                    };
-                    localStorage.setItem('activeTheme', JSON.stringify(themeData));
-                    
-                    // Dispatch custom event for immediate UI update
-                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeData }));
-                    
-                    // Re-fetch the active theme from database to ensure consistency
-                    const activeTheme = await themeService.getActiveTheme();
-                    if (activeTheme) {
-                      setCurrentTheme(activeTheme);
-                      applyThemeToUI(activeTheme);
-                    } else {
-                      // Fallback: use localStorage theme
-                      setCurrentTheme(themeData);
-                      applyThemeToUI(themeData);
-                    }
-                    
-                    // Reload the page to apply theme to all components
-                    window.location.reload();
-                  } catch (error) {
-                    console.error('Error setting theme:', error);
-                    // Fallback: use localStorage only
-                    const themeData = {
-                      theme_name: theme.theme_name,
-                      primary_color: theme.primary_color,
-                    };
-                    localStorage.setItem('activeTheme', JSON.stringify(themeData));
-                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeData }));
-                    window.location.reload();
-                  }
-                }}
-                sx={{
-                  position: 'relative',
-                  width: 20,
-                  height: 20,
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    transform: 'scale(1.2)',
-                    '& .theme-circle': {
-                      border: '2px solid #1976D2',
-                      boxShadow: `0 0 12px rgba(25, 118, 210, 0.5)`
-                    }
-                  }
-                }}
-                title={`Switch to ${theme.theme_name} theme`}
-              >
-                {/* Active indicator - Yellow outer circle */}
-                {isActive && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: '-4px',
-                      left: '-4px',
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      border: '3px solid #FFD700',
-                      boxShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
-                      zIndex: 10,
-                      '@keyframes themePulse': {
-                        '0%, 100%': {
-                          transform: 'scale(1)',
-                          opacity: 1,
-                        },
-                        '50%': {
-                          transform: 'scale(1.05)',
-                          opacity: 0.8,
-                        },
-                      },
-                      animation: 'themePulse 2s ease-in-out infinite',
-                    }}
-                  />
-                )}
-                {/* Theme color circle */}
-                <Box
-                  className="theme-circle"
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${theme.primary_color} 0%, ${theme.primary_color}dd 100%)`,
-                    border: isActive ? '2px solid #1976D2' : '2px solid rgba(0,0,0,0.1)',
-                    boxShadow: isActive ? '0 0 12px rgba(25, 118, 210, 0.4)' : 'none',
-                  }}
-                />
-              </Box>
-            );
-          })}
-        </Box>
 
         {/* Status Indicators - Moved to StatusBar */}
 
@@ -1050,65 +1104,29 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
             </Tooltip>
           </Box>
           
-          {/* Location Selector - Top Right (replaces company logo) */}
-          {canSelectLocation && (
-            <FormControl 
-              size="small" 
-              sx={{ 
-                minWidth: 160,
-                ml: 1,
-                visibility: canSelectLocation ? 'visible' : 'hidden',
-                display: canSelectLocation ? 'block' : 'none',
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'transparent',
-                  color: 'inherit',
-                  '& fieldset': {
-                    borderColor: 'rgba(255,255,255,0.3)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255,255,255,0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'rgba(255,255,255,0.7)',
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'rgba(255,255,255,0.7)',
-                  '&.Mui-focused': {
-                    color: 'rgba(255,255,255,0.9)',
-                  },
-                },
-                '& .MuiSelect-icon': {
-                  color: 'rgba(255,255,255,0.7)',
-                },
-                '& .MuiSelect-select': {
-                  color: 'inherit',
-                  py: 0.75,
-                  fontSize: '0.875rem',
-                },
-              }}
-            >
-              <InputLabel>Location</InputLabel>
-              <Select
-                value={sessionLocationId || ''}
-                label="Location"
-                onChange={(e) => handleLocationChange(e.target.value)}
-                disabled={loadingLocations}
-              >
-                {locations.length === 0 ? (
-                  <MenuItem disabled value="">
-                    {loadingLocations ? 'Loading...' : 'No locations available'}
-                  </MenuItem>
-                ) : (
-                  locations.map((location) => (
-                    <MenuItem key={location.id} value={location.id}>
-                      {location.name} {location.code ? `(${location.code})` : ''}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
-          )}
+          {/* Location Display - Top Right */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+            {sessionLocationId && (() => {
+              const selectedLocation = locations.find(loc => loc.id === sessionLocationId);
+              return selectedLocation ? (
+                <Chip
+                  icon={<LocationIcon />}
+                  label={selectedLocation.name}
+                  size="small"
+                  sx={{
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    height: '28px',
+                    '& .MuiChip-icon': {
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }
+                  }}
+                />
+              ) : null;
+            })()}
+          </Box>
         </Box>
       </Toolbar>
 
@@ -1123,18 +1141,16 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
         PaperProps={{ sx: { borderRadius: 1, overflow: 'hidden', mt: 1 } }}
       >
         <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              Quick Navigation
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Shortcut: Ctrl + K
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FlashlightIcon sx={{ color: '#FFA500', fontSize: 20 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#FFA500' }}>
+              Torch
             </Typography>
           </Box>
           <TextField
             fullWidth
             size="small"
-            placeholder="Type a path, e.g. /home or /sales"
+            placeholder="Type a path or command..."
             value={searchQuery}
             onChange={(event) => {
               setSearchQuery(event.target.value);
@@ -1155,11 +1171,8 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
               }
             }}
           />
-          <Typography variant="caption" color="text.secondary">
-            Enter a path (e.g., /home, /sales) or screen name (e.g., "Sales", "DataOps Studio") and press Enter.
-          </Typography>
           {searchError && (
-            <Typography variant="caption" color="error">
+            <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
               {searchError}
             </Typography>
           )}
@@ -1370,21 +1383,7 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
         </MenuItem>
       </Menu>
     </>
-    );
-  };
+  );
+};
 
 export default Header;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

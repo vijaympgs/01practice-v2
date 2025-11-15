@@ -143,7 +143,7 @@ if MenuItemType:
             model = MenuItemType
             fields = [
                 'id', 'menu_item_id', 'display_name', 'menu_type',
-                'transaction_subtype', 'category', 'path', 'description',
+                'transaction_subtype', 'category', 'subcategory', 'path', 'description',
                 'is_active', 'order'
             ]
             read_only_fields = ['id']

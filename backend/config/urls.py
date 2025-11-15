@@ -68,6 +68,9 @@ urlpatterns = [
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/', include('users.urls')),
     
+    # Users and Menu Controller
+    path('api/users/', include('users.urls')),
+    
     # Dashboard
     path('api/dashboard/metrics/', dashboard_metrics, name='dashboard_metrics'),
     
@@ -90,6 +93,9 @@ urlpatterns = [
     path('api/db-client/', include('db_client.urls')),
     path('api/utils/web-proxy/', proxy_web_content, name='web_console_proxy'),
     # path('api/reports/', include('reports.urls')),
+    
+    # Masters app URLs
+    path('masters/', include('masters.urls')),
 ]
 
 # Serve media files in development

@@ -64,213 +64,86 @@ import {
   Keyboard,
   Public,
   Launch,
+  Computer,
+  PlayArrow,
+  Stop,
+  RequestQuote,
+  SettingsSuggest,
+  ViewQuilt,
+  Language,
+  Preview,
 } from '@mui/icons-material';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useLayout } from '../../contexts/LayoutContext';
+import { getMenuCategories } from '../../utils/menuStructure';
+import menuService from '../../services/menuService';
 
-// Function to get menu categories - Structured Organization Setup
-const getMenuCategories = (menuVisibility) => [
-  {
-    title: 'Home',
-    type: 'DASHBOARD',
-    icon: <Dashboard />,
-    color: 'primary',
-    path: '/', // Direct navigation path
-    items: []
-  },
-  {
-    title: 'User & Permissions',
-    type: 'USER_PERMISSIONS',
-    icon: <Person />,
-    color: 'primary',
-    description: '',
-    path: '/user-permissions',
-    items: [
-      { text: 'Role Permissions', icon: <Person />, path: '/user-permissions', moduleName: 'user_permissions' },
-      { text: 'POS Function Mapping', icon: <Keyboard />, path: '/user-permissions/pos-functions', moduleName: 'pos_function_mapping' },
-    ]
-  },
-  {
-    title: 'Master Data',
-    type: 'MASTER',
-    icon: <DatabaseIcon />,
-    color: 'info',
-    description: '',
-    items: [
-      { text: 'Merchandise', icon: <Settings />, path: '/master-data/configuration', moduleName: 'master_configuration' },
-      { text: 'General', icon: <Assignment />, path: '/master-data/general', moduleName: 'master_general' },
-      { text: 'UOM Setup', icon: <Settings />, path: '/master-data/uom-setup', moduleName: 'master_uom_setup' },
-      { text: 'UOM Conversion', icon: <Settings />, path: '/master-data/uom-conversion', moduleName: 'master_uom_conversion' },
-      { text: 'Customers', icon: <People />, path: '/master-data/customers', moduleName: 'master_customers' },
-      { text: 'Vendors', icon: <LocalShipping />, path: '/master-data/vendors', moduleName: 'master_vendors' },
-    ]
-  },
-  {
-    title: 'Organization Setup',
-    type: 'ORGANIZATION',
-    icon: <Business />,
-    color: 'primary',
-    description: '',
-        items: [
-          { text: 'Organization Master', icon: <Business />, path: '/organization', moduleName: 'organization' },
-          { text: 'Tax Setup', icon: <Assessment />, path: '/item/tax-setup', moduleName: 'item_tax_setup' },
-        ]
-  },
-  {
-    title: 'Item',
-    type: 'ITEM',
-    icon: <ShoppingCart />,
-    color: 'success',
-    description: '',
-    items: [
-      { text: 'Item Master', icon: <Inventory />, path: '/item/item-master', moduleName: 'item_master' },
-      { text: 'Attributes', icon: <Assignment />, path: '/item/attributes', moduleName: 'item_attributes' },
-      { text: 'Attribute Values', icon: <Assignment />, path: '/item/attribute-values', moduleName: 'item_attribute_values' },
-    ]
-  },
-  {
-    title: 'Opening Stock',
-    type: 'OPENING_STOCK',
-    icon: <Inventory />,
-    color: 'warning',
-    description: '',
-    items: [
-      { text: 'Opening Stock', icon: <Inventory />, path: '/inventory/opening-stock', moduleName: 'opening_stock' },
-    ]
-  },
-  {
-    title: 'Procurement',
-    type: 'PROCUREMENT',
-    icon: <ShoppingCartCheckout />,
-    color: 'info',
-    description: '',
-    items: [
-      { text: 'Purchase Request', icon: <Assignment />, path: '/procurement/purchase-request', moduleName: 'procurement_purchase_request' },
-      { text: 'Purchase Enquiry', icon: <Assignment />, path: '/procurement/purchase-enquiry', moduleName: 'procurement_purchase_enquiry' },
-      { text: 'Purchase Quotation', icon: <Assignment />, path: '/procurement/purchase-quotation', moduleName: 'procurement_purchase_quotation' },
-      { text: 'Purchase Order', icon: <Assignment />, path: '/procurement/purchase-order', moduleName: 'procurement_purchase_order' },
-      { text: 'Goods Received Note', icon: <Assignment />, path: '/procurement/goods-received-note', moduleName: 'procurement_goods_received' },
-      { text: 'Purchase Invoice', icon: <Assignment />, path: '/procurement/purchase-invoice', moduleName: 'procurement_purchase_invoice' },
-      { text: 'Purchase Return', icon: <Assignment />, path: '/procurement/purchase-return', moduleName: 'procurement_purchase_return' },
-      { text: 'Procurement Advice', icon: <Assignment />, path: '/procurement/procurement-advice', moduleName: 'procurement_advice' },
-    ]
-  },
-  {
-    title: 'Sales',
-    type: 'SALES',
-    icon: <TrendingUp />,
-    color: 'primary',
-    description: '',
-    items: [
-      { text: 'Sales', icon: <TrendingUp />, path: '/sales', moduleName: 'sales_management' },
-      { text: 'Sales Order', icon: <Assignment />, path: '/sales-order-management', moduleName: 'sales_order_management' },
-      { text: 'Customer', icon: <People />, path: '/customer-management', moduleName: 'customer_management' },
-    ]
-  },
-  {
-    title: 'Stock Transfers',
-    type: 'STOCK_TRANSFERS',
-    icon: <TrendingUp />,
-    color: 'success',
-    description: '',
-    items: [
-      { text: 'Initial Setup', icon: <Settings />, path: '/stock-nexus/initial-setup', moduleName: 'stock_nexus_initial_setup' },
-      { text: 'Movement Tracking', icon: <TrendingUp />, path: '/stock-nexus/movement-tracking', moduleName: 'stock_nexus_movement_tracking' },
-      { text: 'Transfer Confirm', icon: <Assignment />, path: '/stock-nexus/transfer-confirm', moduleName: 'stock_nexus_transfer_confirm' },
-      { text: 'Count Adjust', icon: <Assignment />, path: '/stock-nexus/count-adjust', moduleName: 'stock_nexus_count_adjust' },
-    ]
-  },
-  {
-    title: 'Physical Inventory',
-    type: 'PHYSICAL_INVENTORY',
-    icon: <Inventory />,
-    color: 'warning',
-    description: '',
-    items: [
-      { text: 'Physical Inventory', icon: <Inventory />, path: '/inventory', moduleName: 'inventory_management' },
-      { text: 'System Go Live', icon: <Settings />, path: '/inventory/system-go-live', moduleName: 'inventory_go_live' },
-    ]
-  },
-  {
-    title: 'Point of Sale',
-    type: 'POS_LEGACY',
-    icon: <PointOfSale />,
-    color: 'success',
-    description: '',
-    items: [
-      { text: 'Terminal Configuration', icon: <Settings />, path: '/pos/terminal-configuration', moduleName: 'pos_terminal_configuration' },
-      { text: 'Day Open', icon: <DayOpenIcon />, path: '/pos/day-open', moduleName: 'pos_day_open' },
-      { text: 'Session Open', icon: <AccessTime />, path: '/pos/session-open', moduleName: 'pos_session_open' },
-      { text: 'POS Billing', icon: <PointOfSale />, path: '/pos/desktop', moduleName: 'pos_billing' },
-      { text: 'Settlement', icon: <AccountBalance />, path: '/pos/settlement', moduleName: 'pos_settlement' },
-      { text: 'Session Close', icon: <AccessTime />, path: '/pos/session-close', moduleName: 'pos_session_close' },
-      { text: 'Home Delivery', icon: <LocalShipping />, path: '/pos/home-delivery', moduleName: 'pos_home_delivery', hidden: true },
-      { text: 'Customer Receivables', icon: <AccountBalanceWallet />, path: '/pos/customer-receivables', moduleName: 'pos_customer_receivables', hidden: true },
-      { text: 'Day End', icon: <Event />, path: '/pos/day-end', moduleName: 'pos_day_end' },
-      { text: 'Day Close', icon: <DayCloseIcon />, path: '/pos/day-close', moduleName: 'pos_day_close', hidden: true },
-      { text: 'Terminal Setup', icon: <Settings />, path: '/pos/terminal-setup', moduleName: 'pos_terminal_setup', hidden: true },
-      { text: 'Shift Management', icon: <AccessTime />, path: '/pos/shift-management', moduleName: 'pos_shift_management', hidden: true },
-      { text: 'Session Management', icon: <AccessTime />, path: '/pos/session-management', moduleName: 'pos_session_management', hidden: true },
-      { text: 'Code Master', icon: <CodeIcon />, path: '/pos/code-master', moduleName: 'pos_code_master', hidden: true },
-    ]
-  },
-  {
-    title: 'Point of Sale (V2)',
-    type: 'POS_V2',
-    icon: <PointOfSale />,
-    color: 'success',
-    description: '',
-    hidden: true,
-    items: [
-      { text: 'POS Shift Console', icon: <AccessTime />, path: '/posv2/shift-workflow', moduleName: 'posv2_shift_workflow', hidden: true },
-      { text: 'POS Billing', icon: <PointOfSale />, path: '/posv2/desktop', moduleName: 'posv2_billing', hidden: true },
-      { text: 'Terminal Configuration', icon: <Settings />, path: '/posv2/terminal-configuration', moduleName: 'posv2_terminal_configuration', hidden: true },
-    ]
-  },
-  {
-    title: 'Reports',
-    type: 'REPORTS',
-    icon: <ReportsIcon />,
-    color: 'info',
-    description: '',
-    items: [
-      { text: 'Sales Reports', icon: <TrendingUp />, path: '/reports/sales', moduleName: 'sales_reports' },
-      { text: 'Inventory Reports', icon: <Inventory />, path: '/reports/inventory', moduleName: 'inventory_reports' },
-      { text: 'POS Reports', icon: <Receipt />, path: '/reports/pos', moduleName: 'pos_reports' },
-    ]
-  },
-  {
-    title: 'System Settings',
-    type: 'SYSTEM',
-    icon: <Settings />,
-    color: 'secondary',
-    description: '',
-    items: [
-      { text: 'Admin Tools', icon: <AdminPanelSettings />, path: '/settings/admin-tools', moduleName: 'admin_tools' },
-      { text: 'Database Configuration', icon: <DatabaseIcon />, path: '/settings', moduleName: 'system_settings', parentCategory: 'admin_tools' },
-      { text: 'Layout Preferences', icon: <Settings />, path: '/settings/layout-preferences', moduleName: 'layout_preferences', parentCategory: 'admin_tools' },
-      { text: 'Digital Marketing Console', icon: <TrendingUp />, path: '/settings/digital-marketing', moduleName: 'digital_marketing_console', parentCategory: 'admin_tools' },
-      { text: 'Web Console', icon: <Public />, path: '/settings/web-console', moduleName: 'web_console', parentCategory: 'admin_tools' },
-      { text: 'HTML Preview Tool', icon: <CodeIcon />, path: '/settings/html-preview', moduleName: 'html_preview_tool', parentCategory: 'admin_tools' },
-      { text: 'DataOps Studio', icon: <DatabaseIcon />, path: '/settings/dataops-studio', moduleName: 'database_client', parentCategory: 'admin_tools' },
-      { text: 'Wireframe Launchpad', icon: <Launch />, path: '/wireframes', moduleName: 'wireframe_index', parentCategory: 'admin_tools' },
-      { text: 'Business Rules', icon: <Settings />, path: '/business-rules', moduleName: 'business_rules' },
-      { text: 'POS Preferences', icon: <Settings />, path: '/business-rules/general', moduleName: 'business_rules_general', parentCategory: 'business_rules' },
-    ]
-  },
-  // Archive category
-  {
-    title: 'Archive',
-    type: 'ARCHIVE',
-    icon: <Archive />,
-    color: 'secondary',
-    description: '',
-    items: [
-      { text: 'Shift', icon: <AccessTime />, path: '/pos/shift-management', moduleName: 'pos_shift_management' },
-    ]
-  }
-];
+// Icon mapping object to convert string names to actual icon components
+const iconComponents = {
+  'Dashboard': Dashboard,
+  'People': People,
+  'Settings': Settings,
+  'Category': Category,
+  'Inventory': Inventory,
+  'ShoppingCart': ShoppingCart,
+  'PointOfSale': PointOfSale,
+  'Business': Business,
+  'Assignment': Assignment,
+  'Assessment': Assessment,
+  'Storage': DatabaseIcon,
+  'Receipt': Receipt,
+  'Analytics': ReportsIcon,
+  'LocalShipping': LocalShipping,
+  'TrendingUp': TrendingUp,
+  'AccessTime': AccessTime,
+  'AccountBalance': AccountBalance,
+  'Event': Event,
+  'Code': CodeIcon,
+  'ShoppingCartCheckout': ShoppingCartCheckout,
+  'Description': OrderIcon,
+  'AdminPanelSettings': AdminPanelSettings,
+  'Archive': Archive,
+  'CheckCircle': DayOpenIcon,
+  'Close': DayCloseIcon,
+  'Keyboard': Keyboard,
+  'Public': Public,
+  'Launch': Launch,
+  // New icons for missing menu items
+  'SettingsApplications': Settings,
+  'Computer': Computer,
+  'TerminalConfiguration': Computer,
+  'DayOpen': PlayArrow,
+  'SessionClose': Stop,
+  'PlayArrow': PlayArrow,
+  'Stop': Stop,
+  'PurchaseQuotation': RequestQuote,
+  'RequestQuote': RequestQuote,
+  'InitialSetup': SettingsSuggest,
+  'SettingsSuggest': SettingsSuggest,
+  'ViewQuilt': ViewQuilt,
+  'Web': Language,
+  'Preview': Preview,
+  // Admin Tools icons (should already work but ensuring completeness)
+  'DatabaseIcon': DatabaseIcon,
+  'CodeIcon': CodeIcon,
+  'SettingsIcon': Settings,
+  'LayoutPreferences': ViewQuilt,
+  // Day Management Console icon
+  'DayManagementConsole': Event,
+  // Fallback icons for missing ones
+  'SalesOrder': ShoppingCart,
+};
+
+// Helper function to get icon component from string name
+const getIconComponent = (iconName) => {
+  if (!iconName) return null;
+  const IconComponent = iconComponents[iconName];
+  return IconComponent ? <IconComponent /> : null;
+};
+
+// Using centralized menu structure from utils/menuStructure.js
 
 const Sidebar = ({ open = true, showSidebar = true }) => {
   const navigate = useNavigate();
@@ -281,9 +154,77 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
   // Get layout context - hooks must be called at top level
   const layoutContext = useLayout();
   
+  // State for dynamic menu from backend
+  const [dynamicMenuCategories, setDynamicMenuCategories] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+  
+  // Load hidden menu categories from localStorage
+  const [hiddenMenuCategories, setHiddenMenuCategories] = useState(new Set());
+  
   // Safely get menu visibility with fallbacks
   const menuVisibility = layoutContext?.getMenuVisibility || {};
   const visibilityMap = typeof menuVisibility === 'function' ? menuVisibility() : (menuVisibility || {});
+
+  // Load hidden menu categories from localStorage on component mount
+  useEffect(() => {
+    const loadHiddenCategories = () => {
+      const savedHiddenCategories = localStorage.getItem('hiddenMenuCategories');
+      if (savedHiddenCategories) {
+        try {
+          const parsed = JSON.parse(savedHiddenCategories);
+          setHiddenMenuCategories(new Set(parsed));
+          console.log('🔍 Sidebar: Loaded hidden menu categories from localStorage:', Array.from(parsed));
+        } catch (error) {
+          console.error('Error parsing hidden menu categories:', error);
+        }
+      }
+    };
+
+    loadHiddenCategories();
+    
+    // Listen for changes to hidden menu categories in localStorage
+    const handleStorageChange = (e) => {
+      if (e.key === 'hiddenMenuCategories') {
+        console.log('🔍 Sidebar: Storage change detected for hiddenMenuCategories');
+        loadHiddenCategories();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Load dynamic menu from backend on component mount
+  useEffect(() => {
+    const loadDynamicMenu = async () => {
+      try {
+        setMenuLoading(true);
+        console.log('🔄 Loading dynamic menu from backend...');
+        
+        const menuData = await menuService.getCompleteMenuStructure();
+        console.log('📊 Backend menu data:', menuData);
+        
+        if (menuData && menuData.categories && menuData.categories.length > 0) {
+          setDynamicMenuCategories(menuData.categories);
+          console.log('✅ Dynamic menu loaded with categories:', menuData.categories.map(cat => cat.title));
+        } else {
+          console.log('⚠️ No dynamic menu data, using static fallback');
+          // Fallback to static menu structure
+          setDynamicMenuCategories([]);
+        }
+      } catch (error) {
+        console.error('❌ Error loading dynamic menu:', error);
+        // Fallback to static menu structure
+        setDynamicMenuCategories([]);
+      } finally {
+        setMenuLoading(false);
+      }
+    };
+
+    loadDynamicMenu();
+  }, []);
 
   const shouldShowCategory = (category) => {
     if (!category) {
@@ -291,6 +232,11 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
     }
 
     if (category.hidden) {
+      return false;
+    }
+
+    // Check if category is in hidden menu categories
+    if (hiddenMenuCategories.has(category.title)) {
       return false;
     }
 
@@ -453,10 +399,10 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
                 color: isExpanded ? 'primary.main' : 'action.active'
               } 
             }}>
-              {category.icon}
+              {getIconComponent(category.icon)}
             </ListItemIcon>
           )}
-          {behavior.showLabels && category.title !== 'Home' && (
+          {behavior.showLabels && (
             <ListItemText 
               primary={
                 <Typography 
@@ -522,14 +468,16 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       const isSelected = location.pathname === (item.path || '');
       const isSubGroup = item.isSubGroup || false;
       const isSubItem = item.isSubItem || isSubItemParam;
+      const isSubcategory = item.isSubcategory || false;
     
     // For items with sub-items, add expand/collapse toggle
-    const isExpanded = hasSubItems ? expandedSections[item.moduleName] : false;
+    const expandKey = isSubcategory ? item.text : item.moduleName;
+    const isExpanded = hasSubItems ? expandedSections[expandKey] !== false : false;
     const handleToggle = (e) => {
       e.stopPropagation();
       setExpandedSections(prev => ({
         ...prev,
-        [item.moduleName]: !prev[item.moduleName]
+        [expandKey]: !prev[expandKey]
       }));
     };
     
@@ -583,7 +531,7 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
               color: isSelected ? 'inherit' : (isSubGroup ? 'primary.main' : 'action.active'),
               '& .MuiSvgIcon-root': { fontSize: '1.1rem' }
             }}>
-              {item.icon}
+              {getIconComponent(item.icon)}
             </ListItemIcon>
           )}
           {behavior.showLabels && (
@@ -810,7 +758,7 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
                   >
                     {category.icon && (
                       <Box component="span" sx={{ mr: isMobile ? 0.5 : 1, display: 'flex', alignItems: 'center' }}>
-                        {category.icon}
+                        {getIconComponent(category.icon)}
                       </Box>
                     )}
                     {!isMobile && category.title !== 'Home' && (
@@ -880,7 +828,7 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
                             >
                               {item.icon && (
                                 <ListItemIcon sx={{ minWidth: 36 }}>
-                                  {item.icon}
+                                  {getIconComponent(item.icon)}
                                 </ListItemIcon>
                               )}
                               <ListItemText 
@@ -1030,42 +978,40 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       
       {/* Scrollable Menu Categories */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
-        {getMenuCategories(menuVisibility)
-          .filter(shouldShowCategory)
-          .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
-          .filter(category => category.type !== 'DASHBOARD')
-          .map((category) => (
-            <Box key={category.title} sx={{ mb: category.type ? 0.5 : 0.125 }}>
-              <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
-                {category.type && (
-                  <>
-                    {renderCategoryHeader(category)}
-                    <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
-                      <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
-                        {(category.items || []).filter(isItemVisible).map((item, index) => {
-                          // Safety check - skip null/undefined items
-                          if (!item || !item.path) {
-                            return null;
-                          }
-                          
-                          // Handle sub-categories (like "Point Of Sale - Phase 2")
-                          const subItems = (category.items || []).filter(i => i && i.parentCategory === item.moduleName && isItemVisible(i));
-                          const hasSubItems = subItems.length > 0;
-                          
-                          // Skip items that are sub-items
-                          if (item.parentCategory) {
-                            return null;
-                          }
+        {/* Use dynamic menu if available, otherwise fall back to static */}
+        {(dynamicMenuCategories && dynamicMenuCategories.length > 0) ? (
+          // Dynamic menu from backend
+          dynamicMenuCategories
+            .filter(category => shouldShowCategory(category))
+            .filter(category => category.title !== 'Archive')  // Hide Archive category
+            .filter(category => category.title !== 'Home')  // Home is handled separately
+            .map((category) => (
+              <Box key={category.title} sx={{ mb: 0.5 }}>
+                <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
+                  {renderCategoryHeader(category)}
+                  <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
+                    <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
+                      {(category.items || []).filter(isItemVisible).map((item, index) => {
+                        // Safety check - skip null/undefined items
+                        if (!item) {
+                          return null;
+                        }
+                        
+                        // Handle subcategories
+                        if (item.isSubcategory) {
+                          // This is a subcategory header
+                          const subcategoryKey = item.text;
+                          const isExpanded = expandedSections[subcategoryKey] !== false; // Default to expanded
                           
                           return (
-                            <React.Fragment key={`menu-${index}`}>
-                              {renderMenuItem(item, true, hasSubItems)}
-                              {hasSubItems && (
-                                <Collapse in={expandedSections[item.moduleName]} timeout="auto" unmountOnExit>
+                            <React.Fragment key={`dynamic-subcategory-${index}`}>
+                              {renderMenuItem(item, false, item.items && item.items.length > 0)}
+                              {item.items && item.items.length > 0 && (
+                                <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                                   <List component="div" disablePadding>
-                                    {subItems.filter(Boolean).map((subItem, subIndex) => 
+                                    {item.items.filter(Boolean).map((subItem, subIndex) => 
                                       subItem ? (
-                                        <Box key={`sub-${subIndex}`} sx={{ pl: 4 }}>
+                                        <Box key={`dynamic-subitem-${subIndex}`} sx={{ pl: 4 }}>
                                           {renderMenuItem(subItem, true)}
                                         </Box>
                                       ) : null
@@ -1075,13 +1021,18 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
                               )}
                             </React.Fragment>
                           );
-                        })}
-                      </List>
-                    </Collapse>
-                  </>
-                )}
-              </List>
-              {category.type && (
+                        } else {
+                          // This is a regular menu item (not in a subcategory)
+                          return (
+                            <React.Fragment key={`dynamic-menu-${index}`}>
+                              {renderMenuItem(item, true, false)}
+                            </React.Fragment>
+                          );
+                        }
+                      })}
+                    </List>
+                  </Collapse>
+                </List>
                 <Divider 
                   sx={{ 
                     mx: 2, 
@@ -1089,9 +1040,73 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
                     borderColor: 'rgba(0,0,0,0.06)'
                   }} 
                 />
-              )}
-            </Box>
-          ))}
+              </Box>
+            ))
+        ) : (
+          // Fallback to static menu structure
+          getMenuCategories(menuVisibility)
+            .filter(shouldShowCategory)
+            .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
+            .filter(category => category.type !== 'DASHBOARD')
+            .map((category) => (
+              <Box key={category.title} sx={{ mb: category.type ? 0.5 : 0.125 }}>
+                <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
+                  {category.type && (
+                    <>
+                      {renderCategoryHeader(category)}
+                      <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
+                        <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
+                          {(category.items || []).filter(isItemVisible).map((item, index) => {
+                            // Safety check - skip null/undefined items
+                            if (!item || !item.path) {
+                              return null;
+                            }
+                            
+                            // Handle sub-categories (like "Point Of Sale - Phase 2")
+                            const subItems = (category.items || []).filter(i => i && i.parentCategory === item.moduleName && isItemVisible(i));
+                            const hasSubItems = subItems.length > 0;
+                            
+                            // Skip items that are sub-items
+                            if (item.parentCategory) {
+                              return null;
+                            }
+                            
+                            return (
+                              <React.Fragment key={`static-menu-${index}`}>
+                                {renderMenuItem(item, true, hasSubItems)}
+                                {hasSubItems && (
+                                  <Collapse in={expandedSections[item.moduleName]} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                      {subItems.filter(Boolean).map((subItem, subIndex) => 
+                                        subItem ? (
+                                          <Box key={`static-sub-${subIndex}`} sx={{ pl: 4 }}>
+                                            {renderMenuItem(subItem, true)}
+                                          </Box>
+                                        ) : null
+                                      )}
+                                    </List>
+                                  </Collapse>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </List>
+                      </Collapse>
+                    </>
+                  )}
+                </List>
+                {category.type && (
+                  <Divider 
+                    sx={{ 
+                      mx: 2, 
+                      my: 0.5,
+                      borderColor: 'rgba(0,0,0,0.06)'
+                  }} 
+                />
+                )}
+              </Box>
+            ))
+        )}
       </Box>
     </Drawer>
   );

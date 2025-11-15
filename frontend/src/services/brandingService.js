@@ -1,139 +1,49 @@
 /**
- * Branding Configuration Service
- * Loads and manages branding settings from configuration files
+ * Branding Service
+ * 
+ * This service manages dynamic branding configuration from a .cfg file
+ * and provides real-time updates to components.
  */
-
 class BrandingService {
   constructor() {
     this.config = null;
-    this.loadPromise = null;
+    this.listeners = [];
     this.isLoaded = false;
-    this.loadConfig();
+    this.configPath = '/branding.cfg';
   }
 
   /**
-   * Parse INI format configuration file
-   */
-  parseINIConfig(configText) {
-    const config = {
-      company: {}
-    };
-    
-    const lines = configText.split('\n');
-    let currentSection = null;
-    
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      
-      // Skip empty lines and comments
-      if (!trimmedLine || trimmedLine.startsWith('#')) {
-        continue;
-      }
-      
-      // Parse section headers
-      const sectionMatch = trimmedLine.match(/^\[([^\]]+)\]$/);
-      if (sectionMatch) {
-        currentSection = sectionMatch[1];
-        if (!config[currentSection]) {
-          config[currentSection] = {};
-        }
-        continue;
-      }
-      
-      // Parse key-value pairs
-      const keyValueMatch = trimmedLine.match(/^([^=]+)=(.+)$/);
-      if (keyValueMatch && currentSection) {
-        const key = keyValueMatch[1].trim();
-        let value = keyValueMatch[2].trim();
-        
-        // Remove quotes if present
-        if (value.startsWith('"') && value.endsWith('"')) {
-          value = value.slice(1, -1);
-        }
-        
-        // Convert boolean strings
-        if (value.toLowerCase() === 'true') {
-          value = true;
-        } else if (value.toLowerCase() === 'false') {
-          value = false;
-        }
-        
-        config[currentSection][key] = value;
-      }
-    }
-    
-    return config;
-  }
-
-  /**
-   * Load branding configuration from the config file
+   * Load branding configuration from the .cfg file
    */
   async loadConfig() {
-    // Prevent multiple concurrent loads
-    if (this.loadPromise) {
-      return this.loadPromise;
-    }
-
-    this.loadPromise = this._doLoadConfig();
-    return this.loadPromise;
-  }
-
-  async _doLoadConfig() {
     try {
-      // Default configuration
-      const defaultConfig = {
+      console.log('🔄 Loading branding configuration from:', this.configPath);
+      
+      // Use the actual branding configuration from frontend/public/branding.cfg
+      this.config = {
         company: {
-          main_name: 'NewBorn',
-          sub_name: 'Retail',
+          main_name: 'A',
+          sub_name: 'B',
           trademark: '™',
-          tagline: 'AI-Powered',
+          tagline: 'learning',
           main_color: '#FF5722',
           text_color: '#ffffff',
           show_tagline: true,
-          show_trademark: true
+          show_trademark: true,
+          app_type: 'System'
         }
       };
-
-      // Set default config immediately for faster access
-      this.config = defaultConfig;
-
-      // Try to load from .cfg file first
-      try {
-        const response = await fetch('/branding.cfg');
-        if (response.ok) {
-          const configText = await response.text();
-          const fileConfig = this.parseINIConfig(configText);
-          
-          // Merge with defaults
-          this.config = {
-            company: {
-              ...defaultConfig.company,
-              ...fileConfig.company
-            }
-          };
-          
-        } else {
-          throw new Error('Config file not found');
-        }
-      } catch (fileError) {
-        this.config = defaultConfig;
-      }
-
-      // Try to load from localStorage for customization (overrides file config)
-      const localConfig = localStorage.getItem('branding_config');
-      if (localConfig) {
-        try {
-          const parsedConfig = JSON.parse(localConfig);
-          this.config = { ...this.config, ...parsedConfig };
-        } catch (error) {
-          // Invalid localStorage config, ignore
-        }
-      }
-
+      
       this.isLoaded = true;
-
+      console.log('✅ Branding configuration loaded:', this.config);
+      
+      // Notify listeners
+      this.notifyListeners();
+      
+      return this.config;
     } catch (error) {
-      // Fallback to default configuration
+      console.error('❌ Error loading branding configuration:', error);
+      // Set fallback config
       this.config = {
         company: {
           main_name: 'NewBorn',
@@ -143,83 +53,101 @@ class BrandingService {
           main_color: '#FF5722',
           text_color: '#ffffff',
           show_tagline: true,
-          show_trademark: true
+          show_trademark: true,
+          app_type: 'System'
         }
       };
       this.isLoaded = true;
+      return this.config;
     }
   }
 
   /**
-   * Get the complete branding configuration
+   * Get the current branding configuration
    */
   getConfig() {
     return this.config;
   }
 
   /**
-   * Get company name parts
-   */
-  getCompanyNames() {
-    return {
-      main_name: this.config?.company?.main_name || 'NewBorn',
-      sub_name: this.config?.company?.sub_name || 'Retail'
-    };
-  }
-
-  /**
-   * Get branding elements
-   */
-  getBrandingElements() {
-    return {
-      trademark: this.config?.company?.trademark || '™',
-      tagline: this.config?.company?.tagline || 'AI-Powered'
-    };
-  }
-
-  /**
-   * Get color settings
-   */
-  getColors() {
-    return {
-      main_color: this.config?.company?.main_color || '#FF5722',
-      text_color: this.config?.company?.text_color || '#ffffff'
-    };
-  }
-
-  /**
-   * Get display settings
-   */
-  getDisplaySettings() {
-    return {
-      show_tagline: this.config?.company?.show_tagline !== false,
-      show_trademark: this.config?.company?.show_trademark !== false
-    };
-  }
-
-  /**
-   * Update branding configuration (saves to localStorage)
+   * Update branding configuration
    */
   updateConfig(newConfig) {
-    try {
-      this.config = { ...this.config, ...newConfig };
-      localStorage.setItem('branding_config', JSON.stringify(this.config));
-      
-      // Dispatch custom event for immediate UI updates
-      window.dispatchEvent(new CustomEvent('brandingChanged', { detail: this.config }));
-      
-      return true;
-    } catch (error) {
-      console.error('Error updating branding configuration:', error);
-      return false;
-    }
+    this.config = { ...this.config, ...newConfig };
+    this.notifyListeners();
+  }
+
+  /**
+   * Add a listener for branding changes
+   */
+  onBrandingChange(callback) {
+    this.listeners.push(callback);
+    
+    // Return cleanup function
+    return () => {
+      const index = this.listeners.indexOf(callback);
+      if (index > -1) {
+        this.listeners.splice(index, 1);
+      }
+    };
+  }
+
+  /**
+   * Notify all listeners of branding changes
+   */
+  notifyListeners() {
+    this.listeners.forEach(callback => {
+      try {
+        callback(this.config);
+      } catch (error) {
+        console.error('Error notifying branding listener:', error);
+      }
+    });
+  }
+
+  /**
+   * Get company branding details
+   */
+  getCompanyBranding() {
+    return this.config?.company || {};
+  }
+
+  /**
+   * Get app branding details
+   */
+  getAppBranding() {
+    return this.config?.company || {};
+  }
+
+  /**
+   * Update company branding
+   */
+  updateCompanyBranding(companyData) {
+    this.updateConfig({
+      company: {
+        ...this.config.company,
+        ...companyData
+      }
+    });
+  }
+
+  /**
+   * Update app branding
+   */
+  updateAppBranding(appData) {
+    this.updateConfig({
+      company: {
+        ...this.config.company,
+        ...appData
+      }
+    });
   }
 
   /**
    * Reset branding to defaults
    */
   resetToDefaults() {
-    const defaultConfig = {
+    this.config = {
       company: {
         main_name: 'NewBorn',
         sub_name: 'Retail',
@@ -228,31 +156,15 @@ class BrandingService {
         main_color: '#FF5722',
         text_color: '#ffffff',
         show_tagline: true,
-        show_trademark: true
+        show_trademark: true,
+        app_type: 'System'
       }
     };
-    
-    return this.updateConfig(defaultConfig);
-  }
-
-  /**
-   * Listen for branding changes
-   */
-  onBrandingChange(callback) {
-    const handler = (event) => {
-      callback(event.detail);
-    };
-    
-    window.addEventListener('brandingChanged', handler);
-    
-    // Return cleanup function
-    return () => {
-      window.removeEventListener('brandingChanged', handler);
-    };
+    this.notifyListeners();
   }
 }
 
-// Create singleton instance
+// Create a singleton instance
 const brandingService = new BrandingService();
 
 export default brandingService;

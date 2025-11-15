@@ -104,6 +104,8 @@ import DayClosePage from './pages/POS/DayClosePage';
 import POSBillingEnhanced from './pages/POS/POSBillingEnhanced';
 import POSDesktop from './pages/POS/POSDesktop';
 import SettlementModuleV2 from './pages/POS/SettlementModuleV2';
+import SettlementConsole from './pages/POS/SettlementConsole';
+import DayManagementConsole from './pages/POS/DayManagementConsole';
 import ShiftWorkflowPageV2 from './pages/POS/ShiftWorkflowPageV2';
 import CustomerReceivablesModule from './pages/POS/CustomerReceivablesModule';
 import HomeDeliveryConfirmationModule from './pages/POS/HomeDeliveryConfirmationModule';
@@ -349,7 +351,9 @@ const App = React.memo(() => {
                   <Route path="/pos/session-management" element={<SessionManagementPage />} />
                   <Route path="/pos/desktop" element={<POSDesktop />} />
                   <Route path="/pos/billing" element={<POSDesktop />} />
-                  <Route path="/pos/settlement" element={<SettlementModuleV2 routePrefix="/pos" condensed showHeader={false} />} />
+                  <Route path="/pos/settlement" element={<SettlementConsole />} />
+                  <Route path="/pos/day-management" element={<DayManagementConsole />} />
+                  <Route path="/pos/settlement-advanced" element={<SettlementModuleV2 routePrefix="/pos" condensed showHeader={false} />} />
                   <Route path="/pos/session-close" element={<SessionClosePage />} />
                   <Route path="/pos/day-close" element={<DayClosePage />} />
                   <Route path="/pos/customer-receivables" element={<CustomerReceivablesModule />} />
@@ -429,6 +433,6 @@ const App = React.memo(() => {
       </ThemeProvider>
     </Provider>
   );
-}
+});
 
 export default App;

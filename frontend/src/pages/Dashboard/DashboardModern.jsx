@@ -22,6 +22,9 @@ import {
   useMediaQuery,
   Fade,
   Zoom,
+  Switch,
+  FormControlLabel,
+  FormControl,
 } from '@mui/material';
 import {
   TrendingUp,
@@ -38,6 +41,7 @@ import {
   Savings as SavingsIcon,
   AttachMoney as AttachMoneyIcon,
   ListAlt as ListAltIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useUserRole } from '../../contexts/UserRoleContext';
 import { alpha } from '@mui/material/styles';
@@ -45,6 +49,7 @@ import { alpha } from '@mui/material/styles';
 const DashboardModern = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [showDashboard, setShowDashboard] = useState(false);
   const { userRole, getCurrentRole } = useUserRole();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -450,6 +455,27 @@ const DashboardModern = () => {
 
         {/* System Health & Actions */}
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Dashboard Toggle */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showDashboard}
+                onChange={(e) => setShowDashboard(e.target.checked)}
+                icon={<VisibilityIcon />}
+                checkedIcon={<VisibilityIcon />}
+                color="primary"
+                size="small"
+              />
+            }
+            label="Show Dashboard"
+            sx={{ 
+              '& .MuiFormControlLabel-label': { 
+                fontSize: '0.8rem',
+                color: 'text.secondary'
+              }
+            }}
+          />
+          
           <Chip 
             icon={<SpeedIcon />}
             label={`System Health: ${systemMetrics.uptime} • ${systemMetrics.responseTime}`} 
@@ -484,53 +510,86 @@ const DashboardModern = () => {
         </Box>
       </Box>
 
-      {/* System Metrics */}
-      <Box sx={{ mb: 1, flexShrink: 0 }}>
-        {renderSystemMetrics()}
-      </Box>
+      {/* Dashboard Content - Conditional Rendering */}
+      <Fade in={showDashboard} timeout={300}>
+        <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0, display: showDashboard ? 'flex' : 'none', flexDirection: 'column' }}>
+          {/* System Metrics */}
+          <Box sx={{ mb: 1, flexShrink: 0 }}>
+            {renderSystemMetrics()}
+          </Box>
 
-      {/* Compact Alerts Section */}
-      <Box sx={{ mb: 1, flexShrink: 0 }}>
-        <Grid container spacing={1}>
-          {alerts.map((alert, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Alert 
-                severity={alert.type} 
-                icon={alert.icon}
-                sx={{ 
-                  borderRadius: 1,
-                  py: 1,
-                  '& .MuiAlert-message': { width: '100%' },
-                  '& .MuiAlert-icon': { fontSize: '1rem' }
-                }}
-              >
-                <AlertTitle sx={{ fontWeight: 600, fontSize: '0.8rem', mb: 0.5 }}>
-                  {alert.title}
-                </AlertTitle>
-                <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
-                  {alert.message}
-                </Typography>
-              </Alert>
+          {/* Compact Alerts Section */}
+          <Box sx={{ mb: 1, flexShrink: 0 }}>
+            <Grid container spacing={1}>
+              {alerts.map((alert, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Alert 
+                    severity={alert.type} 
+                    icon={alert.icon}
+                    sx={{ 
+                      borderRadius: 1,
+                      py: 1,
+                      '& .MuiAlert-message': { width: '100%' },
+                      '& .MuiAlert-icon': { fontSize: '1rem' }
+                    }}
+                  >
+                    <AlertTitle sx={{ fontWeight: 600, fontSize: '0.8rem', mb: 0.5 }}>
+                      {alert.title}
+                    </AlertTitle>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                      {alert.message}
+                    </Typography>
+                  </Alert>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
-      </Box>
+          </Box>
 
-      {/* Refresh Progress */}
-      {isRefreshing && (
-        <LinearProgress 
-          sx={{ 
-            mb: 2,
-            borderRadius: 1,
-            height: 4
-          }} 
-        />
+          {/* Refresh Progress */}
+          {isRefreshing && (
+            <LinearProgress 
+              sx={{ 
+                mb: 2,
+                borderRadius: 1,
+                height: 4
+              }} 
+            />
+          )}
+
+          {/* Dashboard Content - Flexible Area */}
+          <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+            {renderTabContent()}
+          </Box>
+        </Box>
+      </Fade>
+
+      {/* Empty State when Dashboard is Hidden */}
+      {!showDashboard && (
+        <Fade in={!showDashboard} timeout={300}>
+          <Box 
+            sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              minHeight: 0,
+              backgroundColor: 'background.default',
+              borderRadius: 2,
+              border: '2px dashed',
+              borderColor: 'divider'
+            }}
+          >
+            <VisibilityIcon sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Dashboard Content Hidden
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
+              Toggle the "Show Dashboard" switch above to display the dashboard content and mockup data.
+            </Typography>
+          </Box>
+        </Fade>
       )}
-
-      {/* Dashboard Content - Flexible Area */}
-      <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-        {renderTabContent()}
-      </Box>
     </Box>
   );
 };

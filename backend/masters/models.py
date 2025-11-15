@@ -30,6 +30,12 @@ class UploadSession(models.Model):
         validators=[FileExtensionValidator(allowed_extensions=['xlsx', 'xls'])],
         help_text="Excel file containing master data"
     )
+    error_file = models.FileField(
+        upload_to='master_upload_errors/',
+        blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['xlsx', 'xls'])],
+        help_text="Excel file with error details"
+    )
     file_name = models.CharField(max_length=255, help_text="Original file name")
     file_size = models.PositiveIntegerField(help_text="File size in bytes")
     

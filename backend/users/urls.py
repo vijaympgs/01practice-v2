@@ -18,6 +18,11 @@ from .views import (
     ExportRolePermissionsExcelView,
     ImportRolePermissionsExcelView,
     UserPOSPermissionsView,
+    # Menu Controller Views
+    MenuItemTypeViewSet,
+    MenuVisibilityView,
+    UserMenuPermissionsView,
+    MenuStatisticsView,
 )
 try:
     from .views import POSFunctionViewSet, RolePOSFunctionMappingViewSet
@@ -30,6 +35,9 @@ app_name = 'users'
 # Router for ViewSets
 router = DefaultRouter()
 router.register(r'permissions', UserPermissionViewSet, basename='user-permission')
+
+# Register Menu Controller ViewSet (only MenuItemTypeViewSet is a ViewSet)
+router.register(r'menu-items', MenuItemTypeViewSet, basename='menu-items')
 
 # Register POS Function viewsets if available
 if POSFunctionViewSet:
@@ -63,6 +71,11 @@ urlpatterns = [
     
     # POS Function Permissions
     path('pos-permissions/', UserPOSPermissionsView.as_view(), name='user-pos-permissions'),
+    
+    # Menu Controller API endpoints
+    path('menu-visibility/', MenuVisibilityView.as_view(), name='menu-visibility'),
+    path('menu-permissions/', UserMenuPermissionsView.as_view(), name='user-menu-permissions'),
+    path('menu-statistics/', MenuStatisticsView.as_view(), name='menu-statistics'),
     
     # Include router URLs
     path('', include(router.urls)),

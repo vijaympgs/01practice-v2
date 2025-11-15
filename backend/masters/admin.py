@@ -15,7 +15,20 @@ from .models import UploadSession, MasterDataTemplate, ImportLog, ValidationRule
 from .services.excel_template_generator import generate_template_file, save_template_to_file
 
 
-@admin.register(UploadSession)
+# Custom admin site actions (commented out - not needed for simplified interface)
+# def download_template_action(modeladmin, request, queryset):
+#     """Admin action to download template"""
+#     return HttpResponseRedirect(reverse('admin:masters_uploadsession_download_template'))
+# download_template_action.short_description = "Download Excel Template"
+
+
+# def upload_data_action(modeladmin, request, queryset):
+#     """Admin action to upload data"""
+#     return HttpResponseRedirect(reverse('admin:masters_uploadsession_upload_data'))
+# upload_data_action.short_description = "Upload Master Data"
+
+
+# Minimal admin class to keep template download URLs working but hide from admin interface
 class UploadSessionAdmin(admin.ModelAdmin):
     """
     Admin interface for Upload Sessions
@@ -33,6 +46,8 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'progress_percentage', 'duration', 'created_at', 'updated_at',
         'started_at', 'completed_at', 'created_by'
     ]
+    # actions = []  # No actions needed for simplified interface
+    # change_list_template = 'admin/masters/change_list.html'  # Not used
     
     fieldsets = (
         ('Basic Information', {
@@ -190,126 +205,113 @@ class UploadSessionAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context)
 
 
-@admin.register(MasterDataTemplate)
-class MasterDataTemplateAdmin(admin.ModelAdmin):
-    """
-    Admin interface for Master Data Templates
-    """
-    list_display = ['name', 'version', 'is_active', 'is_default', 'created_by', 'created_at']
-    list_filter = ['is_active', 'is_default', 'created_at']
-    search_fields = ['name', 'description']
-    readonly_fields = ['created_at', 'updated_at', 'created_by']
-    
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'description', 'version')
-        }),
-        ('Configuration', {
-            'fields': ('sheet_configurations',)
-        }),
-        ('Status', {
-            'fields': ('is_active', 'is_default')
-        }),
-        ('Metadata', {
-            'fields': ('created_by', 'created_at', 'updated_at'),
-            'classes': ('collapse',)
-        })
-    )
+# @admin.register(MasterDataTemplate)
+# class MasterDataTemplateAdmin(admin.ModelAdmin):
+#     """
+#     Admin interface for Master Data Templates
+#     """
+#     list_display = ['name', 'version', 'is_active', 'is_default', 'created_by', 'created_at']
+#     list_filter = ['is_active', 'is_default', 'created_at']
+#     search_fields = ['name', 'description']
+#     readonly_fields = ['created_at', 'updated_at', 'created_by']
+#     
+#     fieldsets = (
+#         ('Basic Information', {
+#             'fields': ('name', 'description', 'version')
+#         }),
+#         ('Configuration', {
+#             'fields': ('sheet_configurations',)
+#         }),
+#         ('Status', {
+#             'fields': ('is_active', 'is_default')
+#         }),
+#         ('Metadata', {
+#             'fields': ('created_by', 'created_at', 'updated_at'),
+#             'classes': ('collapse',)
+#         })
+#     )
 
 
-@admin.register(ImportLog)
-class ImportLogAdmin(admin.ModelAdmin):
-    """
-    Admin interface for Import Logs
-    """
-    list_display = [
-        'upload_session', 'sheet_name', 'row_number', 'model_name',
-        'record_identifier', 'result', 'created_at'
-    ]
-    list_filter = ['result', 'sheet_name', 'model_name', 'created_at']
-    search_fields = [
-        'upload_session__session_name', 'sheet_name', 'model_name',
-        'record_identifier', 'message'
-    ]
-    readonly_fields = [
-        'upload_session', 'sheet_name', 'row_number', 'model_name',
-        'record_identifier', 'result', 'message', 'original_data',
-        'processed_data', 'content_type', 'object_id', 'created_at'
-    ]
-    
-    def has_add_permission(self, request):
-        """Import logs are read-only"""
-        return False
-    
-    def has_change_permission(self, request, obj=None):
-        """Import logs are read-only"""
-        return False
-    
-    def has_delete_permission(self, request, obj=None):
-        """Import logs are read-only"""
-        return False
+# @admin.register(ImportLog)
+# class ImportLogAdmin(admin.ModelAdmin):
+#     """
+#     Admin interface for Import Logs
+#     """
+#     list_display = [
+#         'upload_session', 'sheet_name', 'row_number', 'model_name',
+#         'record_identifier', 'result', 'created_at'
+#     ]
+#     list_filter = ['result', 'sheet_name', 'model_name', 'created_at']
+#     search_fields = [
+#         'upload_session__session_name', 'sheet_name', 'model_name',
+#         'record_identifier', 'message'
+#     ]
+#     readonly_fields = [
+#         'upload_session', 'sheet_name', 'row_number', 'model_name',
+#         'record_identifier', 'result', 'message', 'original_data',
+#         'processed_data', 'content_type', 'object_id', 'created_at'
+#     ]
+#     
+#     def has_add_permission(self, request):
+#         """Import logs are read-only"""
+#         return False
+#     
+#     def has_change_permission(self, request, obj=None):
+#         """Import logs are read-only"""
+#         return False
+#     
+#     def has_delete_permission(self, request, obj=None):
+#         """Import logs are read-only"""
+#         return False
 
 
-@admin.register(ValidationRule)
-class ValidationRuleAdmin(admin.ModelAdmin):
-    """
-    Admin interface for Validation Rules
-    """
-    list_display = [
-        'name', 'model_name', 'field_name', 'rule_type',
-        'is_active', 'created_by', 'created_at'
-    ]
-    list_filter = ['model_name', 'rule_type', 'is_active', 'created_at']
-    search_fields = ['name', 'model_name', 'field_name', 'error_message']
-    readonly_fields = ['created_at', 'updated_at', 'created_by']
-    
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'model_name', 'field_name', 'rule_type')
-        }),
-        ('Rule Configuration', {
-            'fields': ('parameters', 'error_message')
-        }),
-        ('Status', {
-            'fields': ('is_active',)
-        }),
-        ('Metadata', {
-            'fields': ('created_by', 'created_at', 'updated_at'),
-            'classes': ('collapse',)
-        })
-    )
+# @admin.register(ValidationRule)
+# class ValidationRuleAdmin(admin.ModelAdmin):
+#     """
+#     Admin interface for Validation Rules
+#     """
+#     list_display = [
+#         'name', 'model_name', 'field_name', 'rule_type',
+#         'is_active', 'created_by', 'created_at'
+#     ]
+#     list_filter = ['model_name', 'rule_type', 'is_active', 'created_at']
+#     search_fields = ['name', 'model_name', 'field_name', 'error_message']
+#     readonly_fields = ['created_at', 'updated_at', 'created_by']
+#     
+#     fieldsets = (
+#         ('Basic Information', {
+#             'fields': ('name', 'model_name', 'field_name', 'rule_type')
+#         }),
+#         ('Rule Configuration', {
+#             'fields': ('parameters', 'error_message')
+#         }),
+#         ('Status', {
+#             'fields': ('is_active',)
+#         }),
+#         ('Metadata', {
+#             'fields': ('created_by', 'created_at', 'updated_at'),
+#             'classes': ('collapse',)
+#         })
+#     )
 
 
-@admin.register(MasterDataCache)
-class MasterDataCacheAdmin(admin.ModelAdmin):
-    """
-    Admin interface for Master Data Cache
-    """
-    list_display = ['model_name', 'cache_key', 'expires_at', 'hit_count', 'created_at']
-    list_filter = ['model_name', 'expires_at', 'created_at']
-    search_fields = ['model_name', 'cache_key']
-    readonly_fields = ['created_at', 'updated_at']
-    
-    def has_add_permission(self, request):
-        """Cache entries are managed automatically"""
-        return False
-    
-    def has_change_permission(self, request, obj=None):
-        """Cache entries are managed automatically"""
-        return False
-
-
-# Custom admin site actions
-def download_template_action(modeladmin, request, queryset):
-    """Admin action to download template"""
-    return HttpResponseRedirect(reverse('admin:masters_uploadsession_download_template'))
-download_template_action.short_description = "Download Excel Template"
-
-
-def upload_data_action(modeladmin, request, queryset):
-    """Admin action to upload data"""
-    return HttpResponseRedirect(reverse('admin:masters_uploadsession_upload_data'))
-upload_data_action.short_description = "Upload Master Data"
+# @admin.register(MasterDataCache)
+# class MasterDataCacheAdmin(admin.ModelAdmin):
+#     """
+#     Admin interface for Master Data Cache
+#     """
+#     list_display = ['model_name', 'cache_key', 'expires_at', 'hit_count', 'created_at']
+#     list_filter = ['model_name', 'expires_at', 'created_at']
+#     search_fields = ['model_name', 'cache_key']
+#     readonly_fields = ['created_at', 'updated_at']
+#     
+#     def has_add_permission(self, request):
+#         """Cache entries are managed automatically"""
+#         return False
+#     
+#     def has_change_permission(self, request, obj=None):
+#         """Cache entries are managed automatically"""
+#         return False
 
 
 # Add custom admin site header
@@ -331,3 +333,7 @@ def custom_admin_site_each_context(context):
         'show_upload_actions': True,
     })
     return context
+
+
+# Masters admin completely removed - no admin registrations
+# All functionality moved to standalone views in views.py
