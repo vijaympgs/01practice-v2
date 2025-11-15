@@ -1,0 +1,343 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+    .logs-container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+    
+    .session-info {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .session-info h2 {
+        margin-top: 0;
+        color: #495057;
+    }
+    
+    .session-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        font-weight: bold;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .detail-value {
+        color: #495057;
+    }
+    
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .status-processing {
+        background-color: #17a2b8;
+        color: white;
+    }
+    
+    .status-completed {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .status-failed {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .status-cancelled {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .logs-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .logs-table th,
+    .logs-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .logs-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .logs-table tr:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .result-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .result-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .result-failed {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .result-skipped {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .result-warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .message-cell {
+        max-width: 300px;
+        word-wrap: break-word;
+        font-size: 12px;
+    }
+    
+    .stats-summary {
+        background: #e9ecef;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .stat-item {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007cba;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .back-link:hover {
+        background-color: #5a6268;
+    }
+    
+    .no-logs {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:masters_uploadsession_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; <a href="{% url 'admin:masters_uploadsession_change' session.pk %}">{{ session.session_name }}</a>
+&rsaquo; {% trans 'Import Logs' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{% trans 'Import Logs' %} - {{ session.session_name }}</h1>
+    
+    <div class="logs-container">
+        <!-- Session Information -->
+        <div class="session-info">
+            <h2>{% trans 'Session Information' %}</h2>
+            <div class="session-details">
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Session Name' %}:</span>
+                    <span class="detail-value">{{ session.session_name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Status' %}:</span>
+                    <span class="detail-value">
+                        <span class="status-badge status-{{ session.status }}">{{ session.get_status_display }}</span>
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Progress' %}:</span>
+                    <span class="detail-value">{{ session.progress_percentage }}%</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Total Records' %}:</span>
+                    <span class="detail-value">{{ session.total_records }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Successful' %}:</span>
+                    <span class="detail-value">{{ session.successful_records }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Failed' %}:</span>
+                    <span class="detail-value">{{ session.failed_records }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Skipped' %}:</span>
+                    <span class="detail-value">{{ session.skipped_records }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Created By' %}:</span>
+                    <span class="detail-value">{{ session.created_by.username|default:"System" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Created At' %}:</span>
+                    <span class="detail-value">{{ session.created_at|date:"Y-m-d H:i:s" }}</span>
+                </div>
+                {% if session.duration %}
+                <div class="detail-item">
+                    <span class="detail-label">{% trans 'Duration' %}:</span>
+                    <span class="detail-value">{{ session.duration }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Statistics Summary -->
+        <div class="stats-summary">
+            <h3>{% trans 'Processing Summary' %}</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ session.total_records }}</div>
+                    <div class="stat-label">{% trans 'Total Records' %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ session.successful_records }}</div>
+                    <div class="stat-label">{% trans 'Successful' %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ session.failed_records }}</div>
+                    <div class="stat-label">{% trans 'Failed' %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ session.skipped_records }}</div>
+                    <div class="stat-label">{% trans 'Skipped' %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ session.success_rate|floatformat:1 }}%</div>
+                    <div class="stat-label">{% trans 'Success Rate' %}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Import Logs Table -->
+        {% if logs %}
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>{% trans 'Sheet Name' %}</th>
+                        <th>{% trans 'Row' %}</th>
+                        <th>{% trans 'Model' %}</th>
+                        <th>{% trans 'Identifier' %}</th>
+                        <th>{% trans 'Result' %}</th>
+                        <th>{% trans 'Message' %}</th>
+                        <th>{% trans 'Created At' %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.sheet_name }}</td>
+                        <td>{{ log.row_number }}</td>
+                        <td>{{ log.model_name }}</td>
+                        <td>{{ log.record_identifier }}</td>
+                        <td>
+                            <span class="result-badge result-{{ log.result }}">
+                                {{ log.get_result_display }}
+                            </span>
+                        </td>
+                        <td class="message-cell">
+                            {% if log.message %}
+                                {{ log.message|truncatechars:100 }}
+                                {% if log.message|length > 100 %}
+                                <br><em>{% trans 'See full message in session details' %}</em>
+                                {% endif %}
+                            {% else %}
+                                <em>{% trans 'No message' %}</em>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-logs">
+                <p>{% trans 'No import logs found for this session.' %}</p>
+            </div>
+        {% endif %}
+        
+        <!-- Back Button -->
+        <a href="{% url 'admin:masters_uploadsession_change' session.pk %}" class="back-link">
+            &laquo; {% trans 'Back to Session' %}
+        </a>
+    </div>
+</div>
+{% endblock %}

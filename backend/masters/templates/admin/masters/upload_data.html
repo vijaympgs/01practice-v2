@@ -1,0 +1,197 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+    .upload-container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .upload-form {
+        background: white;
+        padding: 30px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+    }
+    
+    .form-row {
+        margin-bottom: 20px;
+    }
+    
+    .form-row label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .form-row input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .help-text {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+        font-style: italic;
+    }
+    
+    .button-container {
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .btn-primary {
+        background-color: #007cba;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 10px;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 10px;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+    
+    .info-box {
+        background: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .info-box h3 {
+        margin-top: 0;
+        color: #004085;
+    }
+    
+    .info-box ul {
+        margin-bottom: 0;
+        padding-left: 20px;
+    }
+    
+    .info-box li {
+        margin-bottom: 5px;
+    }
+    
+    .file-requirements {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .file-requirements h4 {
+        margin-top: 0;
+        color: #856404;
+    }
+    
+    .file-requirements ul {
+        margin-bottom: 0;
+        padding-left: 20px;
+    }
+    
+    .file-requirements li {
+        margin-bottom: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:masters_uploadsession_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% trans 'Upload Master Data' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{% trans 'Upload Master Data' %}</h1>
+    
+    <div class="upload-container">
+        <div class="info-box">
+            <h3>{% trans 'Instructions' %}</h3>
+            <ul>
+                <li>{% trans 'Download the Excel template using the button below' %}</li>
+                <li>{% trans 'Fill in the master data in the appropriate sheets' %}</li>
+                <li>{% trans 'Upload the completed Excel file using this form' %}</li>
+                <li>{% trans 'The system will validate and process your data' %}</li>
+                <li>{% trans 'Check the upload session for results and any errors' %}</li>
+            </ul>
+        </div>
+        
+        <div class="file-requirements">
+            <h4>{% trans 'File Requirements' %}</h4>
+            <ul>
+                <li>{% trans 'File format: Excel (.xlsx or .xls)' %}</li>
+                <li>{% trans 'Maximum file size: 10MB' %}</li>
+                <li>{% trans 'Required sheets: All 9 master data sheets must be present' %}</li>
+                <li>{% trans 'Column headers must not be modified' %}</li>
+            </ul>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <label for="excel_file">{% trans 'Select Excel File' %} <span style="color: red;">*</span></label>
+                <input type="file" 
+                       id="excel_file" 
+                       name="excel_file" 
+                       accept=".xlsx,.xls" 
+                       required>
+                <div class="help-text">
+                    {% trans 'Select the Excel file containing master data to upload' %}
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <a href="{% url 'admin:masters_uploadsession_download_template' %}" class="btn-secondary">
+                    {% trans 'Download Template' %}
+                </a>
+                <a href="{% url 'admin:masters_uploadsession_download_template' %}?sample_data=true" class="btn-secondary">
+                    {% trans 'Download Sample Template' %}
+                </a>
+                <button type="submit" class="btn-primary">
+                    {% trans 'Upload File' %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

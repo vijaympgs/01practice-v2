@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'theme_management',
     'procurement',
     'db_client',
+    'masters',
 ]
 
 MIDDLEWARE = [
@@ -233,4 +234,3 @@ WEB_CONSOLE_PROXY_ALLOWLIST = [
     '0.0.0.0',
 ]
 WEB_CONSOLE_PROXY_TIMEOUT = 10
-
