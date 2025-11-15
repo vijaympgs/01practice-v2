@@ -21,7 +21,23 @@ const DEFAULT_SIDEBAR_PREFERENCES = {
   menu_visibility: {
     show_advanced_customer_master: false,
     show_vendor_analytics: false,
-    show_experimental_features: false
+    show_experimental_features: false,
+    // POS module visibility
+    pos_day_management: true,
+    pos_settlement: true,
+    pos_day_open: true,
+    pos_session_open: true,
+    pos_session_close: true,
+    pos_day_end: true,
+    pos_day_close: true,
+    pos_terminal_configuration: true,
+    pos_billing: true,
+    pos_terminal_setup: true,
+    pos_shift_management: true,
+    pos_session_management: true,
+    pos_code_master: true,
+    pos_home_delivery: true,
+    pos_customer_receivables: true
   }
 };
 

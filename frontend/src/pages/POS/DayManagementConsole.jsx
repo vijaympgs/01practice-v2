@@ -41,6 +41,9 @@ import DayEndProcessModule from './DayEndProcessModule';
  * Provides a centralized dashboard for day management operations
  */
 const DayManagementConsole = () => {
+  console.log('🔥🔥🔥 DayManagementConsole component rendering...');
+  console.log('🔥🔥🔥 Current URL in DayManagementConsole:', window.location.pathname);
+  console.log('🔥🔥🔥 Day Management Console is WORKING!');
   const theme = useTheme();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('day-open');
@@ -125,7 +128,7 @@ const DayManagementConsole = () => {
   const statusCards = [
     {
       title: 'Business Day Status',
-      icon: <DashboardIcon />,
+      icon: 'DashboardIcon',
       color: dayStatus.hasActiveDay ? 'success' : 'warning',
       value: dayStatus.hasActiveDay ? 'Active' : 'Not Open',
       details: dayStatus.hasActiveDay 
@@ -134,7 +137,7 @@ const DayManagementConsole = () => {
     },
     {
       title: 'Session Status',
-      icon: <SessionIcon />,
+      icon: 'SessionIcon',
       color: dayStatus.activeSession ? 'info' : 'default',
       value: dayStatus.activeSession ? 'Active' : 'No Active Session',
       details: dayStatus.activeSession 
@@ -143,7 +146,7 @@ const DayManagementConsole = () => {
     },
     {
       title: 'Day End Status',
-      icon: <DayEndIcon />,
+      icon: 'DayEndIcon',
       color: dayStatus.dayEndCompleted ? 'success' : 'default',
       value: dayStatus.dayEndCompleted ? 'Completed' : 'Pending',
       details: dayStatus.dayEndCompleted 
@@ -163,6 +166,16 @@ const DayManagementConsole = () => {
       default:
         return theme.palette.primary.main;
     }
+  };
+
+  // Helper function to convert icon string to React component
+  const getIconComponent = (iconName) => {
+    const iconMap = {
+      'DashboardIcon': <DashboardIcon />,
+      'SessionIcon': <SessionIcon />,
+      'DayEndIcon': <DayEndIcon />,
+    };
+    return iconMap[iconName] || <DashboardIcon />;
   };
 
   const renderTabContent = () => {
@@ -215,10 +228,15 @@ const DayManagementConsole = () => {
                     flexDirection: 'column',
                     justifyContent: 'center',
                     textAlign: 'center',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3,
+                    }
                   }}
                 >
                   <Stack spacing={1} alignItems="center">
-                    {status.icon}
+                    {getIconComponent(status.icon)}
                     <Typography variant="h6" fontWeight={600}>
                       {status.title}
                     </Typography>

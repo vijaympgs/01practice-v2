@@ -306,6 +306,17 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
     if (!item) return false;
     const moduleName = item.moduleName;
 
+    // Debug logging for Day Management Console
+    if (item.text === 'Day Management Console') {
+      console.log('🔍 Day Management Console visibility check:', {
+        moduleName,
+        visibilityMap,
+        itemHidden: item.hidden,
+        moduleVisibility: visibilityMap[moduleName],
+        isVisible: moduleName ? visibilityMap[moduleName] !== false : true
+      });
+    }
+
     if (moduleName && visibilityMap[moduleName] === false) {
       return false;
     }
@@ -460,6 +471,15 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       return null;
     }
 
+    // Debug logging for Day Management Console
+    if (item.text === 'Day Management Console') {
+      console.log('🔍🔍 Day Management Console renderMenuItem called:', {
+        item,
+        isItemVisible: isItemVisible(item),
+        path: item.path
+      });
+    }
+
     if (!isItemVisible(item)) {
       return null;
     }
@@ -489,7 +509,19 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       <ListItem key={item.text || item.path || `item-${Math.random()}`} disablePadding>
         <ListItemButton
           selected={isSelected}
-          onClick={() => item.path && navigate(item.path)}
+          onClick={() => {
+            // Debug logging for Day Management Console
+            if (item.text === 'Day Management Console') {
+              console.log('🔥🔥🔥 Day Management Console menu item clicked!', {
+                path: item.path,
+                currentLocation: location.pathname,
+                navigateFunction: typeof navigate
+              });
+            }
+            if (item.path) {
+              navigate(item.path);
+            }
+          }}
           sx={{
             pl: isSubGroup ? (styles.compact ? 2.5 : 3) : 
                 isSubSubItem ? (styles.compact ? 6 : 7) :

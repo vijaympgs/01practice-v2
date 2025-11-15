@@ -259,7 +259,9 @@ const CatchAllRouteInner = React.memo(() => {
 
 const App = React.memo(() => {
   // Debug logging
-  console.log('App component rendering...');
+  console.log('🔥 App component rendering...');
+  console.log('🔥 Current URL:', window.location.pathname);
+  console.log('🔥 Window location object:', window.location);
   
   return (
     <Provider store={store}>
