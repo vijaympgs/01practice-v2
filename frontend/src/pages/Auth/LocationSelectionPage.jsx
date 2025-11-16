@@ -46,19 +46,44 @@ const LocationSelectionPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   // Roles that need location selection
   const locationSelectionRoles = ['admin', 'backofficemanager', 'backofficeuser'];
   const needsLocationSelection = user && locationSelectionRoles.includes(user.role);
 
+  // Add useEffect to load locations when component mounts
+  useEffect(() => {
+    console.log('🎯 LocationSelectionPage: Component mounted');
+    console.log('👤 LocationSelectionPage: User in useEffect:', user);
+    console.log('🔍 LocationSelectionPage: needsLocationSelection:', needsLocationSelection);
+    
+    if (needsLocationSelection) {
+      console.log('🚀 LocationSelectionPage: Calling loadLocations from useEffect');
+      loadLocations();
+    } else {
+      console.log('⏭️ LocationSelectionPage: Skipping location load - user does not need location selection');
+      setLoading(false);
+    }
+  }, [user, needsLocationSelection]);
+
   const loadLocations = async () => {
     try {
+      console.log('🚀 LocationSelectionPage: Starting loadLocations...');
       setLoading(true);
       setError('');
+
+      console.log('🔄 LocationSelectionPage: Loading locations...');
+      console.log('👤 LocationSelectionPage: User:', user);
+      console.log('🔑 LocationSelectionPage: Token exists:', !!localStorage.getItem('accessToken'));
+      console.log('🌐 LocationSelectionPage: API Base URL:', import.meta.env.VITE_API_BASE_URL || '/api');
 
       const response = await api.get('/organization/locations/', {
         params: { location_type: 'store', is_active: true }
       });
+
+      console.log('✅ LocationSelectionPage: API Response received:', response.status);
+      console.log('📊 LocationSelectionPage: Response data:', response.data);
 
       const locationsData = Array.isArray(response.data)
         ? response.data
@@ -69,6 +94,7 @@ const LocationSelectionPage = () => {
         loc => loc.location_type === 'store' && loc.is_active
       );
 
+      console.log('📍 Store locations found:', storeLocations.length);
       setLocations(storeLocations);
 
       // Pre-select user's assigned location if available
@@ -76,6 +102,7 @@ const LocationSelectionPage = () => {
         const userLocation = storeLocations.find(loc => loc.id === user.pos_location_id);
         if (userLocation) {
           setSelectedLocationId(user.pos_location_id);
+          console.log('🎯 Pre-selected user location:', userLocation.name);
         }
       }
 
@@ -83,8 +110,29 @@ const LocationSelectionPage = () => {
         setError('No active store locations found. Please contact administrator to create locations.');
       }
     } catch (error) {
-      console.error('Error loading locations:', error);
-      setError('Failed to load locations. Please try again or contact administrator.');
+      console.error('❌ Error loading locations:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+
+      // Provide more specific error messages
+      if (error.response?.status === 401) {
+        setError('Authentication error. Please log in again.');
+        // Clear invalid tokens
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+      } else if (error.response?.status === 403) {
+        setError('You do not have permission to access locations. Please contact administrator.');
+      } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        setError('Request timeout. The server is taking too long to respond. Please try again.');
+      } else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+        setError('Network error. Unable to connect to the server. Please check your connection.');
+      } else {
+        setError(`Failed to load locations: ${error.message || 'Unknown error'}. Please try again or contact administrator.`);
+      }
     } finally {
       setLoading(false);
     }
@@ -107,21 +155,42 @@ const LocationSelectionPage = () => {
     const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
 
     if (selectedLocation) {
+      console.log('💾 LocationSelectionPage: Saving location to session:', selectedLocation);
+      
       // Store location in session (localStorage)
       localStorage.setItem('session_location_id', selectedLocation.id);
       localStorage.setItem('session_location_name', selectedLocation.name);
       localStorage.setItem('session_location_code', selectedLocation.code || '');
       localStorage.setItem('session_location_selected_at', new Date().toISOString());
 
+      // Verify the data was saved
+      const savedLocation = {
+        session_location_id: localStorage.getItem('session_location_id'),
+        session_location_name: localStorage.getItem('session_location_name'),
+        session_location_code: localStorage.getItem('session_location_code'),
+        session_location_selected_at: localStorage.getItem('session_location_selected_at')
+      };
+      console.log('✅ LocationSelectionPage: Saved session data:', savedLocation);
+
       displaySuccess(`Location "${selectedLocation.name}" selected. You can change it anytime from settings.`);
 
       // Navigate to dashboard
       setTimeout(() => {
+        console.log('🚀 LocationSelectionPage: Navigating to dashboard...');
         navigate('/');
       }, 500);
     } else {
       setError('Selected location not found. Please try again.');
       setSubmitting(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (retryCount < 3) {
+      setRetryCount(retryCount + 1);
+      loadLocations();
+    } else {
+      setError('Maximum retry attempts reached. Please skip location selection for now or contact administrator.');
     }
   };
 
@@ -134,6 +203,24 @@ const LocationSelectionPage = () => {
     displaySuccess('Location selection skipped. You can select a location anytime from your profile.');
 
     navigate('/');
+  };
+
+  const handleUseAssignedLocation = () => {
+    // Use user's assigned location as fallback
+    if (user?.pos_location_id && user?.pos_location_name) {
+      localStorage.setItem('session_location_id', user.pos_location_id);
+      localStorage.setItem('session_location_name', user.pos_location_name);
+      localStorage.setItem('session_location_code', user.pos_location_code || '');
+      localStorage.setItem('session_location_selected_at', new Date().toISOString());
+
+      displaySuccess(`Using your assigned location: ${user.pos_location_name}`);
+
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+    } else {
+      displayError('No assigned location found. Please skip location selection or contact administrator.');
+    }
   };
 
   if (loading) {
@@ -226,7 +313,7 @@ const LocationSelectionPage = () => {
             </Alert>
           )}
 
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <Button
               variant="outlined"
               onClick={handleSkip}
@@ -235,6 +322,33 @@ const LocationSelectionPage = () => {
             >
               Skip for Now
             </Button>
+            
+            {/* Show retry button when there's an error and locations failed to load */}
+            {error && locations.length === 0 && retryCount < 3 && (
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={handleRetry}
+                disabled={submitting}
+                sx={{ borderRadius: 2 }}
+              >
+                Retry ({retryCount + 1}/3)
+              </Button>
+            )}
+            
+            {/* Show use assigned location button when user has assigned location */}
+            {error && locations.length === 0 && user?.pos_location_id && (
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={handleUseAssignedLocation}
+                disabled={submitting}
+                sx={{ borderRadius: 2 }}
+              >
+                Use Assigned Location
+              </Button>
+            )}
+            
             <Button
               variant="contained"
               onClick={handleContinue}

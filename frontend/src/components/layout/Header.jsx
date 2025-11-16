@@ -306,35 +306,12 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
                             userRole === 'admin' || 
                             (userRole && locationSelectionRoles.includes(userRole));
   
-  // Debug logging - Enhanced for troubleshooting location picker visibility
+  // Simplified debug logging for location picker visibility
   useEffect(() => {
-    if (user) {
-      const debugInfo = {
-        username: user.username,
-        role: user.role,
-        roleType: typeof user.role,
-        roleRaw: user.role,
-        is_staff: user.is_staff,
-        is_superuser: user.is_superuser,
-        userRoleNormalized: userRole,
-        isSuperuser,
-        canSelectLocation,
-        locationSelectionRoles,
-        'willShowSelector': canSelectLocation ? '✅ YES' : '❌ NO',
-        'reason': canSelectLocation 
-          ? (isSuperuser ? 'is_superuser/is_staff flag' : userRole === 'admin' ? 'admin role' : 'role in allowed list')
-          : `Role "${userRole}" not in [${locationSelectionRoles.join(', ')}] and not superuser/staff`
-      };
-      console.log('🔍 Header - Location Picker Visibility Check:', debugInfo);
-      
-      // Also log to help user troubleshoot
-      if (!canSelectLocation) {
-        console.warn('⚠️ Location picker will NOT be visible. User role:', userRole, 'Allowed roles:', locationSelectionRoles);
-      }
-    } else {
-      console.warn('⚠️ Header - No user object found - location picker will not show');
+    if (user && canSelectLocation) {
+      console.log('🔍 Header - Location picker enabled for user:', user.username, 'role:', userRole);
     }
-  }, [user, userRole, isSuperuser, canSelectLocation, locationSelectionRoles]);
+  }, [user, userRole, canSelectLocation]);
   
   // Location selector visibility determined by canSelectLocation
 
@@ -521,37 +498,11 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
 
   // Load locations and session location for admin/backoffice users
   useEffect(() => {
-    // Add timeout to prevent infinite waiting
-    const TIMEOUT_MS = 5000; // 5 seconds timeout for location loading
-    
-    if (user) {
-      console.log('🔍 Location Load Check:', { 
-        canSelectLocation, 
-        user: user?.username,
-        is_staff: user?.is_staff,
-        is_superuser: user?.is_superuser,
-        role: user?.role,
-        userRole,
-        locationSelectionRoles
-      });
-      if (canSelectLocation) {
-        console.log('✅ Loading locations for eligible user');
-        // Load locations with timeout
-        const timeoutId = setTimeout(() => {
-          console.warn('⚠️ Location loading timeout - setting loading to false');
-          setLoadingLocations(false);
-        }, TIMEOUT_MS);
-        
-        loadLocations().finally(() => {
-          clearTimeout(timeoutId);
-        });
-      } else {
-        console.log('⚠️ User not eligible for location selection - role:', userRole, 'isSuperuser:', isSuperuser);
-      }
-    } else {
-      console.log('⚠️ No user object - cannot check location eligibility');
+    if (user && canSelectLocation) {
+      console.log('🔍 Header: Loading locations for user:', user.username);
+      loadLocations();
     }
-  }, [canSelectLocation, user, userRole, isSuperuser]);
+  }, [canSelectLocation, user]);
 
   // Set session location ID only after locations are loaded and value exists in options
   useEffect(() => {
