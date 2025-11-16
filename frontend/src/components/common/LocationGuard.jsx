@@ -22,14 +22,16 @@ const LocationGuard = () => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    console.log('🛡️ LocationGuard: Checking location requirements...');
-    console.log('👤 LocationGuard: User:', user?.username, 'Role:', user?.role);
-    console.log('🔐 LocationGuard: Authenticated:', isAuthenticated);
-    console.log('📍 LocationGuard: Current path:', location.pathname);
+    if (DEBUG_MODE) {
+      console.log('🛡️ LocationGuard: Checking location requirements...');
+      console.log('👤 LocationGuard: User:', user?.username, 'Role:', user?.role);
+      console.log('🔐 LocationGuard: Authenticated:', isAuthenticated);
+      console.log('📍 LocationGuard: Current path:', location.pathname);
+    }
 
     // If not authenticated, allow access (PrivateRoute will handle redirect)
     if (!isAuthenticated || !user) {
-      console.log('⏭️ LocationGuard: Not authenticated, allowing access');
+      if (DEBUG_MODE) console.log('⏭️ LocationGuard: Not authenticated, allowing access');
       setChecking(false);
       setNeedsLocationSelection(false);
       return;
@@ -42,11 +44,13 @@ const LocationGuard = () => {
       const isSuperuser = user?.is_superuser;
       const userNeedsSelection = isSuperuser || locationSelectionRoles.includes(userRole);
 
-      console.log('🔍 LocationGuard: Role check:', { userRole, isSuperuser, userNeedsSelection });
+      if (DEBUG_MODE) {
+        console.log('🔍 LocationGuard: Role check:', { userRole, isSuperuser, userNeedsSelection });
+      }
 
       if (!userNeedsSelection) {
         // POS users use their assigned location - no selection needed
-        console.log('⏭️ LocationGuard: User does not need location selection');
+        if (DEBUG_MODE) console.log('⏭️ LocationGuard: User does not need location selection');
         setNeedsLocationSelection(false);
         setChecking(false);
         return;
@@ -58,20 +62,22 @@ const LocationGuard = () => {
       const sessionLocationName = localStorage.getItem('session_location_name');
       const sessionLocationSelectedAt = localStorage.getItem('session_location_selected_at');
 
-      console.log('💾 LocationGuard: Session check:', {
-        sessionLocation,
-        sessionLocationName,
-        sessionSkipped,
-        sessionLocationSelectedAt
-      });
+      if (DEBUG_MODE) {
+        console.log('💾 LocationGuard: Session check:', {
+          sessionLocation,
+          sessionLocationName,
+          sessionSkipped,
+          sessionLocationSelectedAt
+        });
+      }
 
       // If location selected or skipped, allow access
       if (sessionLocation || sessionSkipped) {
-        console.log('✅ LocationGuard: Location already selected or skipped, allowing access');
+        if (DEBUG_MODE) console.log('✅ LocationGuard: Location already selected or skipped, allowing access');
         setNeedsLocationSelection(false);
       } else {
         // Needs location selection
-        console.log('⚠️ LocationGuard: No location selected, redirecting to location selection');
+        if (DEBUG_MODE) console.log('⚠️ LocationGuard: No location selected, redirecting to location selection');
         setNeedsLocationSelection(true);
       }
 
@@ -108,7 +114,7 @@ const LocationGuard = () => {
   // AND we're not already on that page (double-check)
   // AND we're not coming from the location selection page (to prevent loops)
   if (needsLocationSelection && location.pathname !== '/location-selection') {
-    console.log('🔄 LocationGuard: Redirecting to location selection from:', location.pathname);
+    if (DEBUG_MODE) console.log('🔄 LocationGuard: Redirecting to location selection from:', location.pathname);
     return <Navigate to="/location-selection" replace />;
   }
 

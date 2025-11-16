@@ -75,7 +75,7 @@ export const getMenuCategories = (menuVisibility) => [
       { text: 'Session Open', icon: 'PlayArrow', path: '/pos/session-open', moduleName: 'pos_session_open' },
       { text: 'POS Billing', icon: 'PointOfSale', path: '/pos/desktop', moduleName: 'pos_billing' },
       { text: 'Settlement', icon: 'Receipt', path: '/pos/settlement', moduleName: 'pos_settlement' },
-      { text: 'Day Management Console', icon: 'Event', path: '/pos/day-management', moduleName: 'pos_day_management' },
+      { text: 'Day Management Console', icon: 'Event', path: '/pos/day-management-console', moduleName: 'pos_day_management' },
       { text: 'Session Close', icon: 'Stop', path: '/pos/session-close', moduleName: 'pos_session_close' },
       { text: 'Home Delivery', icon: 'LocalShipping', path: '/pos/home-delivery', moduleName: 'pos_home_delivery', hidden: true },
       { text: 'Customer Receivables', icon: 'Receipt', path: '/pos/customer-receivables', moduleName: 'pos_customer_receivables', hidden: true },

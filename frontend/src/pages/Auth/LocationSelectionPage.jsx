@@ -22,6 +22,9 @@ import api from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
 import PageTitle from '../../components/common/PageTitle';
 
+// Debug switch - Set to 'true' to enable detailed debugging logs
+const DEBUG_MODE = false;
+
 /**
  * Location Selection Page
  * 
@@ -54,36 +57,42 @@ const LocationSelectionPage = () => {
 
   // Add useEffect to load locations when component mounts
   useEffect(() => {
-    console.log('🎯 LocationSelectionPage: Component mounted');
-    console.log('👤 LocationSelectionPage: User in useEffect:', user);
-    console.log('🔍 LocationSelectionPage: needsLocationSelection:', needsLocationSelection);
+    if (DEBUG_MODE) {
+      console.log('🎯 LocationSelectionPage: Component mounted');
+      console.log('👤 LocationSelectionPage: User in useEffect:', user);
+      console.log('🔍 LocationSelectionPage: needsLocationSelection:', needsLocationSelection);
+    }
     
     if (needsLocationSelection) {
-      console.log('🚀 LocationSelectionPage: Calling loadLocations from useEffect');
+      if (DEBUG_MODE) console.log('🚀 LocationSelectionPage: Calling loadLocations from useEffect');
       loadLocations();
     } else {
-      console.log('⏭️ LocationSelectionPage: Skipping location load - user does not need location selection');
+      if (DEBUG_MODE) console.log('⏭️ LocationSelectionPage: Skipping location load - user does not need location selection');
       setLoading(false);
     }
   }, [user, needsLocationSelection]);
 
   const loadLocations = async () => {
     try {
-      console.log('🚀 LocationSelectionPage: Starting loadLocations...');
+      if (DEBUG_MODE) console.log('🚀 LocationSelectionPage: Starting loadLocations...');
       setLoading(true);
       setError('');
 
-      console.log('🔄 LocationSelectionPage: Loading locations...');
-      console.log('👤 LocationSelectionPage: User:', user);
-      console.log('🔑 LocationSelectionPage: Token exists:', !!localStorage.getItem('accessToken'));
-      console.log('🌐 LocationSelectionPage: API Base URL:', import.meta.env.VITE_API_BASE_URL || '/api');
+      if (DEBUG_MODE) {
+        console.log('🔄 LocationSelectionPage: Loading locations...');
+        console.log('👤 LocationSelectionPage: User:', user);
+        console.log('🔑 LocationSelectionPage: Token exists:', !!localStorage.getItem('accessToken'));
+        console.log('🌐 LocationSelectionPage: API Base URL:', import.meta.env.VITE_API_BASE_URL || '/api');
+      }
 
       const response = await api.get('/organization/locations/', {
         params: { location_type: 'store', is_active: true }
       });
 
-      console.log('✅ LocationSelectionPage: API Response received:', response.status);
-      console.log('📊 LocationSelectionPage: Response data:', response.data);
+      if (DEBUG_MODE) {
+        console.log('✅ LocationSelectionPage: API Response received:', response.status);
+        console.log('📊 LocationSelectionPage: Response data:', response.data);
+      }
 
       const locationsData = Array.isArray(response.data)
         ? response.data
@@ -94,7 +103,7 @@ const LocationSelectionPage = () => {
         loc => loc.location_type === 'store' && loc.is_active
       );
 
-      console.log('📍 Store locations found:', storeLocations.length);
+      if (DEBUG_MODE) console.log('📍 Store locations found:', storeLocations.length);
       setLocations(storeLocations);
 
       // Pre-select user's assigned location if available
@@ -102,7 +111,7 @@ const LocationSelectionPage = () => {
         const userLocation = storeLocations.find(loc => loc.id === user.pos_location_id);
         if (userLocation) {
           setSelectedLocationId(user.pos_location_id);
-          console.log('🎯 Pre-selected user location:', userLocation.name);
+          if (DEBUG_MODE) console.log('🎯 Pre-selected user location:', userLocation.name);
         }
       }
 
@@ -111,12 +120,14 @@ const LocationSelectionPage = () => {
       }
     } catch (error) {
       console.error('❌ Error loading locations:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
-      });
+      if (DEBUG_MODE) {
+        console.error('❌ Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: error.config
+        });
+      }
 
       // Provide more specific error messages
       if (error.response?.status === 401) {
@@ -155,7 +166,7 @@ const LocationSelectionPage = () => {
     const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
 
     if (selectedLocation) {
-      console.log('💾 LocationSelectionPage: Saving location to session:', selectedLocation);
+      if (DEBUG_MODE) console.log('💾 LocationSelectionPage: Saving location to session:', selectedLocation);
       
       // Store location in session (localStorage)
       localStorage.setItem('session_location_id', selectedLocation.id);
@@ -170,13 +181,13 @@ const LocationSelectionPage = () => {
         session_location_code: localStorage.getItem('session_location_code'),
         session_location_selected_at: localStorage.getItem('session_location_selected_at')
       };
-      console.log('✅ LocationSelectionPage: Saved session data:', savedLocation);
+      if (DEBUG_MODE) console.log('✅ LocationSelectionPage: Saved session data:', savedLocation);
 
       displaySuccess(`Location "${selectedLocation.name}" selected. You can change it anytime from settings.`);
 
       // Navigate to dashboard
       setTimeout(() => {
-        console.log('🚀 LocationSelectionPage: Navigating to dashboard...');
+        if (DEBUG_MODE) console.log('🚀 LocationSelectionPage: Navigating to dashboard...');
         navigate('/');
       }, 500);
     } else {

@@ -355,6 +355,7 @@ const App = React.memo(() => {
                   <Route path="/pos/billing" element={<POSDesktop />} />
                   <Route path="/pos/settlement" element={<SettlementConsole />} />
                   <Route path="/pos/day-management" element={<DayManagementConsole />} />
+                  <Route path="/pos/day-management-console" element={<DayManagementConsole />} />
                   <Route path="/pos/settlement-advanced" element={<SettlementModuleV2 routePrefix="/pos" condensed showHeader={false} />} />
                   <Route path="/pos/session-close" element={<SessionClosePage />} />
                   <Route path="/pos/day-close" element={<DayClosePage />} />
