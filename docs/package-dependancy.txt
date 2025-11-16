@@ -1,0 +1,19 @@
+Package Changes:
+1. New Dev Dependency:
+Package: playwright
+Version: ^1.40.0
+Location: devDependencies in frontend/package.json
+2. New npm Script:
+Script: "screenshots": "node scripts/capture-screenshots.js"
+Location: scripts section in frontend/package.json
+Important Notes:
+After someone clones/pulls your repo, they need to:
+Install dependencies:
+   npm install
+Install Playwright browsers (one-time setup):
+   npx playwright install chromium
+Then they can run:
+   npm run screenshots
+Files Modified:
+frontend/package.json - Added Playwright dependency and npm script
+frontend/scripts/capture-screenshots.js - The screenshot script (new file)
