@@ -132,6 +132,12 @@ const iconComponents = {
   'LayoutPreferences': ViewQuilt,
   // Day Management Console icon
   'DayManagementConsole': Event,
+  // Missing icons that were identified
+  'Search': Search,
+  'Lightbulb': Lightbulb,
+  'ReportsIcon': ReportsIcon,
+  'Language': Language,
+  'AssignmentReturn': AssignmentReturn,
   // Fallback icons for missing ones
   'SalesOrder': ShoppingCart,
 };
@@ -145,7 +151,7 @@ const getIconComponent = (iconName) => {
 
 // Using centralized menu structure from utils/menuStructure.js
 
-const Sidebar = ({ open = true, showSidebar = true }) => {
+const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -195,6 +201,7 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+
 
   // Load dynamic menu from backend on component mount
   useEffect(() => {
@@ -306,17 +313,6 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
     if (!item) return false;
     const moduleName = item.moduleName;
 
-    // Debug logging for Day Management Console
-    if (item.text === 'Day Management Console') {
-      console.log('🔍 Day Management Console visibility check:', {
-        moduleName,
-        visibilityMap,
-        itemHidden: item.hidden,
-        moduleVisibility: visibilityMap[moduleName],
-        isVisible: moduleName ? visibilityMap[moduleName] !== false : true
-      });
-    }
-
     if (moduleName && visibilityMap[moduleName] === false) {
       return false;
     }
@@ -358,11 +354,17 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
   }
 
   const renderCategoryHeader = (category) => {
-    if (!category || !category.type) return null; // Skip Dashboard section header or invalid categories
+    if (!category) return null; // Skip invalid categories
     if (!shouldShowCategory(category)) return null;
     
-    const isExpanded = expandedSections[category.title];
+    // For dynamic categories, check if they have items or a direct path
+    const hasItems = category.items && category.items.length > 0;
     const hasDirectPath = category.path && (!category.items || category.items.length === 0);
+    
+    // Skip categories that have no items and no direct path (empty categories)
+    if (!hasItems && !hasDirectPath) return null;
+    
+    const isExpanded = expandedSections[category.title];
     const isPOSLegacyCategory = category.title === 'Point of Sale';
     const isSelected = hasDirectPath && location.pathname === category.path;
     
@@ -471,14 +473,6 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
       return null;
     }
 
-    // Debug logging for Day Management Console
-    if (item.text === 'Day Management Console') {
-      console.log('🔍🔍 Day Management Console renderMenuItem called:', {
-        item,
-        isItemVisible: isItemVisible(item),
-        path: item.path
-      });
-    }
 
     if (!isItemVisible(item)) {
       return null;
@@ -510,14 +504,6 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
         <ListItemButton
           selected={isSelected}
           onClick={() => {
-            // Debug logging for Day Management Console
-            if (item.text === 'Day Management Console') {
-              console.log('🔥🔥🔥 Day Management Console menu item clicked!', {
-                path: item.path,
-                currentLocation: location.pathname,
-                navigateFunction: typeof navigate
-              });
-            }
             if (item.path) {
               navigate(item.path);
             }
@@ -602,544 +588,230 @@ const Sidebar = ({ open = true, showSidebar = true }) => {
               {isExpanded ? <ExpandLess /> : <ExpandMore />}
             </IconButton>
           )}
-          
-          {/* Right side controls: Notifications and Favorite toggle */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: hasSubItems ? 0 : 'auto' }}>
-            {/* Notification badge */}
-            {notificationCount > 0 && (
-              <Chip
-                label={notificationCount}
-                size="small"
+        </ListItemButton>
+      </ListItem>
+    );
+  } catch (error) {
+    console.error('Error rendering menu item:', error, item);
+    return null;
+  }
+};
+
+  const renderSubcategoryHeader = (subcategory, categoryTitle) => {
+    const expandKey = `${categoryTitle}-${subcategory}`;
+    const isExpanded = expandedSections[expandKey] !== false;
+    
+    return (
+      <ListItem key={`subcategory-${subcategory}`} disablePadding>
+        <ListItemButton
+          onClick={() => handleSectionToggle(expandKey)}
+          sx={{
+            pl: styles.compact ? 2 : 2.5,
+            pr: styles.compact ? 0.75 : 1,
+            py: styles.compact ? 0.25 : 0.4,
+            mx: styles.compact ? 0.25 : 0.5,
+            mb: 0.125,
+            borderRadius: 1,
+            backgroundColor: 'action.hover',
+            borderLeft: '3px solid',
+            borderLeftColor: 'primary.main',
+            position: 'relative',
+            '&:hover': {
+              backgroundColor: 'action.selected',
+              transform: 'translateX(2px)',
+              transition: 'all 0.2s ease-in-out',
+            }
+          }}
+        >
+          <ListItemIcon sx={{ 
+            minWidth: styles.compact ? 24 : 28,
+            color: 'primary.main',
+            '& .MuiSvgIcon-root': { fontSize: '1rem' }
+          }}>
+            <Settings />
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                fontSize={styles.compact ? '0.7rem' : '0.75rem'}
                 sx={{
-                  height: '18px',
-                  minWidth: '18px',
-                  fontSize: '0.65rem',
-                  fontWeight: 600,
-                  backgroundColor: '#FF5722',
-                  color: '#ffffff',
-                  '& .MuiChip-label': {
-                    px: 0.5
-                  }
-                }}
-              />
-            )}
-            
-            {/* Favorite toggle button */}
-            <Tooltip title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(item.path);
-                }}
-                sx={{ 
-                  p: 0.25,
-                  '&:hover': { backgroundColor: 'action.hover' }
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  color: 'primary.main'
                 }}
               >
-                {isFavorite ? (
-                  <Star sx={{ fontSize: '0.9rem', color: 'warning.main' }} />
-                ) : (
-                  <StarBorder sx={{ fontSize: '0.9rem' }} />
-                )}
-              </IconButton>
-            </Tooltip>
+                {subcategory}
+              </Typography>
+            }
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {isExpanded ? <ExpandLess /> : <ExpandMore />}
           </Box>
         </ListItemButton>
       </ListItem>
     );
-    } catch (error) {
-      console.error('Error rendering menu item:', error, item);
-      return null;
-    }
   };
 
-  // Handle top position differently (horizontal sidebar)
-  if (styles.position === 'top') {
-    const menuCategories = getMenuCategories(menuVisibility)
-      .filter(shouldShowCategory)
-      .filter(category => category.type !== 'ARCHIVE');
-    
+  const renderCategoryItems = (category) => {
+    if (!category.items || category.items.length === 0) {
+      return null;
+    }
+
+    // Group items by subcategory
+    const itemsWithSubcategory = category.items.filter(item => isItemVisible(item) && item.subcategory);
+    const itemsWithoutSubcategory = category.items.filter(item => isItemVisible(item) && !item.subcategory);
+
+    // Get unique subcategories
+    const subcategories = [...new Set(itemsWithSubcategory.map(item => item.subcategory))];
+
     return (
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 64, // Below header
-          left: 0,
-          right: 0,
-          height: open ? (isMobile ? '48px' : '56px') : 0, // Minimal height for top sidebar
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e0e0e0',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          zIndex: theme.zIndex.drawer,
-          display: open ? 'flex' : 'none',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      >
-        {/* Horizontal Menu Bar */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexDirection: 'row', 
-            alignItems: 'center',
-            height: '100%',
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            px: 1,
-            gap: 0.5,
-            py: 0.5,
-            '&::-webkit-scrollbar': {
-              height: '4px',
-            },
-            '&::-webkit-scrollbar-track': {
-              background: 'rgba(0, 0, 0, 0.05)',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: 'rgba(0, 0, 0, 0.2)',
-              borderRadius: '2px',
-              '&:hover': {
-                background: 'rgba(0, 0, 0, 0.3)',
-              },
-            },
-          }}
-        >
-          {/* Home/Dashboard Button */}
-          {menuCategories
-            .filter(category => category.type === 'DASHBOARD')
-            .map(category => (
-              <ListItemButton
-                key={category.title}
-                selected={location.pathname === category.path}
-                onClick={() => category.path && navigate(category.path)}
-                sx={{
-                  minWidth: 'auto',
-                  px: isMobile ? 1.5 : 2,
-                  py: isMobile ? 0.5 : 0.75,
-                  borderRadius: 1,
-                  flexShrink: 0,
-                  height: isMobile ? '40px' : '48px',
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark',
-                    },
-                  },
-                }}
-              >
-                <Dashboard sx={{ mr: isMobile ? 0.5 : 1, fontSize: isMobile ? '1rem' : '1.1rem' }} />
-                {/* Home shows only icon - no text */}
-              </ListItemButton>
-            ))}
+      <>
+        {/* Render items without subcategory first */}
+        {itemsWithoutSubcategory.map((item) => renderMenuItem(item, false, false))}
+        
+        {/* Render subcategories and their items */}
+        {subcategories.map(subcategory => {
+          const expandKey = `${category.title}-${subcategory}`;
+          const isExpanded = expandedSections[expandKey] !== false;
+          const subcategoryItems = itemsWithSubcategory.filter(item => item.subcategory === subcategory);
           
-          {/* Divider */}
-          <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-          
-          {/* Menu Categories with Dropdowns */}
-          {menuCategories
-            .filter(category => category.type !== 'DASHBOARD')
-            .map((category) => {
-              // Safety check - ensure categoryItems is always an array
-              const categoryItems = Array.isArray(category.items) ? category.items.filter(Boolean) : [];
-              const hasItems = categoryItems.length > 0;
-              const anchorKey = category.title;
-              const anchorEl = topMenuAnchors[anchorKey] || null;
-              const isMenuOpen = Boolean(anchorEl);
-              
-              const handleMenuOpen = (event) => {
-                if (hasItems) {
-                  setTopMenuAnchors(prev => ({ ...prev, [anchorKey]: event.currentTarget }));
-                } else if (category.path) {
-                  navigate(category.path);
-                }
-              };
-              
-              const handleMenuClose = () => {
-                setTopMenuAnchors(prev => {
-                  const newAnchors = { ...prev };
-                  delete newAnchors[anchorKey];
-                  return newAnchors;
-                });
-              };
-              
-              // Check if any item in category is selected
-              const isCategorySelected = categoryItems.some(item => item.path === location.pathname);
-              
-              return (
-                <React.Fragment key={category.title}>
-                  <ListItemButton
-                    onClick={handleMenuOpen}
-                    selected={isCategorySelected}
-                    sx={{
-                      minWidth: 'auto',
-                      px: isMobile ? 1.5 : 2,
-                      py: isMobile ? 0.5 : 0.75,
-                      borderRadius: 1,
-                      flexShrink: 0,
-                      height: isMobile ? '40px' : '48px',
-                      '&.Mui-selected': {
-                        backgroundColor: 'primary.main',
-                        color: 'primary.contrastText',
-                        '&:hover': {
-                          backgroundColor: 'primary.dark',
-                        },
-                      },
-                    }}
-                  >
-                    {category.icon && (
-                      <Box component="span" sx={{ mr: isMobile ? 0.5 : 1, display: 'flex', alignItems: 'center' }}>
-                        {getIconComponent(category.icon)}
-                      </Box>
-                    )}
-                    {!isMobile && category.title !== 'Home' && (
-                      <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
-                        {category.title}
-                      </Typography>
-                    )}
-                    {hasItems && (
-                      <ExpandMore sx={{ ml: 0.5, fontSize: '0.9rem' }} />
-                    )}
-                  </ListItemButton>
-                  
-                  {/* Dropdown Menu for Category Items */}
-                  {hasItems && (
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={isMenuOpen}
-                      onClose={handleMenuClose}
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'left',
-                      }}
-                      PaperProps={{
-                        sx: {
-                          maxHeight: 'calc(100vh - 180px)',
-                          maxWidth: 280,
-                          mt: 1,
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                        }
-                      }}
-                    >
-                      <Box sx={{ py: 1 }}>
-                        {categoryItems.filter(Boolean).map((item, index) => {
-                          // Safety check - skip null/undefined items
-                          if (!item) {
-                            return null;
-                          }
-                          
-                          const isSelected = location.pathname === item.path;
-                          const isFavorite = favorites.has(item.path);
-                          
-                          return (
-                            <MenuItem
-                              key={item.path || item.text || index}
-                              selected={isSelected}
-                              onClick={() => {
-                                if (item.path) {
-                                  navigate(item.path);
-                                }
-                                handleMenuClose();
-                              }}
-                              sx={{
-                                px: 2,
-                                py: 1,
-                                '&.Mui-selected': {
-                                  backgroundColor: 'primary.main',
-                                  color: 'primary.contrastText',
-                                  '&:hover': {
-                                    backgroundColor: 'primary.dark',
-                                  },
-                                },
-                              }}
-                            >
-                              {item.icon && (
-                                <ListItemIcon sx={{ minWidth: 36 }}>
-                                  {getIconComponent(item.icon)}
-                                </ListItemIcon>
-                              )}
-                              <ListItemText 
-                                primary={item.text}
-                                primaryTypographyProps={{
-                                  fontSize: '0.875rem',
-                                }}
-                              />
-                              {isFavorite && (
-                                <Typography sx={{ ml: 1, fontSize: '0.75rem' }}>⭐</Typography>
-                              )}
-                            </MenuItem>
-                          );
-                        })}
-                      </Box>
-                    </Menu>
-                  )}
-                </React.Fragment>
-              );
-            })}
-        </Box>
-      </Box>
+          return (
+            <Box key={subcategory}>
+              {renderSubcategoryHeader(subcategory, category.title)}
+              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding dense>
+                  {subcategoryItems.map((item) => renderMenuItem(item, true, false))}
+                </List>
+              </Collapse>
+            </Box>
+          );
+        })}
+      </>
     );
-  }
+  };
+
+  // Get menu categories - prioritize dynamic menu from backend, fallback to static
+  const menuCategories = dynamicMenuCategories.length > 0 ? dynamicMenuCategories : getMenuCategories(visibilityMap);
 
   return (
     <Drawer
-      variant="persistent"
-      open={open}
+      variant={isMobile ? 'temporary' : 'persistent'}
       anchor={styles.position}
+      open={open}
+      onClose={() => {}}
       sx={{
         width: styles.width,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           width: styles.width,
           boxSizing: 'border-box',
-          backgroundColor: '#ffffff',
-          color: 'inherit',
-          transition: (theme) => theme.transitions.create('width', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          borderRight: styles.position === 'left' ? '1px solid #e0e0e0' : 'none',
-          borderLeft: styles.position === 'right' ? '1px solid #e0e0e0' : 'none',
+          borderRight: '1px solid',
+          borderColor: 'divider',
+          backgroundColor: 'background.paper',
           overflowX: 'hidden',
-          boxShadow: styles.position === 'left' ? '2px 0 12px rgba(0,0,0,0.08)' : '-2px 0 12px rgba(0,0,0,0.08)',
+          scrollbarWidth: 'thin',
           '&::-webkit-scrollbar': {
             width: '6px',
           },
           '&::-webkit-scrollbar-track': {
-            background: 'rgba(0, 0, 0, 0.05)',
-            borderRadius: '3px',
+            background: 'transparent',
           },
           '&::-webkit-scrollbar-thumb': {
             background: 'rgba(0, 0, 0, 0.2)',
             borderRadius: '3px',
-            '&:hover': {
-              background: 'rgba(0, 0, 0, 0.3)',
-            },
           },
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05)',
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: 'rgba(0, 0, 0, 0.3)',
+          },
         },
       }}
     >
       <Toolbar />
       
-      {/* Sticky Home Section */}
-      <Box sx={{ 
-        position: 'sticky', 
-        top: 0, 
-        zIndex: 1, 
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e0e0e0'
-      }}>
-        <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
-          {getMenuCategories(menuVisibility)
-            .filter(shouldShowCategory)
-            .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
-            .filter(category => category.type === 'DASHBOARD')
-            .map(category => (
-              <Box key={category.title} sx={{ mb: 0.5 }}>
-                {renderCategoryHeader(category)}
-              </Box>
-            ))}
-        </List>
-      </Box>
-
       {/* Sticky Favorites Section with Accordion */}
-      {Array.from(favorites).length > 0 && (
+      {Array.from(favorites).length > 0 && favoritesVisible && (
         <Box sx={{ 
           position: 'sticky', 
-          top: '48px', 
-          zIndex: 1, 
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e0e0e0'
+          top: 0, 
+          zIndex: 1100, 
+          backgroundColor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          pb: 1,
+          mb: 1
         }}>
           <Accordion 
-            defaultExpanded={true}
+            defaultExpanded 
+            elevation={0}
             sx={{ 
-              boxShadow: 'none',
               '&:before': { display: 'none' },
-              borderBottom: '1px solid #e0e0e0'
+              boxShadow: 'none',
+              backgroundColor: 'transparent',
             }}
           >
-            <AccordionSummary
+            <AccordionSummary 
               expandIcon={<ExpandMore />}
-              sx={{
-                minHeight: 'auto',
-                '&.Mui-expanded': {
-                  minHeight: 'auto'
-                },
+              sx={{ 
+                minHeight: 'auto !important',
                 '& .MuiAccordionSummary-content': {
-                  margin: '8px 0'
+                  margin: '8px 0',
                 }
               }}
             >
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: 'text.secondary',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  fontSize: '0.7rem'
-                }}
-              >
-                ⭐ Favorites ({Array.from(favorites).length})
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Star sx={{ fontSize: 20, color: 'warning.main' }} />
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Favorites
+                </Typography>
+                <Chip 
+                  label={favorites.size} 
+                  size="small" 
+                  color="primary" 
+                  variant="outlined"
+                />
+              </Box>
             </AccordionSummary>
-            <AccordionDetails sx={{ p: 0, pb: 1 }}>
-              <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
-                {Array.from(favorites).map(favPath => {
-                  const allItems = getMenuCategories(menuVisibility)
-                    .filter(shouldShowCategory)
-                    .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
-                    .flatMap(cat => (cat.items || []).filter(isItemVisible))
-                    .find(item => item && item.path === favPath);
-                  
-                  return allItems ? renderMenuItem(allItems) : null;
+            <AccordionDetails sx={{ p: 0 }}>
+              <List dense>
+                {Array.from(favorites).map((path) => {
+                  const item = menuCategories
+                    .flatMap(cat => cat.items || [])
+                    .find(item => item.path === path);
+                  if (!item) return null;
+                  return renderMenuItem(item, false, false);
                 })}
               </List>
             </AccordionDetails>
           </Accordion>
         </Box>
       )}
-      
-      {/* Scrollable Menu Categories */}
-      <Box sx={{ flex: 1, overflow: 'auto' }}>
-        {/* Use dynamic menu if available, otherwise fall back to static */}
-        {(dynamicMenuCategories && dynamicMenuCategories.length > 0) ? (
-          // Dynamic menu from backend
-          dynamicMenuCategories
-            .filter(category => shouldShowCategory(category))
-            .filter(category => category.title !== 'Archive')  // Hide Archive category
-            .filter(category => category.title !== 'Home')  // Home is handled separately
-            .map((category) => (
-              <Box key={category.title} sx={{ mb: 0.5 }}>
-                <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
-                  {renderCategoryHeader(category)}
-                  <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
-                    <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
-                      {(category.items || []).filter(isItemVisible).map((item, index) => {
-                        // Safety check - skip null/undefined items
-                        if (!item) {
-                          return null;
-                        }
-                        
-                        // Handle subcategories
-                        if (item.isSubcategory) {
-                          // This is a subcategory header
-                          const subcategoryKey = item.text;
-                          const isExpanded = expandedSections[subcategoryKey] !== false; // Default to expanded
-                          
-                          return (
-                            <React.Fragment key={`dynamic-subcategory-${index}`}>
-                              {renderMenuItem(item, false, item.items && item.items.length > 0)}
-                              {item.items && item.items.length > 0 && (
-                                <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                                  <List component="div" disablePadding>
-                                    {item.items.filter(Boolean).map((subItem, subIndex) => 
-                                      subItem ? (
-                                        <Box key={`dynamic-subitem-${subIndex}`} sx={{ pl: 4 }}>
-                                          {renderMenuItem(subItem, true)}
-                                        </Box>
-                                      ) : null
-                                    )}
-                                  </List>
-                                </Collapse>
-                              )}
-                            </React.Fragment>
-                          );
-                        } else {
-                          // This is a regular menu item (not in a subcategory)
-                          return (
-                            <React.Fragment key={`dynamic-menu-${index}`}>
-                              {renderMenuItem(item, true, false)}
-                            </React.Fragment>
-                          );
-                        }
-                      })}
-                    </List>
-                  </Collapse>
-                </List>
-                <Divider 
-                  sx={{ 
-                    mx: 2, 
-                    my: 0.5,
-                    borderColor: 'rgba(0,0,0,0.06)'
-                  }} 
-                />
-              </Box>
-            ))
-        ) : (
-          // Fallback to static menu structure
-          getMenuCategories(menuVisibility)
-            .filter(shouldShowCategory)
-            .filter(category => category.type !== 'ARCHIVE')  // Hide Archive category
-            .filter(category => category.type !== 'DASHBOARD')
-            .map((category) => (
-              <Box key={category.title} sx={{ mb: category.type ? 0.5 : 0.125 }}>
-                <List dense={styles.compact} sx={{ py: 0, px: 0.5 }}>
-                  {category.type && (
-                    <>
-                      {renderCategoryHeader(category)}
-                      <Collapse in={expandedSections[category.title]} timeout="auto" unmountOnExit>
-                        <List dense={styles.compact} disablePadding sx={{ pb: 1 }}>
-                          {(category.items || []).filter(isItemVisible).map((item, index) => {
-                            // Safety check - skip null/undefined items
-                            if (!item || !item.path) {
-                              return null;
-                            }
-                            
-                            // Handle sub-categories (like "Point Of Sale - Phase 2")
-                            const subItems = (category.items || []).filter(i => i && i.parentCategory === item.moduleName && isItemVisible(i));
-                            const hasSubItems = subItems.length > 0;
-                            
-                            // Skip items that are sub-items
-                            if (item.parentCategory) {
-                              return null;
-                            }
-                            
-                            return (
-                              <React.Fragment key={`static-menu-${index}`}>
-                                {renderMenuItem(item, true, hasSubItems)}
-                                {hasSubItems && (
-                                  <Collapse in={expandedSections[item.moduleName]} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                      {subItems.filter(Boolean).map((subItem, subIndex) => 
-                                        subItem ? (
-                                          <Box key={`static-sub-${subIndex}`} sx={{ pl: 4 }}>
-                                            {renderMenuItem(subItem, true)}
-                                          </Box>
-                                        ) : null
-                                      )}
-                                    </List>
-                                  </Collapse>
-                                )}
-                              </React.Fragment>
-                            );
-                          })}
-                        </List>
-                      </Collapse>
-                    </>
-                  )}
-                </List>
-                {category.type && (
-                  <Divider 
-                    sx={{ 
-                      mx: 2, 
-                      my: 0.5,
-                      borderColor: 'rgba(0,0,0,0.06)'
-                  }} 
-                />
-                )}
-              </Box>
-            ))
-        )}
-      </Box>
+
+      <List sx={{ px: 1, py: 1 }}>
+        {menuCategories.map((category) => {
+          if (!shouldShowCategory(category)) return null;
+          
+          const isExpanded = expandedSections[category.title];
+          const hasItems = category.items && category.items.length > 0;
+          const hasDirectPath = category.path && (!category.items || category.items.length === 0);
+          
+          return (
+            <Box key={category.title}>
+              {renderCategoryHeader(category)}
+              
+              {hasItems && (
+                <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding dense>
+                    {renderCategoryItems(category)}
+                  </List>
+                </Collapse>
+              )}
+            </Box>
+          );
+        })}
+      </List>
     </Drawer>
   );
 };

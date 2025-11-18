@@ -29,6 +29,18 @@ const AppLayout = () => {
     return true;
   });
 
+  const [favoritesVisible, setFavoritesVisible] = useState(() => {
+    try {
+      const stored = localStorage.getItem('showFavoritesSection');
+      if (stored !== null) {
+        return JSON.parse(stored) === true;
+      }
+    } catch (error) {
+      console.warn('Error reading favorites visibility from localStorage:', error);
+    }
+    return true;
+  });
+
   useEffect(() => {
     try {
       localStorage.setItem('chatBotVisible', JSON.stringify(chatBotVisible));
@@ -37,8 +49,20 @@ const AppLayout = () => {
     }
   }, [chatBotVisible]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('showFavoritesSection', JSON.stringify(favoritesVisible));
+    } catch (error) {
+      console.warn('Error saving favorites visibility to localStorage:', error);
+    }
+  }, [favoritesVisible]);
+
   const handleToggleChatBot = (nextValue) => {
     setChatBotVisible(nextValue);
+  };
+
+  const handleToggleFavorites = (nextValue) => {
+    setFavoritesVisible(nextValue);
   };
 
   // Enhanced sidebar state with responsive behavior
@@ -225,8 +249,10 @@ const AppLayout = () => {
         syncStatus={syncStatus}
         chatBotVisible={chatBotVisible}
         onToggleChatBot={handleToggleChatBot}
+        favoritesVisible={favoritesVisible}
+        onToggleFavorites={handleToggleFavorites}
       />
-      <Sidebar open={sidebarOpen || false} showSidebar={showSidebar} />
+      <Sidebar open={sidebarOpen || false} showSidebar={showSidebar} favoritesVisible={favoritesVisible} />
       
       {/* Enhanced Main Content Area */}
       <Box
@@ -319,14 +345,3 @@ const AppLayout = () => {
 };
 
 export default AppLayout;
-
-
-
-
-
-
-
-
-
-
-

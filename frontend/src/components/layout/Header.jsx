@@ -53,6 +53,7 @@ import {
   Lightbulb as FlashlightIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Star,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -72,7 +73,7 @@ const useNotification = () => ({
 import { getMenuCategories } from '../../utils/menuStructure';
 import brandingService from '../../services/brandingService';
 
-const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVisible = true, onToggleChatBot = () => {} }) => {
+const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVisible = true, onToggleChatBot = () => {}, favoritesVisible = true, onToggleFavorites = () => {} }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [searchAnchor, setSearchAnchor] = useState(null);
@@ -1278,6 +1279,37 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
               onToggleChatBot(event.target.checked);
             }}
             inputProps={{ 'aria-label': 'toggle chat assistant' }}
+          />
+        </MenuItem>
+
+        <MenuItem
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            px: 2,
+            py: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <ListItemIcon>
+            <Star fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Favorites"
+            secondary={favoritesVisible ? 'On' : 'Off'}
+            primaryTypographyProps={{ variant: 'body2' }}
+            secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary' }}
+          />
+          <Switch
+            edge="end"
+            size="small"
+            checked={favoritesVisible}
+            onChange={(event) => {
+              event.stopPropagation();
+              onToggleFavorites(event.target.checked);
+            }}
+            inputProps={{ 'aria-label': 'toggle favorites' }}
           />
         </MenuItem>
         <Divider />
