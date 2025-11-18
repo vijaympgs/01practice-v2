@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, CssBaseline, Toolbar, Fade, useTheme, useMediaQuery } from '@mui/material';
+import { Box, CssBaseline, Toolbar, Fade, useTheme, useMediaQuery, IconButton, Tooltip } from '@mui/material';
+import { Visibility as VisibilityIcon } from '@mui/icons-material';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from './Header';
@@ -41,6 +42,18 @@ const AppLayout = () => {
     return true;
   });
 
+  const [headerVisible, setHeaderVisible] = useState(() => {
+    try {
+      const stored = localStorage.getItem('showAppHeader');
+      if (stored !== null) {
+        return JSON.parse(stored) === true;
+      }
+    } catch (error) {
+      console.warn('Error reading header visibility from localStorage:', error);
+    }
+    return true;
+  });
+
   useEffect(() => {
     try {
       localStorage.setItem('chatBotVisible', JSON.stringify(chatBotVisible));
@@ -57,12 +70,24 @@ const AppLayout = () => {
     }
   }, [favoritesVisible]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('showAppHeader', JSON.stringify(headerVisible));
+    } catch (error) {
+      console.warn('Error saving header visibility to localStorage:', error);
+    }
+  }, [headerVisible]);
+
   const handleToggleChatBot = (nextValue) => {
     setChatBotVisible(nextValue);
   };
 
   const handleToggleFavorites = (nextValue) => {
     setFavoritesVisible(nextValue);
+  };
+
+  const handleToggleHeader = (nextValue) => {
+    setHeaderVisible(nextValue);
   };
 
   // Enhanced sidebar state with responsive behavior
@@ -130,6 +155,19 @@ const AppLayout = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Keyboard shortcut for header toggle (Ctrl+H)
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'h') {
+        event.preventDefault();
+        handleToggleHeader(!headerVisible);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [headerVisible]);
 
   const isPOSBillingRoute =
     location.pathname === '/pos/desktop' ||
@@ -243,15 +281,19 @@ const AppLayout = () => {
   return (
     <Box sx={{ display: 'flex', position: 'relative', minHeight: '100vh' }}>
       <CssBaseline />
-      <Header 
-        onMenuClick={toggleSidebar} 
-        isOnline={isOnline}
-        syncStatus={syncStatus}
-        chatBotVisible={chatBotVisible}
-        onToggleChatBot={handleToggleChatBot}
-        favoritesVisible={favoritesVisible}
-        onToggleFavorites={handleToggleFavorites}
-      />
+      {headerVisible && (
+        <Header 
+          onMenuClick={toggleSidebar} 
+          isOnline={isOnline}
+          syncStatus={syncStatus}
+          chatBotVisible={chatBotVisible}
+          onToggleChatBot={handleToggleChatBot}
+          favoritesVisible={favoritesVisible}
+          onToggleFavorites={handleToggleFavorites}
+          headerVisible={headerVisible}
+          onToggleHeader={handleToggleHeader}
+        />
+      )}
       <Sidebar open={sidebarOpen || false} showSidebar={showSidebar} favoritesVisible={favoritesVisible} />
       
       {/* Enhanced Main Content Area */}
@@ -288,13 +330,13 @@ const AppLayout = () => {
           scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05)',
         }}
       >
-        <Toolbar /> {/* Spacer for fixed header */}
+        {headerVisible && <Toolbar />} {/* Spacer for fixed header */}
         {/* Top sidebar takes minimal space - no extra spacer needed */}
         
         {/* Content with fade animation */}
         <Fade in timeout={300}>
           <Box sx={{ 
-            minHeight: 'calc(100vh - 64px)',
+            minHeight: headerVisible ? 'calc(100vh - 64px)' : '100vh',
             position: 'relative',
             paddingTop: showSidebar && sidebarOpen && sidebarPrefs.position === 'top' && !isMobile ? '16px' : '0px',
             paddingBottom: '16px', // Standard padding at bottom
@@ -315,6 +357,36 @@ const AppLayout = () => {
       
       {/* AI ChatBot Assistant */}
       {chatBotVisible && <ChatBot />}
+      
+      {/* Header Toggle Button - Only show when header is hidden */}
+      {!headerVisible && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            zIndex: theme.zIndex.drawer + 2,
+          }}
+        >
+          <Tooltip title="Show Header (Ctrl+H)">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => handleToggleHeader(true)}
+              sx={{
+                backgroundColor: 'background.paper',
+                boxShadow: 2,
+                '&:hover': {
+                  backgroundColor: 'background.default',
+                  boxShadow: 4,
+                },
+              }}
+            >
+              <VisibilityIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
       
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && showSidebar && (

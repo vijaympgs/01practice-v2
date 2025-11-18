@@ -73,7 +73,7 @@ const useNotification = () => ({
 import { getMenuCategories } from '../../utils/menuStructure';
 import brandingService from '../../services/brandingService';
 
-const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVisible = true, onToggleChatBot = () => {}, favoritesVisible = true, onToggleFavorites = () => {} }) => {
+const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVisible = true, onToggleChatBot = () => {}, favoritesVisible = true, onToggleFavorites = () => {}, headerVisible = true, onToggleHeader = () => {} }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [searchAnchor, setSearchAnchor] = useState(null);
@@ -1310,6 +1310,37 @@ const Header = ({ onMenuClick, isOnline = true, syncStatus = 'synced', chatBotVi
               onToggleFavorites(event.target.checked);
             }}
             inputProps={{ 'aria-label': 'toggle favorites' }}
+          />
+        </MenuItem>
+
+        <MenuItem
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            px: 2,
+            py: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <ListItemIcon>
+            {headerVisible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+          </ListItemIcon>
+          <ListItemText
+            primary="App Header"
+            secondary={headerVisible ? 'On' : 'Off'}
+            primaryTypographyProps={{ variant: 'body2' }}
+            secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary' }}
+          />
+          <Switch
+            edge="end"
+            size="small"
+            checked={headerVisible}
+            onChange={(event) => {
+              event.stopPropagation();
+              onToggleHeader(event.target.checked);
+            }}
+            inputProps={{ 'aria-label': 'toggle app header' }}
           />
         </MenuItem>
         <Divider />
