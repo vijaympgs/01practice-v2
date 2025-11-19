@@ -1,0 +1,60 @@
+Understanding Guardrails
+Guardrails typically include:
+Rate limits (requests per hour/day)
+Token/context limits
+Daily usage caps
+Concurrent request limits
+How to Minimize Issues
+1. Subscription Tier
+Higher tiers usually have higher limits
+Check your tier’s limits after renewal
+2. Monitor Your Usage
+Check usage in Settings → Account or Usage
+Watch for warnings as you approach limits
+3. Optimize Your Workflow
+Break large tasks into smaller requests
+Use focused, specific prompts
+Avoid unnecessary re-runs of the same request
+4. Best Practices
+Use codebase search before asking broad questions
+Be specific in your requests
+Review code before asking for changes
+5. If You Hit Limits
+Wait for the reset period (often hourly or daily)
+Upgrade your subscription tier if needed
+Contact support if limits seem incorrect
+After Renewal
+Verify your tier and limits in Settings → Account
+Confirm any changes to your plan
+Check if limits reset immediately or on the next billing cycle
+If you share the specific guardrail you hit before, I can suggest targeted ways to avoid it.
+
+Tips for Effective Use
+1. Be Specific in Your Requests
+Instead of: "fix the bug"
+Try: "The login button doesn't work when clicked. Check the onClick handler in Login.jsx"
+2. Provide Context
+Share relevant file paths
+Mention what you've already tried
+Include error messages
+3. Use Codebase Search
+I can search your codebase to understand the structure
+This helps me give more accurate answers
+4. Break Down Large Tasks
+Instead of: "build a complete e-commerce site"
+Try: "create a product listing component" → then "add search functionality" → etc.
+5. Review Before Accepting
+Check the changes I suggest
+Test them before moving on
+Ask for clarification if something isn't clear
+6. Iterate and Refine
+If something isn't right, tell me and I'll fix it
+We can refine solutions together
+For Your Current Project
+You have a React frontend with many routes. I can help with:
+Adding new features
+Fixing bugs
+Refactoring code
+Adding tests
+Improving performance
+What would you like to work on next? I'll make sure the solution is complete and working.

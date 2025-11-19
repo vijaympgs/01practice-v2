@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:html-console": "vite build --base ./ --outDir standalone/html-console/dist",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "screenshots": "node scripts/capture-screenshots.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -38,6 +39,7 @@
     "eslint-plugin-react": "^7.33.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "playwright": "^1.40.0",
     "vite": "^7.1.9"
   }
 }

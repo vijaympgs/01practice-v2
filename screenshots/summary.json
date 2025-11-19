@@ -1,0 +1,881 @@
+{
+  "timestamp": "2025-11-16T13:10:47.008Z",
+  "totalRoutes": 109,
+  "successful": 109,
+  "skipped": 0,
+  "failed": 0,
+  "results": [
+    {
+      "route": "/login",
+      "name": "login",
+      "category": "auth",
+      "filename": "login.png",
+      "status": "success",
+      "url": "http://localhost:3000/login"
+    },
+    {
+      "route": "/login_new",
+      "name": "login-new",
+      "category": "auth",
+      "filename": "login-new.png",
+      "status": "success",
+      "url": "http://localhost:3000/login_new"
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "category": "auth",
+      "filename": "register.png",
+      "status": "success",
+      "url": "http://localhost:3000/register"
+    },
+    {
+      "route": "/",
+      "name": "home",
+      "category": "dashboard",
+      "filename": "home.png",
+      "status": "success",
+      "url": "http://localhost:3000/"
+    },
+    {
+      "route": "/dashboard",
+      "name": "dashboard",
+      "category": "dashboard",
+      "filename": "dashboard.png",
+      "status": "success",
+      "url": "http://localhost:3000/dashboard"
+    },
+    {
+      "route": "/home",
+      "name": "home-alt",
+      "category": "dashboard",
+      "filename": "home-alt.png",
+      "status": "success",
+      "url": "http://localhost:3000/home"
+    },
+    {
+      "route": "/under-construction",
+      "name": "under-construction",
+      "category": "general",
+      "filename": "under-construction.png",
+      "status": "success",
+      "url": "http://localhost:3000/under-construction"
+    },
+    {
+      "route": "/location-selection",
+      "name": "location-selection",
+      "category": "auth",
+      "filename": "location-selection.png",
+      "status": "success",
+      "url": "http://localhost:3000/location-selection"
+    },
+    {
+      "route": "/organization",
+      "name": "organization",
+      "category": "organization",
+      "filename": "organization.png",
+      "status": "success",
+      "url": "http://localhost:3000/organization"
+    },
+    {
+      "route": "/master-data/general",
+      "name": "master-data-general",
+      "category": "master-data",
+      "filename": "master-data-general.png",
+      "status": "success",
+      "url": "http://localhost:3000/master-data/general"
+    },
+    {
+      "route": "/master-data/configuration",
+      "name": "master-data-configuration",
+      "category": "master-data",
+      "filename": "master-data-configuration.png",
+      "status": "success",
+      "url": "http://localhost:3000/master-data/configuration"
+    },
+    {
+      "route": "/master-data/uom-setup",
+      "name": "master-data-uom-setup",
+      "category": "master-data",
+      "filename": "master-data-uom-setup.png",
+      "status": "success",
+      "url": "http://localhost:3000/master-data/uom-setup"
+    },
+    {
+      "route": "/master-data/uom-conversion",
+      "name": "master-data-uom-conversion",
+      "category": "master-data",
+      "filename": "master-data-uom-conversion.png",
+      "status": "success",
+      "url": "http://localhost:3000/master-data/uom-conversion"
+    },
+    {
+      "route": "/master-data/customers",
+      "name": "master-data-customers",
+      "category": "master-data",
+      "filename": "master-data-customers.png",
+      "status": "success",
+      "url": "http://localhost:3000/master-data/customers"
+    },
+    {
+      "route": "/master-data/vendors",
+      "name": "master-data-vendors",
+      "category": "master-data",
+      "filename": "master-data-vendors.png",
+      "status": "success",
+      "url": "http://localhost:3000/master-data/vendors"
+    },
+    {
+      "route": "/item/attributes",
+      "name": "item-attributes",
+      "category": "items",
+      "filename": "item-attributes.png",
+      "status": "success",
+      "url": "http://localhost:3000/item/attributes"
+    },
+    {
+      "route": "/item/attribute-values",
+      "name": "item-attribute-values",
+      "category": "items",
+      "filename": "item-attribute-values.png",
+      "status": "success",
+      "url": "http://localhost:3000/item/attribute-values"
+    },
+    {
+      "route": "/item/tax-setup",
+      "name": "item-tax-setup",
+      "category": "items",
+      "filename": "item-tax-setup.png",
+      "status": "success",
+      "url": "http://localhost:3000/item/tax-setup"
+    },
+    {
+      "route": "/item/tax-slab",
+      "name": "item-tax-slab",
+      "category": "items",
+      "filename": "item-tax-slab.png",
+      "status": "success",
+      "url": "http://localhost:3000/item/tax-slab"
+    },
+    {
+      "route": "/item/item-master",
+      "name": "item-master",
+      "category": "items",
+      "filename": "item-master.png",
+      "status": "success",
+      "url": "http://localhost:3000/item/item-master"
+    },
+    {
+      "route": "/item/advanced-item-master",
+      "name": "item-advanced-master",
+      "category": "items",
+      "filename": "item-advanced-master.png",
+      "status": "success",
+      "url": "http://localhost:3000/item/advanced-item-master"
+    },
+    {
+      "route": "/company-master",
+      "name": "company-master",
+      "category": "master-data",
+      "filename": "company-master.png",
+      "status": "success",
+      "url": "http://localhost:3000/company-master"
+    },
+    {
+      "route": "/setup-masters",
+      "name": "setup-masters",
+      "category": "master-data",
+      "filename": "setup-masters.png",
+      "status": "success",
+      "url": "http://localhost:3000/setup-masters"
+    },
+    {
+      "route": "/configuration-masters",
+      "name": "configuration-masters",
+      "category": "master-data",
+      "filename": "configuration-masters.png",
+      "status": "success",
+      "url": "http://localhost:3000/configuration-masters"
+    },
+    {
+      "route": "/enhanced-item-master",
+      "name": "enhanced-item-master",
+      "category": "items",
+      "filename": "enhanced-item-master.png",
+      "status": "success",
+      "url": "http://localhost:3000/enhanced-item-master"
+    },
+    {
+      "route": "/users",
+      "name": "users",
+      "category": "users",
+      "filename": "users.png",
+      "status": "success",
+      "url": "http://localhost:3000/users"
+    },
+    {
+      "route": "/user-permissions",
+      "name": "user-permissions",
+      "category": "users",
+      "filename": "user-permissions.png",
+      "status": "success",
+      "url": "http://localhost:3000/user-permissions"
+    },
+    {
+      "route": "/user-permissions/pos-functions",
+      "name": "user-permissions-pos-functions",
+      "category": "users",
+      "filename": "user-permissions-pos-functions.png",
+      "status": "success",
+      "url": "http://localhost:3000/user-permissions/pos-functions"
+    },
+    {
+      "route": "/security",
+      "name": "security",
+      "category": "security",
+      "filename": "security.png",
+      "status": "success",
+      "url": "http://localhost:3000/security"
+    },
+    {
+      "route": "/business-rules",
+      "name": "business-rules",
+      "category": "settings",
+      "filename": "business-rules.png",
+      "status": "success",
+      "url": "http://localhost:3000/business-rules"
+    },
+    {
+      "route": "/business-rules/general",
+      "name": "business-rules-general",
+      "category": "settings",
+      "filename": "business-rules-general.png",
+      "status": "success",
+      "url": "http://localhost:3000/business-rules/general"
+    },
+    {
+      "route": "/settings",
+      "name": "settings",
+      "category": "settings",
+      "filename": "settings.png",
+      "status": "success",
+      "url": "http://localhost:3000/settings"
+    },
+    {
+      "route": "/settings/dataops-studio",
+      "name": "settings-dataops-studio",
+      "category": "settings",
+      "filename": "settings-dataops-studio.png",
+      "status": "success",
+      "url": "http://localhost:3000/settings/dataops-studio"
+    },
+    {
+      "route": "/settings/layout-preferences",
+      "name": "settings-layout-preferences",
+      "category": "settings",
+      "filename": "settings-layout-preferences.png",
+      "status": "success",
+      "url": "http://localhost:3000/settings/layout-preferences"
+    },
+    {
+      "route": "/settings/digital-marketing",
+      "name": "settings-digital-marketing",
+      "category": "settings",
+      "filename": "settings-digital-marketing.png",
+      "status": "success",
+      "url": "http://localhost:3000/settings/digital-marketing"
+    },
+    {
+      "route": "/settings/html-preview",
+      "name": "settings-html-preview",
+      "category": "settings",
+      "filename": "settings-html-preview.png",
+      "status": "success",
+      "url": "http://localhost:3000/settings/html-preview"
+    },
+    {
+      "route": "/settings/web-console",
+      "name": "settings-web-console",
+      "category": "settings",
+      "filename": "settings-web-console.png",
+      "status": "success",
+      "url": "http://localhost:3000/settings/web-console"
+    },
+    {
+      "route": "/pos-masters",
+      "name": "pos-masters",
+      "category": "pos",
+      "filename": "pos-masters.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos-masters"
+    },
+    {
+      "route": "/code-settings",
+      "name": "code-settings",
+      "category": "pos",
+      "filename": "code-settings.png",
+      "status": "success",
+      "url": "http://localhost:3000/code-settings"
+    },
+    {
+      "route": "/inventory",
+      "name": "inventory",
+      "category": "inventory",
+      "filename": "inventory.png",
+      "status": "success",
+      "url": "http://localhost:3000/inventory"
+    },
+    {
+      "route": "/procurement-workflows",
+      "name": "procurement-workflows",
+      "category": "procurement",
+      "filename": "procurement-workflows.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement-workflows"
+    },
+    {
+      "route": "/purchases",
+      "name": "purchases",
+      "category": "procurement",
+      "filename": "purchases.png",
+      "status": "success",
+      "url": "http://localhost:3000/purchases"
+    },
+    {
+      "route": "/sales",
+      "name": "sales",
+      "category": "sales",
+      "filename": "sales.png",
+      "status": "success",
+      "url": "http://localhost:3000/sales"
+    },
+    {
+      "route": "/sales-order-management",
+      "name": "sales-order-management",
+      "category": "sales",
+      "filename": "sales-order-management.png",
+      "status": "success",
+      "url": "http://localhost:3000/sales-order-management"
+    },
+    {
+      "route": "/customer-management",
+      "name": "customer-management",
+      "category": "crm",
+      "filename": "customer-management.png",
+      "status": "success",
+      "url": "http://localhost:3000/customer-management"
+    },
+    {
+      "route": "/pos",
+      "name": "pos",
+      "category": "pos",
+      "filename": "pos.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos"
+    },
+    {
+      "route": "/pos-indexeddb",
+      "name": "pos-indexeddb",
+      "category": "pos",
+      "filename": "pos-indexeddb.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos-indexeddb"
+    },
+    {
+      "route": "/pos-session-manager",
+      "name": "pos-session-manager",
+      "category": "pos",
+      "filename": "pos-session-manager.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos-session-manager"
+    },
+    {
+      "route": "/pos-test-runner",
+      "name": "pos-test-runner",
+      "category": "pos",
+      "filename": "pos-test-runner.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos-test-runner"
+    },
+    {
+      "route": "/pos-status-check",
+      "name": "pos-status-check",
+      "category": "pos",
+      "filename": "pos-status-check.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos-status-check"
+    },
+    {
+      "route": "/pos-sessions",
+      "name": "pos-sessions",
+      "category": "pos",
+      "filename": "pos-sessions.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos-sessions"
+    },
+    {
+      "route": "/pos/terminal-setup",
+      "name": "pos-terminal-setup",
+      "category": "pos",
+      "filename": "pos-terminal-setup.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/terminal-setup"
+    },
+    {
+      "route": "/pos/terminal-configuration",
+      "name": "pos-terminal-configuration",
+      "category": "pos",
+      "filename": "pos-terminal-configuration.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/terminal-configuration"
+    },
+    {
+      "route": "/pos/day-open",
+      "name": "pos-day-open",
+      "category": "pos",
+      "filename": "pos-day-open.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/day-open"
+    },
+    {
+      "route": "/pos/session-open",
+      "name": "pos-session-open",
+      "category": "pos",
+      "filename": "pos-session-open.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/session-open"
+    },
+    {
+      "route": "/pos/shift-management",
+      "name": "pos-shift-management",
+      "category": "pos",
+      "filename": "pos-shift-management.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/shift-management"
+    },
+    {
+      "route": "/pos/session-management",
+      "name": "pos-session-management",
+      "category": "pos",
+      "filename": "pos-session-management.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/session-management"
+    },
+    {
+      "route": "/pos/desktop",
+      "name": "pos-desktop",
+      "category": "pos",
+      "filename": "pos-desktop.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/desktop"
+    },
+    {
+      "route": "/pos/billing",
+      "name": "pos-billing",
+      "category": "pos",
+      "filename": "pos-billing.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/billing"
+    },
+    {
+      "route": "/pos/settlement",
+      "name": "pos-settlement",
+      "category": "pos",
+      "filename": "pos-settlement.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/settlement"
+    },
+    {
+      "route": "/pos/day-management",
+      "name": "pos-day-management",
+      "category": "pos",
+      "filename": "pos-day-management.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/day-management"
+    },
+    {
+      "route": "/pos/day-management-console",
+      "name": "pos-day-management-console",
+      "category": "pos",
+      "filename": "pos-day-management-console.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/day-management-console"
+    },
+    {
+      "route": "/pos/settlement-advanced",
+      "name": "pos-settlement-advanced",
+      "category": "pos",
+      "filename": "pos-settlement-advanced.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/settlement-advanced"
+    },
+    {
+      "route": "/pos/session-close",
+      "name": "pos-session-close",
+      "category": "pos",
+      "filename": "pos-session-close.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/session-open"
+    },
+    {
+      "route": "/pos/day-close",
+      "name": "pos-day-close",
+      "category": "pos",
+      "filename": "pos-day-close.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/day-close"
+    },
+    {
+      "route": "/pos/customer-receivables",
+      "name": "pos-customer-receivables",
+      "category": "pos",
+      "filename": "pos-customer-receivables.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/customer-receivables"
+    },
+    {
+      "route": "/pos/home-delivery",
+      "name": "pos-home-delivery",
+      "category": "pos",
+      "filename": "pos-home-delivery.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/home-delivery"
+    },
+    {
+      "route": "/pos/day-end",
+      "name": "pos-day-end",
+      "category": "pos",
+      "filename": "pos-day-end.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/day-end"
+    },
+    {
+      "route": "/pos/code-master",
+      "name": "pos-code-master",
+      "category": "pos",
+      "filename": "pos-code-master.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/code-master"
+    },
+    {
+      "route": "/pos/advanced-terminal-features",
+      "name": "pos-advanced-terminal-features",
+      "category": "pos",
+      "filename": "pos-advanced-terminal-features.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/advanced-terminal-features"
+    },
+    {
+      "route": "/pos/advanced-settlement",
+      "name": "pos-advanced-settlement",
+      "category": "pos",
+      "filename": "pos-advanced-settlement.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/advanced-settlement"
+    },
+    {
+      "route": "/pos/advanced-receivables",
+      "name": "pos-advanced-receivables",
+      "category": "pos",
+      "filename": "pos-advanced-receivables.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/advanced-receivables"
+    },
+    {
+      "route": "/pos/advanced-delivery",
+      "name": "pos-advanced-delivery",
+      "category": "pos",
+      "filename": "pos-advanced-delivery.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/advanced-delivery"
+    },
+    {
+      "route": "/pos/advanced-day-end",
+      "name": "pos-advanced-day-end",
+      "category": "pos",
+      "filename": "pos-advanced-day-end.png",
+      "status": "success",
+      "url": "http://localhost:3000/pos/advanced-day-end"
+    },
+    {
+      "route": "/posv2/terminal-configuration",
+      "name": "posv2-terminal-configuration",
+      "category": "pos",
+      "filename": "posv2-terminal-configuration.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/terminal-configuration"
+    },
+    {
+      "route": "/posv2/day-open",
+      "name": "posv2-day-open",
+      "category": "pos",
+      "filename": "posv2-day-open.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/day-open"
+    },
+    {
+      "route": "/posv2/session-open",
+      "name": "posv2-session-open",
+      "category": "pos",
+      "filename": "posv2-session-open.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/session-open"
+    },
+    {
+      "route": "/posv2/desktop",
+      "name": "posv2-desktop",
+      "category": "pos",
+      "filename": "posv2-desktop.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/desktop"
+    },
+    {
+      "route": "/posv2/settlement",
+      "name": "posv2-settlement",
+      "category": "pos",
+      "filename": "posv2-settlement.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/settlement"
+    },
+    {
+      "route": "/posv2/session-close",
+      "name": "posv2-session-close",
+      "category": "pos",
+      "filename": "posv2-session-close.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/session-open"
+    },
+    {
+      "route": "/posv2/day-end",
+      "name": "posv2-day-end",
+      "category": "pos",
+      "filename": "posv2-day-end.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/day-end"
+    },
+    {
+      "route": "/posv2/day-close",
+      "name": "posv2-day-close",
+      "category": "pos",
+      "filename": "posv2-day-close.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/day-close"
+    },
+    {
+      "route": "/posv2/shift-workflow",
+      "name": "posv2-shift-workflow",
+      "category": "pos",
+      "filename": "posv2-shift-workflow.png",
+      "status": "success",
+      "url": "http://localhost:3000/posv2/shift-workflow"
+    },
+    {
+      "route": "/reports",
+      "name": "reports",
+      "category": "reports",
+      "filename": "reports.png",
+      "status": "success",
+      "url": "http://localhost:3000/reports"
+    },
+    {
+      "route": "/profile",
+      "name": "profile",
+      "category": "user",
+      "filename": "profile.png",
+      "status": "success",
+      "url": "http://localhost:3000/profile"
+    },
+    {
+      "route": "/wireframes",
+      "name": "wireframes",
+      "category": "admin",
+      "filename": "wireframes.png",
+      "status": "success",
+      "url": "http://localhost:3000/wireframes"
+    },
+    {
+      "route": "/procurement/purchase-request",
+      "name": "procurement-purchase-request",
+      "category": "procurement",
+      "filename": "procurement-purchase-request.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/purchase-request"
+    },
+    {
+      "route": "/procurement/purchase-enquiry",
+      "name": "procurement-purchase-enquiry",
+      "category": "procurement",
+      "filename": "procurement-purchase-enquiry.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/purchase-enquiry"
+    },
+    {
+      "route": "/procurement/purchase-quotation",
+      "name": "procurement-purchase-quotation",
+      "category": "procurement",
+      "filename": "procurement-purchase-quotation.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/purchase-quotation"
+    },
+    {
+      "route": "/procurement/purchase-order",
+      "name": "procurement-purchase-order",
+      "category": "procurement",
+      "filename": "procurement-purchase-order.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/purchase-order"
+    },
+    {
+      "route": "/procurement/goods-received-note",
+      "name": "procurement-goods-received-note",
+      "category": "procurement",
+      "filename": "procurement-goods-received-note.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/goods-received-note"
+    },
+    {
+      "route": "/procurement/purchase-invoice",
+      "name": "procurement-purchase-invoice",
+      "category": "procurement",
+      "filename": "procurement-purchase-invoice.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/purchase-invoice"
+    },
+    {
+      "route": "/procurement/purchase-return",
+      "name": "procurement-purchase-return",
+      "category": "procurement",
+      "filename": "procurement-purchase-return.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/purchase-return"
+    },
+    {
+      "route": "/procurement/procurement-advice",
+      "name": "procurement-procurement-advice",
+      "category": "procurement",
+      "filename": "procurement-procurement-advice.png",
+      "status": "success",
+      "url": "http://localhost:3000/procurement/procurement-advice"
+    },
+    {
+      "route": "/inventory/system-go-live",
+      "name": "inventory-system-go-live",
+      "category": "inventory",
+      "filename": "inventory-system-go-live.png",
+      "status": "success",
+      "url": "http://localhost:3000/inventory/system-go-live"
+    },
+    {
+      "route": "/stock-nexus/initial-setup",
+      "name": "stock-nexus-initial-setup",
+      "category": "inventory",
+      "filename": "stock-nexus-initial-setup.png",
+      "status": "success",
+      "url": "http://localhost:3000/stock-nexus/initial-setup"
+    },
+    {
+      "route": "/stock-nexus/movement-tracking",
+      "name": "stock-nexus-movement-tracking",
+      "category": "inventory",
+      "filename": "stock-nexus-movement-tracking.png",
+      "status": "success",
+      "url": "http://localhost:3000/stock-nexus/movement-tracking"
+    },
+    {
+      "route": "/stock-nexus/transfer-confirm",
+      "name": "stock-nexus-transfer-confirm",
+      "category": "inventory",
+      "filename": "stock-nexus-transfer-confirm.png",
+      "status": "success",
+      "url": "http://localhost:3000/stock-nexus/transfer-confirm"
+    },
+    {
+      "route": "/stock-nexus/count-adjust",
+      "name": "stock-nexus-count-adjust",
+      "category": "inventory",
+      "filename": "stock-nexus-count-adjust.png",
+      "status": "success",
+      "url": "http://localhost:3000/stock-nexus/count-adjust"
+    },
+    {
+      "route": "/archive/products",
+      "name": "archive-products",
+      "category": "archive",
+      "filename": "archive-products.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/products"
+    },
+    {
+      "route": "/archive/categories",
+      "name": "archive-categories",
+      "category": "archive",
+      "filename": "archive-categories.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/categories"
+    },
+    {
+      "route": "/archive/customers",
+      "name": "archive-customers",
+      "category": "archive",
+      "filename": "archive-customers.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/customers"
+    },
+    {
+      "route": "/archive/suppliers",
+      "name": "archive-suppliers",
+      "category": "archive",
+      "filename": "archive-suppliers.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/suppliers"
+    },
+    {
+      "route": "/archive/purchase-orders",
+      "name": "archive-purchase-orders",
+      "category": "archive",
+      "filename": "archive-purchase-orders.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/purchase-orders"
+    },
+    {
+      "route": "/archive/orders",
+      "name": "archive-orders",
+      "category": "archive",
+      "filename": "archive-orders.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/orders"
+    },
+    {
+      "route": "/archive/sales",
+      "name": "archive-sales",
+      "category": "archive",
+      "filename": "archive-sales.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/sales"
+    },
+    {
+      "route": "/archive/reports",
+      "name": "archive-reports",
+      "category": "archive",
+      "filename": "archive-reports.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/reports"
+    },
+    {
+      "route": "/archive/inventory-control",
+      "name": "archive-inventory-control",
+      "category": "archive",
+      "filename": "archive-inventory-control.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/inventory-control"
+    },
+    {
+      "route": "/archive/inventory",
+      "name": "archive-inventory",
+      "category": "archive",
+      "filename": "archive-inventory.png",
+      "status": "success",
+      "url": "http://localhost:3000/archive/inventory"
+    }
+  ]
+}
