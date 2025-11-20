@@ -4,7 +4,7 @@ echo    Starting Frontend Server
 echo ..............................
 echo.
 
-cd D:\Python\01practice\Frontend
+cd C:\01Practice\01practice-v2\frontend
 
 echo Starting frontend server on port 3000..
 echo.

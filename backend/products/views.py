@@ -367,7 +367,7 @@ def low_stock_products(request):
         queryset = Product.objects.filter(
             stock_quantity__lte=F('minimum_stock') + threshold,
             is_active=True
-        ).select_related('category').order_by('stock_quantity')
+        ).order_by('stock_quantity')
         
         serializer = ProductListSerializer(queryset, many=True)
         return Response({

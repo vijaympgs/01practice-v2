@@ -15,12 +15,12 @@ echo [STARTUP] Starting Backend AND Frontend
 echo .....................................................
 echo.
 
-start "Backend" cmd /k "D:\Python\01practice\scripts\START_BACKEND.bat"
+start "Backend" cmd /k "C:\01Practice\01practice-v2\scripts\START_BACKEND.bat"
 
 echo Waiting 10 seconds for backend to start...
 timeout /t 10
 
-start "Frontend" cmd /k "D:\Python\01practice\scripts\START_FRONTEND.bat"
+start "Frontend" cmd /k "C:\01Practice\01practice-v2\scripts\START_FRONTEND.bat"
 
 echo.
 echo .....................................................

@@ -4,7 +4,7 @@ echo    Starting Backend Server
 echo ..............................
 echo.
 
-cd D:\Python\01practice\backend
+cd C:\01Practice\01practice-v2\Backend
 
 echo.
 echo Starting server on port 8000...

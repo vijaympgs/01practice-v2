@@ -16,7 +16,7 @@ from .serializers import (
 class InventoryViewSet(viewsets.ModelViewSet):
     """ViewSet for inventory management"""
     
-    queryset = Inventory.objects.select_related('product', 'product__category').all()
+    queryset = Inventory.objects.select_related('product').all()
     permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
@@ -26,7 +26,7 @@ class InventoryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter inventory by various parameters"""
-        queryset = Inventory.objects.select_related('product', 'product__category').all()
+        queryset = Inventory.objects.select_related('product').all()
         
         # Filter by product
         product_id = self.request.query_params.get('product_id')
@@ -35,8 +35,8 @@ class InventoryViewSet(viewsets.ModelViewSet):
             
         # Filter by category
         category_id = self.request.query_params.get('category_id')
-        if category_id:
-            queryset = queryset.filter(product__category_id=category_id)
+        # if category_id:
+        #     queryset = queryset.filter(product__category_id=category_id)
             
         # Filter by status
         status_filter = self.request.query_params.get('status')

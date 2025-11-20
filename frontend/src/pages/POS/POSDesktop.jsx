@@ -35,6 +35,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -79,7 +81,20 @@ import salesService from '../../services/salesService.js';
 import customerService from '../../services/customerService.js';
 import { posMasterService } from '../../services/posMasterService.js';
 import terminalService from '../../services/terminalService.js';
+import itemMasterService from '../../services/itemMasterService.js';
 import { usePOSPermissions } from '../../hooks/usePOSPermissions.js';
+
+const WALK_IN_CUSTOMER = Object.freeze({
+  id: null,
+  first_name: 'Walk-in',
+  last_name: 'Customer',
+  full_name: 'Walk-in Customer',
+  name: 'Walk-in Customer',
+  customer_code: 'WALK-IN',
+  phone: '',
+  email: '',
+  isWalkIn: true,
+});
 
 /**
  * Desktop POS UI Component
@@ -135,6 +150,16 @@ const POSDesktop = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [quickItemDialogOpen, setQuickItemDialogOpen] = useState(false);
+  const [quickItemForm, setQuickItemForm] = useState({
+    name: '',
+    code: '',
+    price: '',
+    taxInclusive: false,
+  });
+  const [quickItemErrors, setQuickItemErrors] = useState({});
+  const [quickItemSubmitting, setQuickItemSubmitting] = useState(false);
+  const [quickItemAlert, setQuickItemAlert] = useState(null);
   
   // Cart state
   const [cart, setCart] = useState([]);
@@ -497,18 +522,144 @@ const POSDesktop = () => {
     };
   }, [user, location.pathname]); // Re-run when user changes OR when navigating to this page
 
+  const normalizeItemMasterProduct = (item) => {
+    const price = parseFloat(item.sell_price ?? item.mrp ?? 0) || 0;
+    return {
+      id: item.id,
+      name: item.item_name,
+      sku: item.item_code,
+      barcode: item.ean_upc_code || '',
+      price,
+      cost_price: parseFloat(item.cost_price ?? 0) || 0,
+      stock_quantity: item.stock_quantity ?? 0,
+      description: item.short_name || item.brand || '',
+      category: item.category
+        ? { id: item.category, name: item.category_name }
+        : item.category_name
+        ? { id: null, name: item.category_name }
+        : null,
+      is_active: item.is_active,
+      tax_inclusive: item.tax_inclusive,
+      allow_negative_stock: item.allow_negative_stock,
+      _source: 'item-master',
+      _raw: item,
+    };
+  };
+
   // Load products
   const loadProducts = async () => {
     try {
-      const response = await api.get('/products/', {
-        params: { is_active: true, page_size: 100 }
+      const response = await itemMasterService.getItems({
+        is_active: true,
+        page_size: 500,
+        ordering: 'item_name',
       });
-      const productsList = response.data.results || response.data || [];
-      setProducts(productsList);
+      const items = response.results || response || [];
+      const normalizedItems = items.map(normalizeItemMasterProduct);
+      setProducts(normalizedItems);
     } catch (err) {
       console.error('Failed to load products:', err);
       // Set empty array on error to prevent UI issues
       setProducts([]);
+    }
+  };
+
+  const generateQuickItemCode = () => {
+    const now = new Date();
+    const suffix = now.getTime().toString().slice(-6);
+    return `QI-${now.getFullYear()}${suffix}`;
+  };
+
+  const handleOpenQuickItemDialog = () => {
+    setQuickItemForm({
+      name: '',
+      code: generateQuickItemCode(),
+      price: '',
+      taxInclusive: false,
+    });
+    setQuickItemErrors({});
+    setQuickItemDialogOpen(true);
+  };
+
+  const handleCloseQuickItemDialog = () => {
+    if (quickItemSubmitting) {
+      return;
+    }
+    setQuickItemDialogOpen(false);
+  };
+
+  const handleQuickItemFieldChange = (field, value) => {
+    setQuickItemForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const validateQuickItemForm = () => {
+    const errors = {};
+    if (!quickItemForm.name.trim()) {
+      errors.name = 'Item name is required';
+    } else if (quickItemForm.name.trim().length < 2) {
+      errors.name = 'Item name must be at least 2 characters';
+    }
+
+    if (!quickItemForm.code.trim()) {
+      errors.code = 'Item code/SKU is required';
+    }
+
+    const priceValue = parseFloat(quickItemForm.price);
+    if (Number.isNaN(priceValue) || priceValue <= 0) {
+      errors.price = 'Price must be greater than 0';
+    }
+
+    return errors;
+  };
+
+  const handleQuickItemSubmit = async (event) => {
+    event.preventDefault();
+    const errors = validateQuickItemForm();
+    if (Object.keys(errors).length > 0) {
+      setQuickItemErrors(errors);
+      return;
+    }
+
+    try {
+      setQuickItemSubmitting(true);
+      setQuickItemErrors({});
+
+      const priceValue = parseFloat(quickItemForm.price) || 0;
+      const payload = {
+        item_name: quickItemForm.name.trim(),
+        item_code: quickItemForm.code.trim(),
+        short_name: quickItemForm.name.trim(),
+        sell_price: priceValue,
+        mrp: priceValue,
+        cost_price: 0,
+        landing_cost: 0,
+        tax_inclusive: quickItemForm.taxInclusive,
+        allow_negative_stock: true,
+        allow_buy_back: false,
+        store_pickup: false,
+        material_type: 'finished',
+        item_type: 'device',
+        exchange_type: 'none',
+        is_active: true,
+      };
+
+      const createdItem = await itemMasterService.createItem(payload);
+      setQuickItemDialogOpen(false);
+      setQuickItemAlert({
+        type: 'success',
+        message: `Quick item "${createdItem.item_name}" created successfully.`,
+      });
+      setSearchQuery(createdItem.item_name || createdItem.item_code || '');
+      await loadProducts();
+    } catch (submitError) {
+      setQuickItemErrors({
+        form: submitError.message || 'Failed to create quick item',
+      });
+    } finally {
+      setQuickItemSubmitting(false);
     }
   };
 
@@ -1922,7 +2073,11 @@ const POSDesktop = () => {
   };
 
   const handleCustomerSelect = (selectedCustomer) => {
-    setCustomer(selectedCustomer);
+    if (selectedCustomer === null) {
+      setCustomer(WALK_IN_CUSTOMER);
+    } else {
+      setCustomer(selectedCustomer);
+    }
     setShowCustomerLookup(false);
     setCustomerSearchTerm('');
   };
@@ -2500,7 +2655,7 @@ const POSDesktop = () => {
                           border: '1px solid #1976d2',
                           borderRadius: 0,
                           mb: 1,
-                          backgroundColor: customer === null ? '#e3f2fd' : 'white',
+                          backgroundColor: customer?.isWalkIn ? '#e3f2fd' : 'white',
                           '&:hover': {
                             backgroundColor: '#e3f2fd',
                             borderColor: '#1976d2'
@@ -2519,7 +2674,7 @@ const POSDesktop = () => {
                             color: 'text.secondary'
                           }}
                         />
-                        {customer === null && (
+                        {customer?.isWalkIn && (
                           <ListItemSecondaryAction>
                             <CheckIcon color="primary" />
                           </ListItemSecondaryAction>
@@ -2643,13 +2798,30 @@ const POSDesktop = () => {
                     Product Lookup
                   </Typography>
                 </Box>
-                <IconButton 
-                  size="small" 
-                  onClick={() => setShowProductLookup(false)}
-                  sx={{ color: 'white' }}
-                >
-                  <CloseIcon />
-                </IconButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Button
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenQuickItemDialog}
+                    sx={{
+                      backgroundColor: 'white',
+                      color: '#1976d2',
+                      fontWeight: 600,
+                      '&:hover': {
+                        backgroundColor: '#f0f4ff',
+                      },
+                    }}
+                  >
+                    Quick Item
+                  </Button>
+                  <IconButton 
+                    size="small" 
+                    onClick={() => setShowProductLookup(false)}
+                    sx={{ color: 'white' }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
               </Box>
 
               {/* Sub-section 2.2: Product Search & List */}
@@ -2713,6 +2885,16 @@ const POSDesktop = () => {
                   }}
                   autoFocus
                 />
+
+                {quickItemAlert && (
+                  <Alert
+                    severity={quickItemAlert.type}
+                    onClose={() => setQuickItemAlert(null)}
+                    sx={{ mt: 1 }}
+                  >
+                    {quickItemAlert.message}
+                  </Alert>
+                )}
 
                 {/* Product List */}
                 <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
@@ -4290,6 +4472,93 @@ const POSDesktop = () => {
             {loading ? 'Suspending...' : 'Suspend'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Quick Item Dialog */}
+      <Dialog open={quickItemDialogOpen} onClose={handleCloseQuickItemDialog} maxWidth="sm" fullWidth>
+        <Box component="form" onSubmit={handleQuickItemSubmit}>
+          <DialogTitle>Create Quick Item</DialogTitle>
+          <DialogContent dividers>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Capture only the essentials (name, SKU/code, price). You can enrich the record later in Item Master.
+            </Typography>
+
+            {quickItemErrors.form && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {quickItemErrors.form}
+              </Alert>
+            )}
+
+            <TextField
+              label="Item Name"
+              placeholder="e.g., USB-C Cable"
+              fullWidth
+              value={quickItemForm.name}
+              onChange={(e) => handleQuickItemFieldChange('name', e.target.value)}
+              error={Boolean(quickItemErrors.name)}
+              helperText={quickItemErrors.name}
+              disabled={quickItemSubmitting}
+              sx={{ mb: 2 }}
+              autoFocus
+            />
+
+            <TextField
+              label="Item Code / SKU"
+              placeholder="e.g., QUICK-001"
+              fullWidth
+              value={quickItemForm.code}
+              onChange={(e) => handleQuickItemFieldChange('code', e.target.value)}
+              error={Boolean(quickItemErrors.code)}
+              helperText={quickItemErrors.code}
+              disabled={quickItemSubmitting}
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              label="Selling Price"
+              placeholder="0.00"
+              fullWidth
+              value={quickItemForm.price}
+              onChange={(e) => handleQuickItemFieldChange('price', e.target.value)}
+              error={Boolean(quickItemErrors.price)}
+              helperText={quickItemErrors.price}
+              disabled={quickItemSubmitting}
+              type="number"
+              inputProps={{ min: '0', step: '0.01' }}
+              sx={{ mb: 2 }}
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={quickItemForm.taxInclusive}
+                  onChange={(e) => handleQuickItemFieldChange('taxInclusive', e.target.checked)}
+                  disabled={quickItemSubmitting}
+                  color="primary"
+                />
+              }
+              label="Price includes tax"
+              sx={{ mb: 1 }}
+            />
+
+            <Alert severity="info">
+              Quick items are stored in Item Master and immediately available in POS lookup.
+            </Alert>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseQuickItemDialog} disabled={quickItemSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<AddIcon />}
+              disabled={quickItemSubmitting}
+            >
+              {quickItemSubmitting ? 'Saving...' : 'Create Item'}
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
 
       {/* Resume Dialog */}

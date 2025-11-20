@@ -25,9 +25,9 @@ except ImportError:
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for sale line items."""
     
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_barcode = serializers.CharField(source='product.barcode', read_only=True)
-    product_sku = serializers.CharField(source='product.sku', read_only=True)
+    product_name = serializers.CharField(source='product.item_name', read_only=True)
+    product_barcode = serializers.CharField(source='product.ean_upc_code', read_only=True)
+    product_sku = serializers.CharField(source='product.item_code', read_only=True)
     tax_rate = serializers.DecimalField(max_digits=5, decimal_places=2, required=False, write_only=True, help_text="Tax rate percentage (write-only, used to calculate tax_amount)")
     subtotal = serializers.SerializerMethodField(read_only=True)
     total = serializers.SerializerMethodField(read_only=True)
@@ -59,7 +59,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
         unit_price = validated_data.get('unit_price')
         if unit_price is None:
             # Try to get price from product
-            unit_price = getattr(product, 'price', Decimal('0.00'))
+            unit_price = getattr(product, 'sell_price', Decimal('0.00'))
         else:
             unit_price = Decimal(str(unit_price))
         
@@ -69,7 +69,8 @@ class SaleItemSerializer(serializers.ModelSerializer):
         
         # Get tax_rate from input or product
         if tax_rate is None:
-            tax_rate = getattr(product, 'tax_rate', Decimal('0.00'))
+            # ItemMaster doesn't have tax_rate directly, default to 0 or fetch from tax details if needed
+            tax_rate = Decimal('0.00')
         else:
             tax_rate = Decimal(str(tax_rate))
         
@@ -279,7 +280,7 @@ class SaleCreateSerializer(serializers.ModelSerializer):
                 # Get unit_price - Product model uses 'price', not 'unit_price'
                 unit_price = item_data.get('unit_price')
                 if unit_price is None:
-                    unit_price = getattr(product, 'price', Decimal('0.00'))
+                    unit_price = getattr(product, 'sell_price', Decimal('0.00'))
                 else:
                     unit_price = Decimal(str(unit_price))
                 

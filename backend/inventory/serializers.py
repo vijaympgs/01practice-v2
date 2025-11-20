@@ -10,13 +10,13 @@ class InventorySerializer(serializers.ModelSerializer):
     
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_sku = serializers.CharField(source='product.sku', read_only=True)
-    category_name = serializers.CharField(source='product.category.name', read_only=True)
+    # category_name = serializers.CharField(source='product.category.name', read_only=True)
     stock_status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
         model = Inventory
         fields = [
-            'id', 'product', 'product_name', 'product_sku', 'category_name',
+            'id', 'product', 'product_name', 'product_sku', # 'category_name',
             'current_stock', 'reserved_stock', 'available_stock',
             'min_stock_level', 'max_stock_level', 'reorder_point', 'reorder_quantity',
             'cost_price', 'selling_price', 'location', 'bin_location',
@@ -45,13 +45,13 @@ class InventoryListSerializer(serializers.ModelSerializer):
     
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_sku = serializers.CharField(source='product.sku', read_only=True)
-    category_name = serializers.CharField(source='product.category.name', read_only=True)
+    # category_name = serializers.CharField(source='product.category.name', read_only=True)
     value_total = serializers.SerializerMethodField()
     
     class Meta:
         model = Inventory
         fields = [
-            'id', 'product', 'product_name', 'product_sku', 'category_name',
+            'id', 'product', 'product_name', 'product_sku', # 'category_name',
             'current_stock', 'available_stock', 'min_stock_level',
             'cost_price', 'selling_price', 'status', 'value_total', 'location'
         ]
