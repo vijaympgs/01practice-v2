@@ -1,0 +1,19 @@
+File Copy Summary 
+Date: Tue 11/18/2025 19:52:57.84 
+Source: d:\Python\01practice 
+Destination: D:\python\03changes\1811 
+Files copied: 35 
+ 
+Files copied: 
+- NEXT_SESSION_REFERENCE_01.md 
+- docs\BUG_FIXES\DEBUG_SWITCH_IMPLEMENTATION_REPORT.md 
+- docs\BUG_FIXES\LOCATION_SELECTION_FIX_REPORT.md 
+- docs\BUG_FIXES\MENU_VISIBILITY_FIX_REPORT.md 
+- docs\genref.png 
+- next-steps_01.md 
+- test-git-workflow.txt 
+- backend\test_*.py (22 test files) 
+- frontend\src\components\layout\*.jsx (3 files) 
+- frontend\src\services\*.js (2 files) 
+- frontend\src\utils\menuStructure.js 
+- backend\db.sqlite3 

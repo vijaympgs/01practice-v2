@@ -349,6 +349,51 @@ class ThemeService {
   }
 
   /**
+   * Get theme colors for components
+   */
+  async getThemeColors() {
+    try {
+      // Get active theme, fallback to default if not loaded
+      let theme = this.activeTheme;
+      if (!theme) {
+        theme = await this.getActiveTheme();
+      }
+      
+      // If still no theme, use fallback
+      if (!theme) {
+        const fallbackTheme = this.getCurrentThemeFromStorage();
+        if (fallbackTheme) {
+          theme = fallbackTheme;
+        } else {
+          // Ultimate fallback to blue theme
+          theme = {
+            primary_color: '#1565C0',
+            secondary_color: '#FF5722',
+            background_color: '#f5f5f5',
+            text_color: '#333333'
+          };
+        }
+      }
+
+      return {
+        primary: theme.primary_color || '#1565C0',
+        secondary: theme.secondary_color || '#FF5722',
+        background: theme.background_color || '#f5f5f5',
+        text: theme.text_color || '#333333'
+      };
+    } catch (error) {
+      console.error('Error getting theme colors:', error);
+      // Return fallback colors
+      return {
+        primary: '#1565C0',
+        secondary: '#FF5722',
+        background: '#f5f5f5',
+        text: '#333333'
+      };
+    }
+  }
+
+  /**
    * Reset to default theme
    */
   async resetToDefault() {

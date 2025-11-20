@@ -23,16 +23,19 @@ class MenuService {
       
       // Try to load from API first
       try {
-        const response = await api.get('/users/menu-structure/');
+        const response = await api.get('/users/menu-visibility/');
         const menuData = response.data;
         
         console.log('✅ Menu structure loaded from API:', menuData);
         
-        // Process the menu data to include subcategories
-        const processedData = this.processMenuData(menuData);
+        // Convert the API response to the expected format
+        const processedData = this.convertApiResponseToMenuFormat(menuData);
         
-        this.menuStructure = processedData;
-        this.categories = processedData.categories || [];
+        // Process menu data to add subcategories
+        const finalData = this.processMenuData(processedData);
+        
+        this.menuStructure = finalData;
+        this.categories = finalData.categories || [];
         
         // Notify listeners
         this.notifyListeners();
@@ -58,6 +61,186 @@ class MenuService {
       
       return fallbackData;
     }
+  }
+
+  /**
+   * Convert API response to expected menu format
+   */
+  convertApiResponseToMenuFormat(apiData) {
+    try {
+      console.log('🔄 Converting API response to menu format...');
+      
+      // The API returns data in format: { categories: { "Category Name": [items] } }
+      // We need to convert it to: { categories: [{ title: "Category Name", type: "TYPE", items: [...] }] }
+      
+      const categories = [];
+      
+      // Category title to type mapping
+      const categoryTypeMap = {
+        'Home': 'DASHBOARD',
+        'Point of Sale': 'POS',
+        'Inventory Management': 'INVENTORY',
+        'Item': 'ITEM_MANAGEMENT',
+        'Master Data Management': 'MASTER_DATA',
+        'Procurement': 'PROCUREMENT',
+        'Reports': 'REPORTS',
+        'System': 'SYSTEM',
+        'User & Permissions': 'USER_MANAGEMENT',
+        'Organization Setup': 'ORGANIZATION',
+        'Sales': 'SALES',
+        'Stock Nexus': 'INVENTORY'
+      };
+      
+      if (apiData.categories && typeof apiData.categories === 'object') {
+        Object.entries(apiData.categories).forEach(([categoryTitle, items]) => {
+          const category = {
+            title: categoryTitle,
+            type: categoryTypeMap[categoryTitle] || 'OTHER',
+            icon: this.getIconForCategory(categoryTitle), // Add icon for category header
+            items: items.map(item => ({
+              text: item.display_name,
+              path: item.path,
+              icon: this.getIconForMenuItem(item),
+              moduleName: item.menu_item_id,
+              description: item.description,
+              is_active: item.is_active,
+              order: item.order,
+              menu_type: item.menu_type,
+              category: item.category
+            }))
+          };
+          
+          categories.push(category);
+        });
+      }
+      
+      const menuData = {
+        categories: categories,
+        statistics: apiData.statistics,
+        total_items: apiData.total_items,
+        active_items: apiData.active_items,
+        inactive_items: apiData.inactive_items
+      };
+      
+      console.log('✅ API response converted successfully:', {
+        categories: categories.length,
+        totalItems: categories.reduce((sum, cat) => sum + (cat.items?.length || 0), 0),
+        categoryTypes: categories.map(cat => `${cat.title} -> ${cat.type}`)
+      });
+      
+      return menuData;
+    } catch (error) {
+      console.error('❌ Error converting API response:', error);
+      return this.getFallbackMenuStructure();
+    }
+  }
+
+  /**
+   * Get appropriate icon for category header based on category title
+   */
+  getIconForCategory(categoryTitle) {
+    // Icon mapping for category headers
+    const categoryIconMap = {
+      'Home': 'Dashboard',
+      'User & Permissions': 'People',
+      'Master Data Management': 'Category',
+      'Organization Setup': 'Business',
+      'Item': 'Inventory',
+      'Point of Sale': 'PointOfSale',
+      'Point of Sale (V2)': 'PointOfSale',
+      'Inventory Management': 'Storage',
+      'Procurement': 'LocalShipping',
+      'Stock Nexus': 'Storage',
+      'Sales': 'ShoppingCart',
+      'Reports': 'Assessment',
+      'System': 'Settings',
+      'Archive': 'Archive'
+    };
+    
+    return categoryIconMap[categoryTitle] || 'Category';
+  }
+
+  /**
+   * Get appropriate icon for menu item based on its properties
+   */
+  getIconForMenuItem(item) {
+    // Icon mapping based on menu_item_id, category, or menu_type
+    const iconMap = {
+      // Dashboard
+      'dashboard': 'Dashboard',
+      
+      // Point of Sale
+      'pos_terminal_configuration': 'Computer',
+      'pos_day_management_console': 'Event',
+      'pos_day_open': 'PlayArrow',
+      'pos_session_open': 'PlayArrow',
+      'pos_billing': 'PointOfSale',
+      'pos_settlement': 'Receipt',
+      'pos_session_close': 'Stop',
+      'pos_day_end': 'Event',
+      
+      // Inventory Management
+      'inventory_management': 'Inventory',
+      'inventory_go_live': 'Storage',
+      
+      // Item Management
+      'item_master': 'Inventory',
+      'item_attributes': 'Settings',
+      'item_attribute_values': 'Assignment',
+      
+      // Master Data
+      'master_configuration': 'Category',
+      'master_general': 'Assignment',
+      'master_uom_setup': 'Category',
+      'master_uom_conversion': 'TrendingUp',
+      'master_customers': 'People',
+      'master_vendors': 'Business',
+      
+      // Procurement
+      'procurement_purchase_request': 'ShoppingCart',
+      'procurement_purchase_enquiry': 'Search',
+      'procurement_purchase_quotation': 'RequestQuote',
+      'procurement_purchase_order': 'ShoppingCartCheckout',
+      'procurement_goods_received': 'LocalShipping',
+      'procurement_purchase_invoice': 'Receipt',
+      'procurement_purchase_return': 'AssignmentReturn',
+      'procurement_advice': 'Lightbulb',
+      
+      // Reports
+      'sales_reports': 'Analytics',
+      'inventory_reports': 'Assessment',
+      'pos_reports': 'ReportsIcon',
+      
+      // System
+      'admin_tools': 'AdminPanelSettings',
+      'system_settings': 'DatabaseIcon',
+      'layout_preferences': 'ViewQuilt',
+      'digital_marketing_console': 'Language',
+      'html_preview_tool': 'Preview',
+      'database_client': 'CodeIcon',
+      'wireframe_index': 'Launch',
+      'business_rules': 'Assignment',
+      'business_rules_general': 'Settings',
+    };
+    
+    // Try to find icon by menu_item_id first
+    if (iconMap[item.menu_item_id]) {
+      return iconMap[item.menu_item_id];
+    }
+    
+    // Fallback to category-based icons
+    const categoryIcons = {
+      'Home': 'Dashboard',
+      'Point of Sale': 'PointOfSale',
+      'Inventory Management': 'Inventory',
+      'Item': 'Category',
+      'Master Data Management': 'Assignment',
+      'Procurement': 'LocalShipping',
+      'Reports': 'Assessment',
+      'System': 'Settings'
+    };
+    
+    return categoryIcons[item.category] || 'Category';
   }
 
   /**
@@ -92,7 +275,7 @@ class MenuService {
                 
                 if (item.moduleName) {
                   // Admin Tools items
-                  if (['admin_tools', 'database_configuration', 'layout_preferences', 'digital_marketing_console', 'web_console', 'html_preview_tool', 'dataops_studio'].includes(item.moduleName)) {
+                  if (['admin_tools', 'database_configuration', 'layout_preferences', 'digital_marketing_console', 'html_preview_tool', 'dataops_studio'].includes(item.moduleName)) {
                     subcategory = 'Admin Tools';
                   }
                   // Business Rules items
@@ -431,13 +614,6 @@ class MenuService {
               path: '/settings/digital-marketing',
               icon: 'Language',
               moduleName: 'digital_marketing_console',
-              subcategory: 'Admin Tools'
-            },
-            {
-              text: 'Web Console',
-              path: '/settings/web-console',
-              icon: 'Code',
-              moduleName: 'web_console',
               subcategory: 'Admin Tools'
             },
             {
