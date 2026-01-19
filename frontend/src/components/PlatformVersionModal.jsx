@@ -57,10 +57,10 @@ const PlatformVersionModal = ({ open, onClose }) => {
                     <BookIcon sx={{ fontSize: 28 }} />
                     <Box>
                         <Typography variant="h6" component="div" sx={{ fontWeight: 700, color: '#FFEB3B' }}>
-                            Platform Version Information (Base Version)
+                            Platform Version Information (Next-Base Version)
                         </Typography>
                         <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                            Practice POS v1.0 - Comprehensive Overview
+                            Practice POS v2.0 - Next-Level Overview
                         </Typography>
                         <Box sx={{ mt: 0.5 }}>
                             <Typography variant="caption" sx={{ display: 'block', opacity: 0.7, fontFamily: 'monospace', fontSize: '0.7rem' }}>
