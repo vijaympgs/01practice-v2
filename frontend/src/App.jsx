@@ -48,6 +48,8 @@ import UOMSetupPage from './pages/MasterData/UOMSetupPage';
 import UOMConversionPage from './pages/MasterData/UOMConversionPage';
 import ItemMasterPage from './pages/MasterData/ItemMasterPage';
 import AdvancedItemMasterPage from './pages/MasterData/AdvancedItemMasterPage';
+import PremiumItemMasterPage from './pages/MasterData/PremiumItemMasterPage';
+import UltraPremiumItemMaster from './pages/MasterData/UltraPremiumItemMaster';
 
 // Item Management Pages
 import AttributesPage from './pages/Item/AttributesPage';
@@ -76,6 +78,7 @@ import GoodsReceivedNote from './pages/Procurement/GoodsReceivedNote';
 import PurchaseInvoice from './pages/Procurement/PurchaseInvoice';
 import PurchaseReturn from './pages/Procurement/PurchaseReturn';
 import ProcurementAdvice from './pages/Procurement/ProcurementAdvice';
+import PurchaseConsole from './pages/Procurement/PurchaseConsole';
 
 // Inventory Pages
 import SystemGoLive from './pages/Inventory/SystemGoLive';
@@ -249,9 +252,9 @@ const CatchAllRoute = React.memo(() => {
 
 const CatchAllRouteInner = React.memo(() => {
   const { isAuthenticated } = useSelector((state) => state.auth);
-  
+
   console.log('CatchAllRoute: isAuthenticated =', isAuthenticated);
-  
+
   // Always redirect to login if not authenticated
   // If authenticated, redirect to dashboard (which will go through PrivateRoute)
   return <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />;
@@ -262,174 +265,178 @@ const App = React.memo(() => {
   console.log('🔥 App component rendering...');
   console.log('🔥 Current URL:', window.location.pathname);
   console.log('🔥 Window location object:', window.location);
-  
+
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <NotificationProvider>
           <LayoutProvider>
             <UserRoleProvider>
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <Routes>
-                {/* Authentication routes - public access */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/login_new" element={<LoginNew />} />
-                <Route path="/register" element={<Register />} />
-                
-                {/* Main application with layout - protected routes */}
-                <Route element={<PrivateRoute />}>
-                  <Route element={<LocationGuard />}>
-                    <Route path="/location-selection" element={<LocationSelectionPage />} />
-                    <Route element={<AppLayout />}>
-                      <Route path="/" element={<DashboardModern />} />
-                      <Route path="/dashboard" element={<DashboardModern />} />
-                      <Route path="/home" element={<DashboardModern />} />
-                      <Route path="/under-construction" element={<UnderConstruction />} />
-                  
-                  {/* Organization Setup Routes */}
-                  <Route path="/organization" element={<UnifiedOrganizationPage />} />
-                  
-                  {/* Master Data Routes */}
-                  <Route path="/master-data/general" element={<GeneralMasterPage />} />
-                  <Route path="/master-data/configuration" element={<ConfigurationPage />} />
-                  <Route path="/master-data/uom-setup" element={<UOMSetupPage />} />
-                  <Route path="/master-data/uom-conversion" element={<UOMConversionPage />} />
-                  <Route path="/master-data/customers" element={<SimpleCustomerPage />} />
-                  <Route path="/master-data/vendors" element={<SimpleVendorPage />} />
-                  
-                  {/* Item Management Routes */}
-                  <Route path="/item/attributes" element={<AttributesPage />} />
-                  <Route path="/item/attribute-values" element={<AttributeValuesPage />} />
-                  <Route path="/item/tax-setup" element={<TaxSetupPage />} />
-                  <Route path="/item/tax-slab" element={<TaxSlabPage />} />
-                  <Route path="/item/item-master" element={<ItemMasterPage />} />
-                  <Route path="/item/advanced-item-master" element={<AdvancedItemMasterPage />} />
-                  <Route path="/company-master" element={<CompanyMasterPage />} />
-                  <Route path="/setup-masters" element={<ApplicationSetupMasters />} />
-                  <Route path="/configuration-masters" element={<ConfigurationMasters />} />
-                  <Route path="/enhanced-item-master" element={<EnhancedItemMaster />} />
-                  <Route path="/users" element={<UsersPage />} />
-                  <Route path="/user-permissions" element={<UserAndPermissionPage />} />
-                  <Route path="/user-permissions/pos-functions" element={<POSFunctionMappingPage />} />
-                  
-                  {/* Security Module */}
-                  <Route path="/security" element={<SecurityPage />} />
-                  
-                  {/* Business Rules Module */}
-                  <Route path="/business-rules" element={<BusinessRulesPage />} />
-                  <Route path="/business-rules/general" element={<BusinessRulesPage />} />
-                  
-                  {/* DataOps Studio */}
-                  <Route path="/settings/dataops-studio" element={<DatabaseClientPage />} />
-                  
-                  {/* Pay Mode Module */}
-                  
-                  {/* POS Masters Module */}
-                  <Route path="/pos-masters" element={<POSMastersPage />} />
-                  <Route path="/code-settings" element={<CodeSettingsPage />} />
-                  
-                  {/* Inventory & Procurement Routes */}
-                  <Route path="/inventory" element={<InventoryPage />} />
-                  <Route path="/procurement-workflows" element={<ProcurementWorkflowEngine />} />
-                  <Route path="/purchases" element={<PurchaseOrdersPage />} />
-                  
-                  {/* Sales & CRM Routes */}
-                  <Route path="/sales" element={<SalesPage />} />
-                  <Route path="/sales-order-management" element={<SalesOrderManagementPage />} />
-                  <Route path="/customer-management" element={<AdvancedCustomerMaster />} />
-                  
-                  {/* POS Routes */}
-                  <Route path="/pos" element={<POSScreen />} />
-                  <Route path="/pos-indexeddb" element={<POSScreenIndexedDB />} />
-                  <Route path="/pos-session-manager" element={<POSSessionManager />} />
-                  <Route path="/pos-test-runner" element={<POSTestRunner />} />
-                  <Route path="/pos-status-check" element={<POSStatusCheck />} />
-                  <Route path="/pos-sessions" element={<POSSessionManagement />} />
-                  <Route path="/pos/terminal-setup" element={<TerminalSetupPage />} />
-                  <Route path="/pos/terminal-configuration" element={<TerminalConfigurationPageV2 />} />
-                  <Route path="/pos/day-open" element={<DayOpenPage />} />
-                  <Route path="/pos/session-open" element={<SessionOpenPage />} />
-                  <Route path="/pos/shift-management" element={<ShiftManagementPage />} />
-                  <Route path="/pos/session-management" element={<SessionManagementPage />} />
-                  <Route path="/pos/desktop" element={<POSDesktop />} />
-                  <Route path="/pos/billing" element={<POSDesktop />} />
-                  <Route path="/pos/settlement" element={<SettlementConsole />} />
-                  <Route path="/pos/day-management" element={<DayManagementConsole />} />
-                  <Route path="/pos/day-management-console" element={<DayManagementConsole />} />
-                  <Route path="/pos/settlement-advanced" element={<SettlementModuleV2 routePrefix="/pos" condensed showHeader={false} />} />
-                  <Route path="/pos/session-close" element={<SessionClosePage />} />
-                  <Route path="/pos/day-close" element={<DayClosePage />} />
-                  <Route path="/pos/customer-receivables" element={<CustomerReceivablesModule />} />
-                  <Route path="/pos/home-delivery" element={<HomeDeliveryConfirmationModule />} />
-                  <Route path="/pos/day-end" element={<DayEndProcessModule />} />
-                  <Route path="/pos/code-master" element={<CodeMasterModule />} />
-                  
-                  {/* Advanced POS Modules */}
-                  <Route path="/pos/advanced-terminal-features" element={<AdvancedTerminalFeatures />} />
-                  <Route path="/pos/advanced-settlement" element={<AdvancedSettlementModule />} />
-                  <Route path="/pos/advanced-receivables" element={<AdvancedReceivablesModule />} />
-                  <Route path="/pos/advanced-delivery" element={<AdvancedDeliveryModule />} />
-                  <Route path="/pos/advanced-day-end" element={<AdvancedDayEndModule />} />
-                  
-                  {/* POS V2 Prototype Routes */}
-                  <Route path="/posv2/terminal-configuration" element={<TerminalConfigurationPageV2 />} />
-                  <Route path="/posv2/day-open" element={<DayOpenPage routePrefix="/posv2" />} />
-                  <Route path="/posv2/session-open" element={<SessionOpenPage routePrefix="/posv2" />} />
-                  <Route path="/posv2/desktop" element={<POSDesktop />} />
-                  <Route path="/posv2/settlement" element={<SettlementModuleV2 routePrefix="/posv2" />} />
-                  <Route path="/posv2/session-close" element={<SessionClosePage routePrefix="/posv2" />} />
-                  <Route path="/posv2/day-end" element={<DayEndProcessModule />} />
-                  <Route path="/posv2/day-close" element={<DayClosePage routePrefix="/posv2" />} />
-                  <Route path="/posv2/shift-workflow" element={<ShiftWorkflowPageV2 />} />
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Routes>
+                  {/* Authentication routes - public access */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/login_new" element={<LoginNew />} />
+                  <Route path="/register" element={<Register />} />
 
-                  {/* Reports & Settings */}
-                  <Route path="/reports" element={<ReportsPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/settings/layout-preferences" element={<LayoutPreferencesPage />} />
-                  <Route path="/settings/digital-marketing" element={<DigitalMarketingConsole />} />
-                  <Route path="/settings/html-preview" element={<HtmlPreviewTool />} />
-                  <Route path="/settings/web-console" element={<WebConsole />} />
-                  <Route path="/wireframes" element={<WireframeIndex />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  
-        {/* Procurement Routes */}
-        <Route path="/procurement/purchase-request" element={<PurchaseRequest />} />
-        <Route path="/procurement/purchase-enquiry" element={<PurchaseEnquiry />} />
-        <Route path="/procurement/purchase-quotation" element={<PurchaseQuotation />} />
-        <Route path="/procurement/purchase-order" element={<PurchaseOrder />} />
-        <Route path="/procurement/goods-received-note" element={<GoodsReceivedNote />} />
-        <Route path="/procurement/purchase-invoice" element={<PurchaseInvoice />} />
-        <Route path="/procurement/purchase-return" element={<PurchaseReturn />} />
-        <Route path="/procurement/procurement-advice" element={<ProcurementAdvice />} />
+                  {/* Main application with layout - protected routes */}
+                  <Route element={<PrivateRoute />}>
+                    <Route element={<LocationGuard />}>
+                      <Route path="/location-selection" element={<LocationSelectionPage />} />
+                      <Route element={<AppLayout />}>
+                        <Route path="/" element={<DashboardModern />} />
+                        <Route path="/dashboard" element={<DashboardModern />} />
+                        <Route path="/home" element={<DashboardModern />} />
+                        <Route path="/under-construction" element={<UnderConstruction />} />
 
-        {/* Inventory Routes */}
-        <Route path="/inventory/system-go-live" element={<SystemGoLive />} />
+                        {/* Organization Setup Routes */}
+                        <Route path="/organization" element={<UnifiedOrganizationPage />} />
 
-        {/* Stock Nexus Routes */}
-        <Route path="/stock-nexus/initial-setup" element={<InitialSetup />} />
-        <Route path="/stock-nexus/movement-tracking" element={<MovementTracking />} />
-        <Route path="/stock-nexus/transfer-confirm" element={<TransferConfirm />} />
-        <Route path="/stock-nexus/count-adjust" element={<CountAdjust />} />
+                        {/* Master Data Routes */}
+                        <Route path="/master-data/general" element={<GeneralMasterPage />} />
+                        <Route path="/master-data/configuration" element={<ConfigurationPage />} />
+                        <Route path="/master-data/uom-setup" element={<UOMSetupPage />} />
+                        <Route path="/master-data/uom-conversion" element={<UOMConversionPage />} />
+                        <Route path="/master-data/customers" element={<SimpleCustomerPage />} />
+                        <Route path="/master-data/vendors" element={<SimpleVendorPage />} />
 
-        {/* Archive Routes */}
-        <Route path="/archive/products" element={<ArchiveProducts />} />
-        <Route path="/archive/categories" element={<ArchiveCategories />} />
-        <Route path="/archive/customers" element={<ArchiveCustomers />} />
-        <Route path="/archive/suppliers" element={<ArchiveSuppliers />} />
-        <Route path="/archive/purchase-orders" element={<ArchivePurchaseOrders />} />
-        <Route path="/archive/orders" element={<ArchiveOrders />} />
-        <Route path="/archive/sales" element={<ArchiveSales />} />
-        <Route path="/archive/reports" element={<ArchiveReports />} />
-        <Route path="/archive/inventory-control" element={<ArchiveInventoryControl />} />
-        <Route path="/archive/inventory" element={<ArchiveInventory />} />
+                        {/* Item Management Routes */}
+                        <Route path="/item/attributes" element={<AttributesPage />} />
+                        <Route path="/item/attribute-values" element={<AttributeValuesPage />} />
+                        <Route path="/item/tax-setup" element={<TaxSetupPage />} />
+                        <Route path="/item/tax-slab" element={<TaxSlabPage />} />
+                        <Route path="/item/item-master" element={<ItemMasterPage />} />
+                        <Route path="/item/ultra-item-master" element={<UltraPremiumItemMaster />} />
+                        <Route path="/item/advanced-item-master" element={<AdvancedItemMasterPage />} />
+                        <Route path="/item/premium-item-master" element={<PremiumItemMasterPage />} />
+                        <Route path="/item/ultra-premium-item-master" element={<UltraPremiumItemMaster />} />
+                        <Route path="/company-master" element={<CompanyMasterPage />} />
+                        <Route path="/setup-masters" element={<ApplicationSetupMasters />} />
+                        <Route path="/configuration-masters" element={<ConfigurationMasters />} />
+                        <Route path="/enhanced-item-master" element={<EnhancedItemMaster />} />
+                        <Route path="/users" element={<UsersPage />} />
+                        <Route path="/user-permissions" element={<UserAndPermissionPage />} />
+                        <Route path="/user-permissions/pos-functions" element={<POSFunctionMappingPage />} />
+
+                        {/* Security Module */}
+                        <Route path="/security" element={<SecurityPage />} />
+
+                        {/* Business Rules Module */}
+                        <Route path="/business-rules" element={<BusinessRulesPage />} />
+                        <Route path="/business-rules/general" element={<BusinessRulesPage />} />
+
+                        {/* DataOps Studio */}
+                        <Route path="/settings/dataops-studio" element={<DatabaseClientPage />} />
+
+                        {/* Pay Mode Module */}
+
+                        {/* POS Masters Module */}
+                        <Route path="/pos-masters" element={<POSMastersPage />} />
+                        <Route path="/code-settings" element={<CodeSettingsPage />} />
+
+                        {/* Inventory & Procurement Routes */}
+                        <Route path="/inventory" element={<InventoryPage />} />
+                        <Route path="/procurement-workflows" element={<ProcurementWorkflowEngine />} />
+                        <Route path="/purchases" element={<PurchaseOrdersPage />} />
+
+                        {/* Sales & CRM Routes */}
+                        <Route path="/sales" element={<SalesPage />} />
+                        <Route path="/sales-order-management" element={<SalesOrderManagementPage />} />
+                        <Route path="/customer-management" element={<AdvancedCustomerMaster />} />
+
+                        {/* POS Routes */}
+                        <Route path="/pos" element={<POSScreen />} />
+                        <Route path="/pos-indexeddb" element={<POSScreenIndexedDB />} />
+                        <Route path="/pos-session-manager" element={<POSSessionManager />} />
+                        <Route path="/pos-test-runner" element={<POSTestRunner />} />
+                        <Route path="/pos-status-check" element={<POSStatusCheck />} />
+                        <Route path="/pos-sessions" element={<POSSessionManagement />} />
+                        <Route path="/pos/terminal-setup" element={<TerminalSetupPage />} />
+                        <Route path="/pos/terminal-configuration" element={<TerminalConfigurationPageV2 />} />
+                        <Route path="/pos/day-open" element={<DayOpenPage />} />
+                        <Route path="/pos/session-open" element={<SessionOpenPage />} />
+                        <Route path="/pos/shift-management" element={<ShiftManagementPage />} />
+                        <Route path="/pos/session-management" element={<SessionManagementPage />} />
+                        <Route path="/pos/desktop" element={<POSDesktop />} />
+                        <Route path="/pos/billing" element={<POSDesktop />} />
+                        <Route path="/pos/settlement" element={<SettlementConsole />} />
+                        <Route path="/pos/day-management" element={<DayManagementConsole />} />
+                        <Route path="/pos/day-management-console" element={<DayManagementConsole />} />
+                        <Route path="/pos/settlement-advanced" element={<SettlementModuleV2 routePrefix="/pos" condensed showHeader={false} />} />
+                        <Route path="/pos/session-close" element={<SessionClosePage />} />
+                        <Route path="/pos/day-close" element={<DayClosePage />} />
+                        <Route path="/pos/customer-receivables" element={<CustomerReceivablesModule />} />
+                        <Route path="/pos/home-delivery" element={<HomeDeliveryConfirmationModule />} />
+                        <Route path="/pos/day-end" element={<DayEndProcessModule />} />
+                        <Route path="/pos/code-master" element={<CodeMasterModule />} />
+
+                        {/* Advanced POS Modules */}
+                        <Route path="/pos/advanced-terminal-features" element={<AdvancedTerminalFeatures />} />
+                        <Route path="/pos/advanced-settlement" element={<AdvancedSettlementModule />} />
+                        <Route path="/pos/advanced-receivables" element={<AdvancedReceivablesModule />} />
+                        <Route path="/pos/advanced-delivery" element={<AdvancedDeliveryModule />} />
+                        <Route path="/pos/advanced-day-end" element={<AdvancedDayEndModule />} />
+
+                        {/* POS V2 Prototype Routes */}
+                        <Route path="/posv2/terminal-configuration" element={<TerminalConfigurationPageV2 />} />
+                        <Route path="/posv2/day-open" element={<DayOpenPage routePrefix="/posv2" />} />
+                        <Route path="/posv2/session-open" element={<SessionOpenPage routePrefix="/posv2" />} />
+                        <Route path="/posv2/desktop" element={<POSDesktop />} />
+                        <Route path="/posv2/settlement" element={<SettlementModuleV2 routePrefix="/posv2" />} />
+                        <Route path="/posv2/session-close" element={<SessionClosePage routePrefix="/posv2" />} />
+                        <Route path="/posv2/day-end" element={<DayEndProcessModule />} />
+                        <Route path="/posv2/day-close" element={<DayClosePage routePrefix="/posv2" />} />
+                        <Route path="/posv2/shift-workflow" element={<ShiftWorkflowPageV2 />} />
+
+                        {/* Reports & Settings */}
+                        <Route path="/reports" element={<ReportsPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/settings/layout-preferences" element={<LayoutPreferencesPage />} />
+                        <Route path="/settings/digital-marketing" element={<DigitalMarketingConsole />} />
+                        <Route path="/settings/html-preview" element={<HtmlPreviewTool />} />
+                        <Route path="/settings/web-console" element={<WebConsole />} />
+                        <Route path="/wireframes" element={<WireframeIndex />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+
+                        {/* Procurement Routes */}
+                        <Route path="/procurement/purchase-request" element={<PurchaseRequest />} />
+                        <Route path="/procurement/purchase-enquiry" element={<PurchaseEnquiry />} />
+                        <Route path="/procurement/purchase-quotation" element={<PurchaseQuotation />} />
+                        <Route path="/procurement/purchase-order" element={<PurchaseOrder />} />
+                        <Route path="/procurement/goods-received-note" element={<GoodsReceivedNote />} />
+                        <Route path="/procurement/purchase-invoice" element={<PurchaseInvoice />} />
+                        <Route path="/procurement/purchase-return" element={<PurchaseReturn />} />
+                        <Route path="/procurement/procurement-advice" element={<ProcurementAdvice />} />
+                        <Route path="/procurement/purchase-console" element={<PurchaseConsole />} />
+
+                        {/* Inventory Routes */}
+                        <Route path="/inventory/system-go-live" element={<SystemGoLive />} />
+
+                        {/* Stock Nexus Routes */}
+                        <Route path="/stock-nexus/initial-setup" element={<InitialSetup />} />
+                        <Route path="/stock-nexus/movement-tracking" element={<MovementTracking />} />
+                        <Route path="/stock-nexus/transfer-confirm" element={<TransferConfirm />} />
+                        <Route path="/stock-nexus/count-adjust" element={<CountAdjust />} />
+
+                        {/* Archive Routes */}
+                        <Route path="/archive/products" element={<ArchiveProducts />} />
+                        <Route path="/archive/categories" element={<ArchiveCategories />} />
+                        <Route path="/archive/customers" element={<ArchiveCustomers />} />
+                        <Route path="/archive/suppliers" element={<ArchiveSuppliers />} />
+                        <Route path="/archive/purchase-orders" element={<ArchivePurchaseOrders />} />
+                        <Route path="/archive/orders" element={<ArchiveOrders />} />
+                        <Route path="/archive/sales" element={<ArchiveSales />} />
+                        <Route path="/archive/reports" element={<ArchiveReports />} />
+                        <Route path="/archive/inventory-control" element={<ArchiveInventoryControl />} />
+                        <Route path="/archive/inventory" element={<ArchiveInventory />} />
+                      </Route>
                     </Route>
                   </Route>
-                </Route>
 
-                {/* Catch all - redirect to login if not authenticated, otherwise to dashboard */}
-                <Route path="*" element={<CatchAllRoute />} />
-              </Routes>
-            </BrowserRouter>
+                  {/* Catch all - redirect to login if not authenticated, otherwise to dashboard */}
+                  <Route path="*" element={<CatchAllRoute />} />
+                </Routes>
+              </BrowserRouter>
             </UserRoleProvider>
           </LayoutProvider>
         </NotificationProvider>

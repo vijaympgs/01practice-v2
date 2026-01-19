@@ -82,7 +82,7 @@ class SaleItemAdmin(admin.ModelAdmin):
         'discount_amount', 'tax_amount', 'line_total'
     ]
     list_filter = ['sale__sale_date']
-    search_fields = ['sale__sale_number', 'product__name']
+    search_fields = ['sale__sale_number', 'product__variant_name']
     readonly_fields = ['tax_amount', 'line_total']
 
 

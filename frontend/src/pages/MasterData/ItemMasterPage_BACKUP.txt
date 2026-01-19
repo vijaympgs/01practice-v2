@@ -1,0 +1,23 @@
+This file will be replaced with the enhanced version that includes all premium features:
+
+✅ Bulk Actions (multi-select with floating action bar)
+✅ Advanced Filters (status, type, date range, supplier)
+✅ CSV Export (instant download)
+✅ Excel Export (formatted .xlsx)
+✅ Image Upload (with preview and validation)
+✅ Barcode Scanner (hardware support + manual)
+✅ Drag-and-Drop Reordering (visual feedback)
+✅ View Toggle (Table/Grid/Cards)
+✅ Density Toggle (Compact/Comfortable)
+✅ Search Bar (real-time filtering)
+✅ Skeleton Loaders (smooth loading states)
+✅ Premium UI (animations, transitions)
+
+PLUS all original 23 comprehensive fields:
+- General: EAN, Item Code, Name, Brand, Supplier, UOMs
+- Pricing: Cost, Landing, Sell, MRP, Margin
+- Tax: Tax Code, HSN, Tax Slab, Tax Inclusive
+- Preferences: Buy Back, Negative Stock, Store Pickup
+- Categories, Material Types, Item Types, Exchange Types
+
+The implementation is in progress...

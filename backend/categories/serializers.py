@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Attribute, AttributeValue
+from .models import Category, Attribute, AttributeValue, ProductAttributeTemplate, ProductAttributeTemplateLine
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = [
-            'id', 'name', 'description', 'parent', 'is_active', 
+            'id', 'company', 'name', 'description', 'parent', 'is_active', 
             'sort_order', 'created_at', 'updated_at', 'full_path', 
             'level', 'children_count', 'products_count', 'can_be_deleted'
         ]
@@ -51,7 +51,7 @@ class CategoryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = [
-            'name', 'description', 'parent', 'is_active', 'sort_order'
+            'company', 'name', 'description', 'parent', 'is_active', 'sort_order'
         ]
     
     def validate_name(self, value):
@@ -75,7 +75,7 @@ class CategoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = [
-            'name', 'description', 'parent', 'is_active', 'sort_order'
+            'company', 'name', 'description', 'parent', 'is_active', 'sort_order'
         ]
     
     def validate_name(self, value):
@@ -105,7 +105,7 @@ class CategoryTreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = [
-            'id', 'name', 'description', 'is_active', 'sort_order',
+            'id', 'company', 'name', 'description', 'is_active', 'sort_order',
             'full_path', 'level', 'children'
         ]
     
@@ -128,7 +128,7 @@ class CategoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = [
-            'id', 'name', 'description', 'is_active', 
+            'id', 'company', 'name', 'description', 'is_active', 
             'sort_order', 'full_path', 'level'
         ]
 
@@ -140,7 +140,11 @@ class AttributeValueSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = AttributeValue
-        fields = ['id', 'attribute', 'value', 'description', 'is_active', 'sort_order', 'created_at', 'updated_at']
+        fields = [
+            'id', 'company', 'attribute', 'value_code', 'value_label', 
+            'description', 'is_default', 'is_active', 'sort_order', 
+            'created_at', 'updated_at'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -154,7 +158,12 @@ class AttributeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Attribute
-        fields = ['id', 'name', 'description', 'data_type', 'is_active', 'sort_order', 'created_at', 'updated_at', 'values', 'values_count']
+        fields = [
+            'id', 'company', 'attribute_code', 'name', 'description', 
+            'input_type', 'value_source', 'is_variant_dimension', 
+            'is_search_facet', 'is_active', 'sort_order', 
+            'created_at', 'updated_at', 'values', 'values_count'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
     
     def get_values_count(self, obj):
@@ -171,29 +180,31 @@ class AttributeListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Attribute
-        fields = ['id', 'name', 'description', 'data_type', 'is_active', 'sort_order', 'values_count']
+        fields = [
+            'id', 'company', 'attribute_code', 'name', 'description', 
+            'input_type', 'is_active', 'sort_order', 'values_count'
+        ]
     
     def get_values_count(self, obj):
         """Return the number of active values for this attribute."""
         return obj.values.filter(is_active=True).count()
 
 
+class ProductAttributeTemplateLineSerializer(serializers.ModelSerializer):
+    """
+    Serializer for ProductAttributeTemplateLine.
+    """
+    class Meta:
+        model = ProductAttributeTemplateLine
+        fields = '__all__'
 
 
+class ProductAttributeTemplateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for ProductAttributeTemplate.
+    """
+    lines = ProductAttributeTemplateLineSerializer(many=True, read_only=True)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    class Meta:
+        model = ProductAttributeTemplate
+        fields = '__all__'

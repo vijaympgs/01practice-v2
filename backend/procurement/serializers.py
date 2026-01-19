@@ -11,7 +11,8 @@ from .models import (
     PurchaseOrder, PurchaseOrderItem,
     GoodsReceivedNote, GoodsReceivedNoteItem,
     PurchaseInvoice, PurchaseInvoiceItem,
-    PurchaseReturn, PurchaseReturnItem
+    PurchaseReturn, PurchaseReturnItem,
+    PurchaseRequisition, PurchaseRequisitionLine
 )
 
 
@@ -314,3 +315,103 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'return_number', 'created_at', 'updated_at', 'created_by']
 
+
+# ============================================================================
+# Purchase Requisition Serializers (4.1)
+# ============================================================================
+
+class PurchaseRequisitionLineSerializer(serializers.ModelSerializer):
+    """Purchase Requisition Line Serializer"""
+    item_code = serializers.CharField(source='item.item_code', read_only=True)
+    item_name = serializers.CharField(source='item.item_name', read_only=True)
+    uom_code = serializers.CharField(source='uom.code', read_only=True)
+    uom_name = serializers.CharField(source='uom.description', read_only=True)
+    remaining_qty = serializers.DecimalField(max_digits=15, decimal_places=3, read_only=True)
+    
+    class Meta:
+        model = PurchaseRequisitionLine
+        fields = [
+            'id', 'purchase_requisition', 'item', 'item_code', 'item_name',
+            'uom', 'uom_code', 'uom_name', 'requested_qty',
+            'already_ordered_qty', 'remaining_qty', 'required_by_date',
+            'line_remarks', 'line_status', 'line_number'
+        ]
+        read_only_fields = ['id', 'already_ordered_qty', 'remaining_qty', 'line_status']
+
+
+class PurchaseRequisitionSerializer(serializers.ModelSerializer):
+    """Purchase Requisition Header Serializer"""
+    requested_by_name = serializers.CharField(source='requested_by.username', read_only=True)
+    requesting_location_name = serializers.CharField(source='requesting_location.name', read_only=True)
+    supplier_hint_name = serializers.CharField(source='supplier_hint.name', read_only=True)
+    approved_by_name = serializers.CharField(source='approved_by.username', read_only=True)
+    lines = PurchaseRequisitionLineSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = PurchaseRequisition
+        fields = [
+            'id', 'company', 'pr_number', 'pr_status', 'requested_by', 'requested_by_name',
+            'requesting_location', 'requesting_location_name', 'required_by_date',
+            'priority', 'supplier_hint', 'supplier_hint_name', 'remarks',
+            'approval_required', 'approved_by', 'approved_by_name', 'approved_at',
+            'rejected_by', 'rejected_at', 'rejection_reason', 'converted_to_po',
+            'created_at', 'updated_at', 'created_by', 'lines'
+        ]
+        read_only_fields = [
+            'id', 'pr_number', 'pr_status', 'approved_by', 'approved_at',
+            'rejected_by', 'rejected_at', 'converted_to_po', 'created_at',
+            'updated_at', 'created_by'
+        ]
+
+class PurchaseRequisitionCreateUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating PR with lines"""
+    lines = PurchaseRequisitionLineSerializer(many=True)
+    
+    class Meta:
+        model = PurchaseRequisition
+        fields = [
+            'company', 'requesting_location', 'required_by_date', 'priority',
+            'supplier_hint', 'remarks', 'lines'
+        ]
+    
+    def create(self, validated_data):
+        lines_data = validated_data.pop('lines', [])
+        user = self.context['request'].user
+        
+        # Set defaults
+        validated_data['requested_by'] = user
+        validated_data['created_by'] = user
+        
+        # Create header
+        pr = PurchaseRequisition.objects.create(**validated_data)
+        
+        # Create lines
+        for i, line_data in enumerate(lines_data):
+            PurchaseRequisitionLine.objects.create(
+                purchase_requisition=pr,
+                line_number=i+1,
+                **line_data
+            )
+            
+        return pr
+
+    def update(self, instance, validated_data):
+        lines_data = validated_data.pop('lines', [])
+        
+        # Update header fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Handle lines (simple replacement for now, or smart update)
+        # For simplicity in this iteration: delete all and recreate if provided
+        if lines_data:
+            instance.lines.all().delete()
+            for i, line_data in enumerate(lines_data):
+                PurchaseRequisitionLine.objects.create(
+                    purchase_requisition=instance,
+                    line_number=i+1,
+                    **line_data
+                )
+        
+        return instance

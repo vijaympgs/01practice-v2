@@ -1,0 +1,638 @@
+
+4.10 Procurement Configuration & Master Data Governance
+
+4.10 is really about
+Think of 4.10 Procurement Configuration & Master Data Governance as:
+“The control panel and rules layer that tells all the transaction modules in Section 4 how to behave.”
+It does not introduce new core entities like Item or Supplier, but instead defines:
+Which procurement steps are enabled/disabled
+
+
+What is mandatory vs optional
+
+
+Tolerances, thresholds, and rules used by:
+
+
+4.1 PR
+
+
+4.2 RFQ
+
+
+4.3 PO
+
+
+4.4 ASN
+
+
+4.5 GRN + QC
+
+
+4.6 Invoice Matching
+
+
+4.7 Supplier Returns
+
+
+4.8 Payments
+
+
+In other words:
+Your Masters (Supplier, Item, Location, etc.) = Who/What we buy from.
+
+
+4.10 Config & Governance = How we run procurement (process, rules, flows).
+
+
+So it centralizes all the config flags we’ve been referencing:
+pr_enabled, pr_required_for_po
+
+
+rfq_enabled, rfq_mandatory_threshold_amount
+
+
+po_requires_pr, po_requires_rfq
+
+
+asn_enabled, asn_mandatory_for_grn
+
+
+over_receive_tolerance_percent, price_tolerance_percent
+
+
+qc_required_by_category, expiry_must_be_at_least_x_days
+
+
+invoice_matching_model
+
+
+return_allowed_time_window_days
+
+
+etc.
+
+
+Rather than scattering them in multiple specs, 4.10:
+Documents them in one place
+
+
+Gives them a proper data model (config tables)
+
+
+Ensures your ERP can behave as “simple retail” or “enterprise-grade” just by flipping config.
+
+Template Ref: _cfg_01 (Configuration Module)
+4.10.1 Business Purpose
+The Procurement Configuration & Master Data Governance module defines how all procurement transactions (4.1–4.9) behave, without changing core masters (Supplier, Item, Location, etc.).
+Goals:
+Centralize process behavior and tolerance rules:
+
+
+Which steps are active (PR, RFQ, ASN, etc.).
+
+
+Which steps are mandatory or optional.
+
+
+Matching & QC rules, approval thresholds.
+
+
+Allow the same product to serve:
+
+
+Small retailers (direct PO, minimal controls).
+
+
+Mid/Large enterprises (full PR–RFQ–PO–ASN–GRN–Invoice–Payment chain).
+
+
+Provide governance over:
+
+
+Who can change configuration.
+
+
+Audit of when rules changed (and by whom).
+
+
+This module does not introduce new core entity masters; it references and controls how existing masters and transactions are used.
+
+4.10.2 Data Model (Conceptual Configuration Tables)
+These are logical config entities; physical implementation can be SQL tables, JSON config, or a mix.
+A) Procurement Process Settings (procurement_process_setting)
+Controls step enablement and mandatory rules.
+Field
+Type
+Required
+Description
+id
+UUID
+Yes
+Primary key
+company_id
+FK
+Yes
+Company scope
+location_id
+FK (Location)
+No
+Optional override per location
+category_code
+String(50)
+No
+Optional override per category
+pr_enabled
+Boolean
+Yes
+Show/hide PR (4.1)
+pr_required_for_po
+Boolean
+Yes
+Hard rule: PO must reference PR?
+pr_approval_required
+Boolean
+Yes
+Approval workflow required for PR?
+rfq_enabled
+Boolean
+Yes
+RFQ (4.2) allowed?
+rfq_mandatory_threshold
+Decimal
+No
+Amount above which RFQ is mandatory
+po_requires_pr
+Boolean
+Yes
+PO must link PR in this context?
+po_requires_rfq
+Boolean
+Yes
+PO must link RFQ award in this context?
+asn_enabled
+Boolean
+Yes
+ASN (4.4) enabled?
+asn_mandatory_for_grn
+Boolean
+Yes
+GRN must come via ASN?
+non_po_grn_allowed
+Boolean
+Yes
+Allow GRN without PO (exceptions)?
+created_at
+DateTime
+Auto
+
+
+updated_at
+DateTime
+Auto
+
+
+
+
+B) Tolerance Settings (procurement_tolerance_setting)
+Numeric thresholds for matching & receiving.
+Field
+Type
+Required
+Description
+id
+UUID
+Yes
+Primary key
+company_id
+FK
+Yes
+Company scope
+category_code
+String(50)
+No
+Optional per category
+over_receive_tolerance_percent
+Decimal
+No
+Max GRN over PO qty (e.g., 5%)
+qty_tolerance_percent_invoice
+Decimal
+No
+Max qty over GRN accepted for invoicing
+price_tolerance_percent
+Decimal
+No
+Max price delta vs PO/RFQ
+tax_tolerance_percent
+Decimal
+No
+Max tax variance vs expected
+amount_tolerance_absolute
+Decimal
+No
+Absolute currency amount tolerance
+return_allowed_time_window_days
+Integer
+No
+Max days post-GRN to initiate supplier return
+created_at
+DateTime
+Auto
+
+
+updated_at
+DateTime
+Auto
+
+
+
+
+C) Matching & QC Configuration (matching_qc_setting)
+Controls matching logic (2/3/4-way) and QC requirements.
+Field
+Type
+Required
+Description
+id
+UUID
+Yes
+Primary key
+company_id
+FK
+Yes
+Company scope
+category_code
+String(50)
+No
+Category-specific
+invoice_matching_model
+Enum
+Yes
+TWO_WAY, THREE_WAY, FOUR_WAY
+qc_required_by_default
+Boolean
+Yes
+If QC is required for this category
+block_grn_post_if_qc_pending
+Boolean
+Yes
+Prevent posting GRN if QC not completed
+expiry_min_days_remaining
+Integer
+No
+Min days shelf-life at receipt
+block_invoice_if_qc_failed
+Boolean
+Yes
+Prevent matching invoice if QC failed
+created_at
+DateTime
+Auto
+
+
+updated_at
+DateTime
+Auto
+
+
+
+
+D) Approval Matrix (procurement_approval_matrix)
+Defines who approves which transaction at what threshold.
+Field
+Type
+Required
+Description
+id
+UUID
+Yes
+Primary key
+company_id
+FK
+Yes
+Company scope
+module_code
+Enum
+Yes
+PR, PO, RFQ_AWARD, INVOICE, PAYMENT_BATCH, RETURN
+category_code
+String(50)
+No
+Optional per category
+min_amount
+Decimal
+Yes
+Lower bound inclusive
+max_amount
+Decimal
+Yes
+Upper bound inclusive
+approver_role_code
+String(50)
+Yes
+Role (Proc Manager, Finance Head, etc.)
+approval_level
+Integer
+Yes
+1, 2, 3… for multi-level approval
+sequential_approval_required
+Boolean
+Yes
+Sequential vs parallel approvals
+created_at
+DateTime
+Auto
+
+
+updated_at
+DateTime
+Auto
+
+
+
+
+E) Vendor & Item Governance (Pointers Only)
+You already have Supplier, Item, Item Variant, UOM, etc. in v0.3.
+ 4.10 can store procurement-specific governance attributes without redefining those cores. These can be extensions or views:
+Examples:
+Vendor-level:
+
+
+Allowed categories
+
+
+Risk rating
+
+
+Blocked_for_new_po (bool)
+
+
+Item-level:
+
+
+Default procurement type (Make/Buy/Drop-ship)
+
+
+QC_required flag
+
+
+Approved vendor list reference (linking to Supplier)
+
+
+These can be implemented as:
+Extensions to your existing item/supplier masters or
+
+
+Separate mapping tables like item_procurement_profile, supplier_procurement_profile.
+
+
+
+4.10.3 UI / UX Requirements
+Screen Name: Procurement Configuration
+ Path: Admin / Configuration → Procurement
+A) Process Configuration Screen
+Sections:
+Grid by:
+
+
+Company
+
+
+Location
+
+
+Category
+
+
+Columns:
+PR Enabled?
+
+
+PR Required for PO?
+
+
+RFQ Enabled?
+
+
+RFQ Mandatory Threshold
+
+
+ASN Enabled?
+
+
+GRN Without PO Allowed?
+
+
+Matching Model (2/3/4-way)
+
+
+Actions:
+Add new rule row
+
+
+Override rule for specific location/category
+
+
+View effective rule (resolved by priority: location > category > company)
+
+
+
+B) Tolerances & Matching
+Screen to define:
+Over-receipt tolerance
+
+
+Price/Tax tolerance
+
+
+Return time window
+
+
+UI:
+Filter by category
+
+
+Inline edit fields
+
+
+Show where-used indicator (modules impacted).
+
+
+
+C) Approval Matrix Maintenance
+Screen for managing approval rules:
+Filters:
+
+
+Module (PR/PO/etc.)
+
+
+Category
+
+
+Role
+
+
+Grid:
+
+
+Module
+
+
+Category
+
+
+Min Amount
+
+
+Max Amount
+
+
+Approver Role
+
+
+Level
+
+
+Sequential? (Yes/No)
+
+
+Approval view integration:
+Approvers can see why they’re being asked to approve (which rule triggered).
+
+
+
+4.10.4 Governance & Validation Rules
+Changes to procurement configuration must:
+
+
+Be restricted to config/admin roles.
+
+
+Have full audit trail (who, what, when).
+
+
+Rule resolution algorithm (conceptual):
+
+
+For each transaction (PR/PO/RFQ/etc.), system determines:
+
+
+Company
+
+
+Location
+
+
+Category
+
+
+Then finds the most specific applicable config:
+
+
+Location + Category
+
+
+Location
+
+
+Category
+
+
+Company-level default
+
+
+Prevent contradictory configs:
+
+
+E.g., pr_enabled = false and pr_required_for_po = true for same scope.
+
+
+Validate that:
+
+
+Approval matrix covers required ranges (no gaps where approvals would be ambiguous).
+
+
+
+4.10.5 Module Metadata & Build Steps
+Module Metadata
+module_type: configuration
+complexity: medium
+
+template_ref: _cfg_01
+
+extension_allowed: true
+
+depends_on:
+  - Company
+  - Locations
+  - Categories
+  - Suppliers
+  - Items / Variants
+  - Users / Roles
+
+used_by:
+  - PR (4.1)
+  - RFQ (4.2)
+  - PO (4.3)
+  - ASN (4.4)
+  - GRN & QC (4.5)
+  - Invoice Matching (4.6)
+  - Supplier Returns (4.7)
+  - Payments & Settlement (4.8)
+  - Vendor Performance (4.9)
+
+
+Build Steps (for AI / Implementation Engine)
+You are building a Configuration module for a Retail ERP.
+
+Module: Procurement Configuration & Governance
+Template: _cfg_01
+
+Requirements:
+
+1) Backend (Django + DRF):
+
+   Models:
+   - procurement_process_setting
+   - procurement_tolerance_setting
+   - matching_qc_setting
+   - procurement_approval_matrix
+
+   Services:
+   - Rule resolution service:
+     - Given (company, location, category, module), compute effective
+       config and approval rules.
+   - Audit logging for config changes.
+
+   APIs:
+   - CRUD for configuration models (restricted to admin roles).
+   - Read-only "get effective settings" API consumed by transactional
+     modules.
+
+2) Frontend (React + Vite + Tailwind):
+
+   Screens:
+   - Process configuration maintenance.
+   - Tolerance and matching settings.
+   - Approval matrix.
+
+   Behavior:
+   - Prevent conflicting rule combinations.
+   - Provide preview of "effective" rules for a sample scenario
+     (company/location/category).
+
+3) Security & Roles:
+
+   - Restrict write access to configuration to:
+     - System Admin
+     - Procurement Admin
+   - Transactional modules should only **read** from these settings.
+
+Ensure no duplication of core masters (supplier/item), and treat
+this module as the centralized control layer for Section 4
+procurement behavior.
+
+

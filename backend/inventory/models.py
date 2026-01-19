@@ -1,15 +1,15 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from products.models import Product
+from products.models import ItemVariant
 from suppliers.models import Supplier
+from organization.models import Company
 import uuid
-from decimal import Decimal
 
 User = get_user_model()
 
 class Inventory(models.Model):
-    """Main inventory model for tracking stock levels per product"""
+    """Main inventory model for tracking stock levels per product variant (SKU)"""
     
     STATUS_CHOICES = [
         ('in_stock', 'In Stock'),
@@ -19,7 +19,8 @@ class Inventory(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='inventory')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='inventory_items', null=True, blank=True)
+    product = models.OneToOneField(ItemVariant, on_delete=models.CASCADE, related_name='inventory')
     current_stock = models.PositiveIntegerField(default=0, help_text="Current quantity in stock")
     reserved_stock = models.PositiveIntegerField(default=0, help_text="Stock reserved for orders")
     available_stock = models.PositiveIntegerField(default=0, help_text="Stock available for sale")
@@ -42,9 +43,10 @@ class Inventory(models.Model):
         db_table = 'inventory'
         verbose_name_plural = 'Inventory Items'
         ordering = ['-updated_at']
+        unique_together = ['company', 'product']
 
     def __str__(self):
-        return f"{self.product.name} ({self.current_stock} units)"
+        return f"{self.product.variant_name} ({self.current_stock} units)"
 
     def update_available_stock(self):
         """Update available stock by subtracting reserved stock"""
@@ -109,6 +111,7 @@ class StockMovement(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
     inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='movements')
     movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPES)
     quantity_change = models.IntegerField(help_text="Positive for incoming stock, negative for outgoing")
@@ -131,7 +134,7 @@ class StockMovement(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.inventory.product.name} - {self.get_movement_type_display()} ({self.quantity_change:+d})"
+        return f"{self.inventory.product.variant_name} - {self.get_movement_type_display()} ({self.quantity_change:+d})"
 
     def save(self, *args, **kwargs):
         """Ensure stock levels are updated when movement is created"""
@@ -168,6 +171,7 @@ class PurchaseOrder(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='purchase_orders', null=True, blank=True)
     po_number = models.CharField(max_length=20, unique=True, help_text="Purchase Order Number")
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='purchase_orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
@@ -230,6 +234,7 @@ class PurchaseOrder(models.Model):
             if item.received_quantity > 0:
                 inventory, created = Inventory.objects.get_or_create(
                     product=item.product,
+                    company=self.company,
                     defaults={
                         'current_stock': 0,
                         'cost_price': item.unit_cost,
@@ -239,6 +244,7 @@ class PurchaseOrder(models.Model):
                 
                 StockMovement.objects.create(
                     inventory=inventory,
+                    company=self.company,
                     movement_type='purchase',
                     quantity_change=item.received_quantity,
                     quantity_before=inventory.current_stock,
@@ -262,7 +268,7 @@ class PurchaseOrderItem(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(ItemVariant, on_delete=models.CASCADE)
     quantity_ordered = models.PositiveIntegerField()
     quantity_received = models.PositiveIntegerField(default=0)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
@@ -280,7 +286,7 @@ class PurchaseOrderItem(models.Model):
         unique_together = ['purchase_order', 'product']
 
     def __str__(self):
-        return f"{self.product.name} - {self.quantity_ordered} units"
+        return f"{self.product.variant_name} - {self.quantity_ordered} units"
 
     def calculate_line_total(self):
         """Calculate line total after discount"""
@@ -325,7 +331,8 @@ class StockAlert(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='alerts')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='stock_alerts', null=True, blank=True)
+    product = models.ForeignKey(ItemVariant, on_delete=models.CASCADE, related_name='alerts')
     alert_type = models.CharField(max_length=20, choices=ALERT_TYPES)
     severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES)
     message = models.TextField()
@@ -345,7 +352,7 @@ class StockAlert(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.product.name} - {self.get_alert_type_display()}"
+        return f"{self.product.variant_name} - {self.get_alert_type_display()}"
 
     def resolve(self, user, notes=""):
         """Mark alert as resolved"""
@@ -363,6 +370,7 @@ class StockAlert(models.Model):
         if inventory and inventory.current_stock <= inventory.min_stock_level:
             alert, created = cls.objects.get_or_create(
                 product=product,
+                company=product.company,
                 alert_type='low_stock',
                 is_active=True,
                 is_resolved=False,
@@ -381,6 +389,7 @@ class StockAlert(models.Model):
         """Create out of stock alert"""
         alert, created = cls.objects.get_or_create(
             product=product,
+            company=product.company,
             alert_type='out_of_stock',
             is_active=True,
             is_resolved=False,

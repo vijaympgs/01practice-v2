@@ -4,7 +4,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Requests
   // ============================================================================
-  
+
   // Get all purchase requests
   getPurchaseRequests: async (params = {}) => {
     const response = await api.get('/procurement/purchase-requests/', { params });
@@ -50,7 +50,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Enquiries
   // ============================================================================
-  
+
   getPurchaseEnquiries: async (params = {}) => {
     const response = await api.get('/procurement/purchase-enquiries/', { params });
     return response.data;
@@ -79,7 +79,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Quotations
   // ============================================================================
-  
+
   getPurchaseQuotations: async (params = {}) => {
     const response = await api.get('/procurement/purchase-quotations/', { params });
     return response.data;
@@ -108,7 +108,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Orders
   // ============================================================================
-  
+
   getPurchaseOrders: async (params = {}) => {
     const response = await api.get('/procurement/purchase-orders/', { params });
     return response.data;
@@ -143,7 +143,7 @@ const procurementService = {
   // ============================================================================
   // Goods Received Notes (GRNs)
   // ============================================================================
-  
+
   getGRNs: async (params = {}) => {
     const response = await api.get('/procurement/grns/', { params });
     return response.data;
@@ -204,7 +204,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Invoices
   // ============================================================================
-  
+
   getPurchaseInvoices: async (params = {}) => {
     const response = await api.get('/procurement/purchase-invoices/', { params });
     return response.data;
@@ -245,7 +245,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Returns
   // ============================================================================
-  
+
   getPurchaseReturns: async (params = {}) => {
     const response = await api.get('/procurement/purchase-returns/', { params });
     return response.data;
@@ -274,7 +274,7 @@ const procurementService = {
   // ============================================================================
   // Purchase Request Items (for nested operations)
   // ============================================================================
-  
+
   getPurchaseRequestItems: async (requestId) => {
     const response = await api.get(`/procurement/purchase-request-items/`, {
       params: { purchase_request: requestId }
@@ -294,6 +294,55 @@ const procurementService = {
 
   deletePurchaseRequestItem: async (id) => {
     const response = await api.delete(`/procurement/purchase-request-items/${id}/`);
+    return response.data;
+  },
+
+  // ============================================================================
+  // Purchase Requisitions (New BBP 4.1)
+  // ============================================================================
+
+  getPurchaseRequisitions: async (params = {}) => {
+    const response = await api.get('/procurement/purchase-requisitions/', { params });
+    return response.data;
+  },
+
+  getPurchaseRequisition: async (id) => {
+    const response = await api.get(`/procurement/purchase-requisitions/${id}/`);
+    return response.data;
+  },
+
+  createPurchaseRequisition: async (data) => {
+    const response = await api.post('/procurement/purchase-requisitions/', data);
+    return response.data;
+  },
+
+  updatePurchaseRequisition: async (id, data) => {
+    const response = await api.put(`/procurement/purchase-requisitions/${id}/`, data);
+    return response.data;
+  },
+
+  deletePurchaseRequisition: async (id) => {
+    const response = await api.delete(`/procurement/purchase-requisitions/${id}/`);
+    return response.data;
+  },
+
+  submitPurchaseRequisition: async (id) => {
+    const response = await api.post(`/procurement/purchase-requisitions/${id}/submit/`);
+    return response.data;
+  },
+
+  approvePurchaseRequisition: async (id) => {
+    const response = await api.post(`/procurement/purchase-requisitions/${id}/approve/`);
+    return response.data;
+  },
+
+  rejectPurchaseRequisition: async (id, reason) => {
+    const response = await api.post(`/procurement/purchase-requisitions/${id}/reject/`, { reason });
+    return response.data;
+  },
+
+  cancelPurchaseRequisition: async (id) => {
+    const response = await api.post(`/procurement/purchase-requisitions/${id}/cancel/`);
     return response.data;
   },
 };

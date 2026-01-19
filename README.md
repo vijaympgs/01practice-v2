@@ -1,3 +1,12 @@
+19-01-2026
+----------------
+1. This version is only retail the starting version without toolbar, 
+Dashboard, Cltrl+K, without backoffice modules
+
+2. Only POS enabled.
+
+
+
 --- 
 title: "Documentation File" 
 description: "Documentation file with automatic timestamp" 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Attribute, AttributeValue
+from .models import Category, Attribute, AttributeValue, ProductAttributeTemplate, ProductAttributeTemplateLine
 
 
 @admin.register(Category)
@@ -10,17 +10,17 @@ class CategoryAdmin(admin.ModelAdmin):
     """
     
     list_display = [
-        'name', 'parent', 'is_active', 'sort_order', 
+        'name', 'parent', 'company', 'is_active', 'sort_order', 
         'level', 'children_count', 'created_at'
     ]
-    list_filter = ['is_active', 'parent', 'created_at']
+    list_filter = ['company', 'is_active', 'parent', 'created_at']
     search_fields = ['name', 'description']
     ordering = ['sort_order', 'name']
     list_editable = ['is_active', 'sort_order']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'description', 'parent')
+            'fields': ('company', 'name', 'description', 'parent')
         }),
         ('Settings', {
             'fields': ('is_active', 'sort_order')
@@ -54,7 +54,7 @@ class CategoryAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         """Optimize queryset for admin list view."""
-        return super().get_queryset(request).select_related('parent')
+        return super().get_queryset(request).select_related('parent', 'company')
     
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Customize parent field to show only active categories."""
@@ -98,15 +98,18 @@ class AttributeAdmin(admin.ModelAdmin):
     Admin interface for Attribute model.
     """
     
-    list_display = ['name', 'data_type', 'is_active', 'sort_order', 'values_count', 'created_at']
-    list_filter = ['is_active', 'data_type', 'created_at']
-    search_fields = ['name', 'description']
+    list_display = ['name', 'attribute_code', 'input_type', 'is_active', 'sort_order', 'values_count', 'created_at']
+    list_filter = ['company', 'is_active', 'input_type', 'created_at']
+    search_fields = ['name', 'attribute_code', 'description']
     ordering = ['sort_order', 'name']
     list_editable = ['is_active', 'sort_order']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'description', 'data_type')
+            'fields': ('company', 'attribute_code', 'name', 'description', 'input_type', 'value_source')
+        }),
+        ('Behavior', {
+             'fields': ('is_variant_dimension', 'is_search_facet')
         }),
         ('Settings', {
             'fields': ('is_active', 'sort_order')
@@ -138,15 +141,15 @@ class AttributeValueAdmin(admin.ModelAdmin):
     Admin interface for AttributeValue model.
     """
     
-    list_display = ['attribute', 'value', 'is_active', 'sort_order', 'created_at']
+    list_display = ['attribute', 'value_label', 'value_code', 'is_active', 'sort_order', 'created_at']
     list_filter = ['is_active', 'attribute', 'created_at']
-    search_fields = ['value', 'description']
-    ordering = ['sort_order', 'value']
+    search_fields = ['value_label', 'value_code', 'description']
+    ordering = ['sort_order', 'value_label']
     list_editable = ['is_active', 'sort_order']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('attribute', 'value', 'description')
+            'fields': ('company', 'attribute', 'value_code', 'value_label', 'description', 'is_default')
         }),
         ('Settings', {
             'fields': ('is_active', 'sort_order')
@@ -162,3 +165,16 @@ class AttributeValueAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Optimize queryset for admin list view."""
         return super().get_queryset(request).select_related('attribute')
+
+
+class ProductAttributeTemplateLineInline(admin.TabularInline):
+    model = ProductAttributeTemplateLine
+    extra = 1
+
+
+@admin.register(ProductAttributeTemplate)
+class ProductAttributeTemplateAdmin(admin.ModelAdmin):
+    list_display = ['template_name', 'template_code', 'template_mode', 'company', 'is_active']
+    list_filter = ['company', 'template_mode', 'is_active']
+    search_fields = ['template_name', 'template_code']
+    inlines = [ProductAttributeTemplateLineInline]

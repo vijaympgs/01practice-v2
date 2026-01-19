@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import PageTitle from '../../components/common/PageTitle';
-import CardHeader from '../../components/common/CardHeader';
 import procurementService from '../../services/procurementService';
 import productService from '../../services/productService';
+import itemMasterService from '../../services/itemMasterService';
+import organizationService from '../../services/organizationService';
+import supplierService from '../../services/supplierService';
 import { useNotification } from '../../contexts/NotificationContext';
 import {
   Box,
@@ -30,13 +32,11 @@ import {
   Select,
   MenuItem,
   Chip,
-  Avatar,
   Tooltip,
   Alert,
   Snackbar,
-  Divider,
-  Stack,
   Autocomplete,
+  CircularProgress
 } from '@mui/material';
 import {
   Add,
@@ -45,138 +45,88 @@ import {
   Save,
   Cancel,
   Send,
-  Print,
   Search,
-  AttachMoney,
-  Inventory,
-  Person,
-  CalendarToday,
-  Description,
   Refresh,
   CheckCircle,
   Pending,
-  Error,
   Assignment,
+  Block,
+  Visibility
 } from '@mui/icons-material';
 
 const PurchaseRequest = () => {
   const { user } = useSelector((state) => state.auth);
   const { displaySuccess, displayError } = useNotification();
-  
+
   const [activeTab, setActiveTab] = useState('list');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [products, setProducts] = useState([]);
 
-  // Load data from API
+  // Data states
   const [requests, setRequests] = useState([]);
+  const [items, setItems] = useState([]);
+  const [uoms, setUoms] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
 
   const [formData, setFormData] = useState({
-    requestDate: new Date().toISOString().split('T')[0],
-    requestedBy: '',
-    department: '',
-    priority: 'Medium',
-    justification: '',
-    expectedDelivery: '',
-    items: []
+    required_by_date: '',
+    requesting_location: '',
+    priority: 'NORMAL',
+    supplier_hint: '',
+    remarks: '',
+    lines: []
   });
 
-  const [newItem, setNewItem] = useState({
-    itemCode: '',
-    description: '',
-    quantity: 1,
-    unitPrice: 0,
-    total: 0
+  const [newLine, setNewLine] = useState({
+    item: null, // Selected item object
+    uom: '',
+    requested_qty: 1,
+    required_by_date: '',
+    line_remarks: ''
   });
 
-  const departments = ['Inventory', 'IT', 'HR', 'Finance', 'Sales', 'Marketing'];
-  const priorities = ['low', 'medium', 'high', 'urgent'];
-  const statuses = ['draft', 'pending', 'approved', 'rejected', 'converted'];
+  const priorities = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
 
-  // Load purchase requests from API
+  // Load initial data
   useEffect(() => {
-    loadPurchaseRequests();
-    loadProducts();
+    loadPurchaseRequisitions();
+    loadMasterData();
   }, []);
 
-  const loadPurchaseRequests = async () => {
+  const loadPurchaseRequisitions = async () => {
     try {
       setLoading(true);
-      const response = await procurementService.getPurchaseRequests();
-      // Handle paginated response
-      const requestsData = response.results || response;
-      
-      // Map backend fields to frontend format
-      const mappedRequests = Array.isArray(requestsData) ? requestsData.map(mapRequestFromAPI) : [];
-      setRequests(mappedRequests);
+      const response = await procurementService.getPurchaseRequisitions();
+      setRequests(response.results || response || []);
     } catch (error) {
-      console.error('Error loading purchase requests:', error);
-      displayError('Failed to load purchase requests');
+      console.error('Error loading purchase requisitions:', error);
+      displayError('Failed to load purchase requisitions');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadProducts = async () => {
+  const loadMasterData = async () => {
     try {
-      const response = await productService.getProducts();
-      const productsData = response.results || response;
-      setProducts(Array.isArray(productsData) ? productsData : []);
+      const [itemsRes, uomsRes, locationsRes, suppliersRes] = await Promise.all([
+        itemMasterService.getItems(),
+        productService.getUOMs(),
+        organizationService.getLocations(),
+        supplierService.getSuppliers()
+      ]);
+
+      setItems(itemsRes.results || itemsRes || []);
+      setUoms(uomsRes.results || uomsRes || []);
+      setLocations(locationsRes.results || locationsRes || []);
+      setSuppliers(suppliersRes.results || suppliersRes || []);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('Error loading master data:', error);
+      displayError('Failed to load master data');
     }
   };
-
-  // Map API response to frontend format
-  const mapRequestFromAPI = (apiRequest) => ({
-    id: apiRequest.id,
-    request_number: apiRequest.request_number,
-    requestDate: apiRequest.request_date,
-    requestedBy: apiRequest.requested_by_name || apiRequest.requested_by,
-    requestedById: apiRequest.requested_by,
-    department: apiRequest.department || '',
-    priority: apiRequest.priority || 'medium',
-    status: apiRequest.status || 'draft',
-    totalAmount: parseFloat(apiRequest.total_amount || 0),
-    items: (apiRequest.items || []).map(item => ({
-      id: item.id,
-      itemCode: item.item_code || item.product_code || '',
-      product: item.product,
-      productName: item.product_name || '',
-      description: item.description || '',
-      quantity: item.quantity || 0,
-      unitPrice: parseFloat(item.unit_price || 0),
-      total: parseFloat(item.total || 0),
-      notes: item.notes || ''
-    })),
-    justification: apiRequest.justification || '',
-    expectedDelivery: apiRequest.expected_delivery || '',
-    approvalStatus: apiRequest.approval_status || 'Pending Approval',
-    created_at: apiRequest.created_at,
-    updated_at: apiRequest.updated_at
-  });
-
-  // Map frontend format to API format
-  const mapRequestToAPI = (frontendRequest) => ({
-    request_date: frontendRequest.requestDate,
-    requested_by: frontendRequest.requestedById || user?.id,
-    department: frontendRequest.department,
-    priority: frontendRequest.priority,
-    justification: frontendRequest.justification,
-    expected_delivery: frontendRequest.expectedDelivery || null,
-    status: frontendRequest.status || 'draft',
-    items: frontendRequest.items.map(item => ({
-      product: item.product || null,
-      item_code: item.itemCode,
-      description: item.description,
-      quantity: item.quantity,
-      unit_price: item.unitPrice,
-      total: item.total,
-      notes: item.notes || ''
-    }))
-  });
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -186,13 +136,12 @@ const PurchaseRequest = () => {
   const handleAdd = () => {
     setEditingRequest(null);
     setFormData({
-      requestDate: new Date().toISOString().split('T')[0],
-      requestedBy: '',
-      department: '',
-      priority: 'medium',
-      justification: '',
-      expectedDelivery: '',
-      items: []
+      required_by_date: '',
+      requesting_location: '',
+      priority: 'NORMAL',
+      supplier_hint: '',
+      remarks: '',
+      lines: []
     });
     setDialogOpen(true);
   };
@@ -200,138 +149,226 @@ const PurchaseRequest = () => {
   const handleEdit = (request) => {
     setEditingRequest(request);
     setFormData({
-      requestDate: request.requestDate,
-      requestedBy: request.requestedBy,
-      department: request.department,
-      priority: request.priority,
-      justification: request.justification,
-      expectedDelivery: request.expectedDelivery,
-      items: request.items
+      required_by_date: request.required_by_date || '',
+      requesting_location: request.requesting_location || '',
+      priority: request.priority || 'NORMAL',
+      supplier_hint: request.supplier_hint || '',
+      remarks: request.remarks || '',
+      lines: request.lines.map(line => ({
+        ...line,
+        item: items.find(i => i.id === line.item) || { id: line.item, item_code: line.item_code, item_name: line.item_name },
+        uom: line.uom
+      }))
     });
     setDialogOpen(true);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this purchase request?')) {
+    if (!window.confirm('Are you sure you want to delete this purchase requisition?')) {
       return;
     }
-    
+
     try {
-      await procurementService.deletePurchaseRequest(id);
+      await procurementService.deletePurchaseRequisition(id);
       setRequests(prev => prev.filter(req => req.id !== id));
-      displaySuccess('Purchase Request deleted successfully');
+      displaySuccess('Purchase Requisition deleted successfully');
     } catch (error) {
-      console.error('Error deleting purchase request:', error);
-      displayError('Failed to delete purchase request');
+      console.error('Error deleting purchase requisition:', error);
+      displayError('Failed to delete purchase requisition');
     }
   };
 
   const handleSave = async () => {
     try {
       setLoading(true);
-      const requestData = {
-        ...formData,
-        requestedById: user?.id,
-        status: editingRequest ? editingRequest.status : 'draft'
+
+      // Validate
+      if (!formData.requesting_location) {
+        displayError('Requesting Location is required');
+        setLoading(false);
+        return;
+      }
+      if (formData.lines.length === 0) {
+        displayError('At least one item line is required');
+        setLoading(false);
+        return;
+      }
+
+      const apiData = {
+        company: locations.find(l => l.id === formData.requesting_location)?.company || null, // Assuming location has company
+        requesting_location: formData.requesting_location,
+        required_by_date: formData.required_by_date || null,
+        priority: formData.priority,
+        supplier_hint: formData.supplier_hint || null,
+        remarks: formData.remarks,
+        lines: formData.lines.map(line => ({
+          item: line.item.id,
+          uom: line.uom,
+          requested_qty: line.requested_qty,
+          required_by_date: line.required_by_date || null,
+          line_remarks: line.line_remarks
+        }))
       };
-      
-      const apiData = mapRequestToAPI(requestData);
-      
+
+      // If company is missing from location, we might need to fetch it or handle it.
+      // For now, let's assume the backend handles it or we pick the first company if not available.
+      // Or better, let the backend infer company from location if possible, but the model requires company.
+      // I'll try to find company from location.
+      const location = locations.find(l => l.id === formData.requesting_location);
+      if (location && location.company) {
+        apiData.company = location.company;
+      } else {
+        // Fallback or error?
+        // If location.company is an ID, it's fine.
+      }
+
       let savedRequest;
       if (editingRequest) {
-        // Update existing request
-        savedRequest = await procurementService.updatePurchaseRequest(editingRequest.id, apiData);
-        displaySuccess('Purchase Request updated successfully');
+        savedRequest = await procurementService.updatePurchaseRequisition(editingRequest.id, apiData);
+        displaySuccess('Purchase Requisition updated successfully');
       } else {
-        // Create new request
-        savedRequest = await procurementService.createPurchaseRequest(apiData);
-        displaySuccess('Purchase Request created successfully');
+        savedRequest = await procurementService.createPurchaseRequisition(apiData);
+        displaySuccess('Purchase Requisition created successfully');
       }
-      
-      // Reload requests to get updated data
-      await loadPurchaseRequests();
+
+      await loadPurchaseRequisitions();
       setDialogOpen(false);
       setEditingRequest(null);
     } catch (error) {
-      console.error('Error saving purchase request:', error);
-      displayError(error.response?.data?.detail || 'Failed to save purchase request');
+      console.error('Error saving purchase requisition:', error);
+      displayError(error.response?.data?.detail || 'Failed to save purchase requisition');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddItem = () => {
-    if (newItem.itemCode && newItem.description && newItem.quantity > 0 && newItem.unitPrice > 0) {
-      const total = newItem.quantity * newItem.unitPrice;
-      setFormData(prev => ({
-        ...prev,
-        items: [...prev.items, { ...newItem, total }]
-      }));
-      setNewItem({
-        itemCode: '',
-        description: '',
-        quantity: 1,
-        unitPrice: 0,
-        total: 0
-      });
+  const handleSubmit = async (id) => {
+    try {
+      await procurementService.submitPurchaseRequisition(id);
+      displaySuccess('Purchase Requisition submitted successfully');
+      loadPurchaseRequisitions();
+    } catch (error) {
+      displayError('Failed to submit purchase requisition');
     }
   };
 
-  const handleRemoveItem = (index) => {
+  const handleApprove = async (id) => {
+    try {
+      await procurementService.approvePurchaseRequisition(id);
+      displaySuccess('Purchase Requisition approved successfully');
+      loadPurchaseRequisitions();
+    } catch (error) {
+      displayError('Failed to approve purchase requisition');
+    }
+  };
+
+  const handleReject = async (id) => {
+    const reason = window.prompt('Enter rejection reason:');
+    if (!reason) return;
+
+    try {
+      await procurementService.rejectPurchaseRequisition(id, reason);
+      displaySuccess('Purchase Requisition rejected successfully');
+      loadPurchaseRequisitions();
+    } catch (error) {
+      displayError('Failed to reject purchase requisition');
+    }
+  };
+
+  const handleCancel = async (id) => {
+    if (!window.confirm('Are you sure you want to cancel this PR?')) return;
+    try {
+      await procurementService.cancelPurchaseRequisition(id);
+      displaySuccess('Purchase Requisition cancelled successfully');
+      loadPurchaseRequisitions();
+    } catch (error) {
+      displayError('Failed to cancel purchase requisition');
+    }
+  };
+
+  const handleAddLine = () => {
+    if (newLine.item && newLine.uom && newLine.requested_qty > 0) {
+      setFormData(prev => ({
+        ...prev,
+        lines: [...prev.lines, { ...newLine }]
+      }));
+      setNewLine({
+        item: null,
+        uom: '',
+        requested_qty: 1,
+        required_by_date: '',
+        line_remarks: ''
+      });
+    } else {
+      displayError('Please fill in Item, UOM and Quantity');
+    }
+  };
+
+  const handleRemoveLine = (index) => {
     setFormData(prev => ({
       ...prev,
-      items: prev.items.filter((_, i) => i !== index)
+      lines: prev.lines.filter((_, i) => i !== index)
     }));
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Draft': return 'default';
-      case 'Pending': return 'warning';
-      case 'Approved': return 'success';
-      case 'Rejected': return 'error';
-      case 'Converted to PO': return 'info';
+      case 'DRAFT': return 'default';
+      case 'SUBMITTED': return 'info';
+      case 'APPROVED': return 'success';
+      case 'REJECTED': return 'error';
+      case 'CANCELLED': return 'error';
+      case 'FULLY_ORDERED': return 'success';
+      case 'PARTIALLY_ORDERED': return 'warning';
+      case 'CLOSED': return 'default';
       default: return 'default';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'Low': return 'success';
-      case 'Medium': return 'warning';
-      case 'High': return 'error';
-      case 'Urgent': return 'error';
+      case 'LOW': return 'success';
+      case 'NORMAL': return 'info';
+      case 'HIGH': return 'warning';
+      case 'URGENT': return 'error';
       default: return 'default';
     }
   };
+
+  const filteredRequests = requests.filter(req => {
+    if (activeTab === 'list') return true;
+    if (activeTab === 'draft') return req.pr_status === 'DRAFT';
+    if (activeTab === 'pending') return req.pr_status === 'SUBMITTED';
+    if (activeTab === 'approved') return req.pr_status === 'APPROVED';
+    return true;
+  });
 
   const renderList = () => (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Request ID</TableCell>
+            <TableCell>PR Number</TableCell>
             <TableCell>Date</TableCell>
             <TableCell>Requested By</TableCell>
-            <TableCell>Department</TableCell>
+            <TableCell>Location</TableCell>
             <TableCell>Priority</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell>Total Amount</TableCell>
-            <TableCell>Expected Delivery</TableCell>
+            <TableCell>Items</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {requests.map((request) => (
+          {filteredRequests.map((request) => (
             <TableRow key={request.id}>
               <TableCell>
                 <Typography variant="body2" fontWeight="bold">
-                  {request.id}
+                  {request.pr_number}
                 </Typography>
               </TableCell>
-              <TableCell>{request.requestDate}</TableCell>
-              <TableCell>{request.requestedBy}</TableCell>
-              <TableCell>{request.department}</TableCell>
+              <TableCell>{new Date(request.created_at).toLocaleDateString()}</TableCell>
+              <TableCell>{request.requested_by_name}</TableCell>
+              <TableCell>{request.requesting_location_name}</TableCell>
               <TableCell>
                 <Chip
                   label={request.priority}
@@ -341,40 +378,68 @@ const PurchaseRequest = () => {
               </TableCell>
               <TableCell>
                 <Chip
-                  label={request.status}
-                  color={getStatusColor(request.status)}
+                  label={request.pr_status}
+                  color={getStatusColor(request.pr_status)}
                   size="small"
                 />
               </TableCell>
+              <TableCell>{request.lines?.length || 0}</TableCell>
               <TableCell>
-                <Typography variant="body2" fontWeight="bold">
-                  ₹{request.totalAmount.toLocaleString()}
-                </Typography>
-              </TableCell>
-              <TableCell>{request.expectedDelivery}</TableCell>
-              <TableCell>
-                <Stack direction="row" spacing={1}>
-                  <Tooltip title="Edit">
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Tooltip title="View/Edit">
                     <IconButton size="small" onClick={() => handleEdit(request)}>
-                      <Edit />
+                      {request.pr_status === 'DRAFT' ? <Edit /> : <Visibility />}
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton size="small" onClick={() => handleDelete(request.id)}>
-                      <Delete />
-                    </IconButton>
-                  </Tooltip>
-                  {request.status === 'Approved' && (
-                    <Tooltip title="Convert to PO">
-                      <IconButton size="small" color="primary">
-                        <Send />
+
+                  {request.pr_status === 'DRAFT' && (
+                    <>
+                      <Tooltip title="Submit">
+                        <IconButton size="small" color="primary" onClick={() => handleSubmit(request.id)}>
+                          <Send />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton size="small" color="error" onClick={() => handleDelete(request.id)}>
+                          <Delete />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+
+                  {request.pr_status === 'SUBMITTED' && (
+                    <>
+                      <Tooltip title="Approve">
+                        <IconButton size="small" color="success" onClick={() => handleApprove(request.id)}>
+                          <CheckCircle />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Reject">
+                        <IconButton size="small" color="error" onClick={() => handleReject(request.id)}>
+                          <Block />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+
+                  {['APPROVED', 'SUBMITTED', 'DRAFT'].includes(request.pr_status) && (
+                    <Tooltip title="Cancel">
+                      <IconButton size="small" color="warning" onClick={() => handleCancel(request.id)}>
+                        <Cancel />
                       </IconButton>
                     </Tooltip>
                   )}
-                </Stack>
+                </Box>
               </TableCell>
             </TableRow>
           ))}
+          {filteredRequests.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={8} align="center">
+                No requests found
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </TableContainer>
@@ -383,33 +448,16 @@ const PurchaseRequest = () => {
   const renderForm = () => (
     <Grid container spacing={3}>
       <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Request Date"
-          type="date"
-          value={formData.requestDate}
-          onChange={(e) => setFormData(prev => ({ ...prev, requestDate: e.target.value }))}
-          InputLabelProps={{ shrink: true }}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Requested By"
-          value={formData.requestedBy}
-          onChange={(e) => setFormData(prev => ({ ...prev, requestedBy: e.target.value }))}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
         <FormControl fullWidth>
-          <InputLabel>Department</InputLabel>
+          <InputLabel>Requesting Location</InputLabel>
           <Select
-            value={formData.department}
-            label="Department"
-            onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+            value={formData.requesting_location}
+            label="Requesting Location"
+            onChange={(e) => setFormData(prev => ({ ...prev, requesting_location: e.target.value }))}
+            disabled={!!editingRequest && editingRequest.pr_status !== 'DRAFT'}
           >
-            {departments.map((dept) => (
-              <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+            {locations.map((loc) => (
+              <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -421,9 +469,10 @@ const PurchaseRequest = () => {
             value={formData.priority}
             label="Priority"
             onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+            disabled={!!editingRequest && editingRequest.pr_status !== 'DRAFT'}
           >
-            {priorities.map((priority) => (
-              <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+            {priorities.map((p) => (
+              <MenuItem key={p} value={p}>{p}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -431,122 +480,148 @@ const PurchaseRequest = () => {
       <Grid item xs={12} md={6}>
         <TextField
           fullWidth
-          label="Expected Delivery Date"
+          label="Required By Date"
           type="date"
-          value={formData.expectedDelivery}
-          onChange={(e) => setFormData(prev => ({ ...prev, expectedDelivery: e.target.value }))}
+          value={formData.required_by_date}
+          onChange={(e) => setFormData(prev => ({ ...prev, required_by_date: e.target.value }))}
           InputLabelProps={{ shrink: true }}
+          disabled={!!editingRequest && editingRequest.pr_status !== 'DRAFT'}
         />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <FormControl fullWidth>
+          <InputLabel>Suggested Supplier (Optional)</InputLabel>
+          <Select
+            value={formData.supplier_hint}
+            label="Suggested Supplier (Optional)"
+            onChange={(e) => setFormData(prev => ({ ...prev, supplier_hint: e.target.value }))}
+            disabled={!!editingRequest && editingRequest.pr_status !== 'DRAFT'}
+          >
+            <MenuItem value=""><em>None</em></MenuItem>
+            {suppliers.map((sup) => (
+              <MenuItem key={sup.id} value={sup.id}>{sup.company_name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Grid>
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Justification"
+          label="Remarks"
           multiline
-          rows={3}
-          value={formData.justification}
-          onChange={(e) => setFormData(prev => ({ ...prev, justification: e.target.value }))}
+          rows={2}
+          value={formData.remarks}
+          onChange={(e) => setFormData(prev => ({ ...prev, remarks: e.target.value }))}
+          disabled={!!editingRequest && editingRequest.pr_status !== 'DRAFT'}
         />
       </Grid>
     </Grid>
   );
 
-  const renderItemForm = () => (
+  const renderLineForm = () => (
     <Card sx={{ mt: 3 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Add Items
+          Items
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Item Code"
-              value={newItem.itemCode}
-              onChange={(e) => setNewItem(prev => ({ ...prev, itemCode: e.target.value }))}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Description"
-              value={newItem.description}
-              onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              label="Quantity"
-              type="number"
-              value={newItem.quantity}
-              onChange={(e) => setNewItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              label="Unit Price"
-              type="number"
-              value={newItem.unitPrice}
-              onChange={(e) => setNewItem(prev => ({ ...prev, unitPrice: parseFloat(e.target.value) || 0 }))}
-            />
-          </Grid>
-          <Grid item xs={12} md={1}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<Add />}
-              onClick={handleAddItem}
-              sx={{ height: '56px' }}
-            >
-              Add
-            </Button>
-          </Grid>
-        </Grid>
 
-        {formData.items.length > 0 && (
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Requested Items
-            </Typography>
-            <TableContainer component={Paper}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Item Code</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Quantity</TableCell>
-                    <TableCell>Unit Price</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {formData.items.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.itemCode}</TableCell>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>₹{item.unitPrice.toLocaleString()}</TableCell>
-                      <TableCell>₹{item.total.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-                          <Delete />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
+        {(!editingRequest || editingRequest.pr_status === 'DRAFT') && (
+          <Grid container spacing={2} alignItems="flex-end">
+            <Grid item xs={12} md={4}>
+              <Autocomplete
+                options={items}
+                getOptionLabel={(option) => `${option.item_code} - ${option.item_name}`}
+                value={newLine.item}
+                onChange={(event, newValue) => {
+                  setNewLine(prev => ({
+                    ...prev,
+                    item: newValue,
+                    uom: newValue?.purchase_uom || newValue?.base_uom || '' // Auto-select UOM if available
+                  }));
+                }}
+                renderInput={(params) => <TextField {...params} label="Item" />}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth>
+                <InputLabel>UOM</InputLabel>
+                <Select
+                  value={newLine.uom}
+                  label="UOM"
+                  onChange={(e) => setNewLine(prev => ({ ...prev, uom: e.target.value }))}
+                >
+                  {uoms.map((uom) => (
+                    <MenuItem key={uom.id} value={uom.id}>{uom.code}</MenuItem>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Box sx={{ mt: 2, textAlign: 'right' }}>
-              <Typography variant="h6">
-                Total Amount: ₹{formData.items.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
-              </Typography>
-            </Box>
-          </Box>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                label="Quantity"
+                type="number"
+                value={newLine.requested_qty}
+                onChange={(e) => setNewLine(prev => ({ ...prev, requested_qty: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                label="Line Remarks"
+                value={newLine.line_remarks}
+                onChange={(e) => setNewLine(prev => ({ ...prev, line_remarks: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={1}>
+              <Button
+                variant="contained"
+                onClick={handleAddLine}
+                startIcon={<Add />}
+                fullWidth
+                sx={{ height: '56px' }}
+              >
+                Add
+              </Button>
+            </Grid>
+          </Grid>
         )}
+
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Item</TableCell>
+                <TableCell>UOM</TableCell>
+                <TableCell>Quantity</TableCell>
+                <TableCell>Remarks</TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {formData.lines.map((line, index) => (
+                <TableRow key={index}>
+                  <TableCell>{line.item?.item_code} - {line.item?.item_name}</TableCell>
+                  <TableCell>{uoms.find(u => u.id === line.uom)?.code || line.uom_code || line.uom}</TableCell>
+                  <TableCell>{line.requested_qty}</TableCell>
+                  <TableCell>{line.line_remarks}</TableCell>
+                  <TableCell>
+                    {(!editingRequest || editingRequest.pr_status === 'DRAFT') && (
+                      <IconButton size="small" onClick={() => handleRemoveLine(index)}>
+                        <Delete />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {formData.lines.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">No items added</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </CardContent>
     </Card>
   );
@@ -555,18 +630,17 @@ const PurchaseRequest = () => {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <PageTitle 
-            title="Purchase Request (PR)" 
-            subtitle="Create and manage internal purchase requests"
-            showIcon={true}
-            icon={<Assignment />}
-          />
-        </Box>
+        <PageTitle
+          title="Purchase Requisition"
+          subtitle="Manage internal purchase requests"
+          showIcon={true}
+          icon={<Assignment />}
+        />
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="outlined"
             startIcon={<Refresh />}
+            onClick={loadPurchaseRequisitions}
           >
             Refresh
           </Button>
@@ -575,7 +649,7 @@ const PurchaseRequest = () => {
             startIcon={<Add />}
             onClick={handleAdd}
           >
-            New Request
+            New Requisition
           </Button>
         </Box>
       </Box>
@@ -588,14 +662,14 @@ const PurchaseRequest = () => {
             onClick={() => handleTabChange('list')}
             startIcon={<Search />}
           >
-            Request List
+            All Requests
           </Button>
           <Button
             variant={activeTab === 'draft' ? 'contained' : 'outlined'}
             onClick={() => handleTabChange('draft')}
             startIcon={<Edit />}
           >
-            Draft Requests
+            Drafts
           </Button>
           <Button
             variant={activeTab === 'pending' ? 'contained' : 'outlined'}
@@ -617,40 +691,36 @@ const PurchaseRequest = () => {
       {/* Content */}
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">
-              {activeTab === 'list' ? 'All Purchase Requests' : 
-               activeTab === 'draft' ? 'Draft Requests' :
-               activeTab === 'pending' ? 'Pending Approval' : 'Approved Requests'}
-            </Typography>
-            <Chip
-              label={`${requests.length} requests`}
-              color="primary"
-              variant="outlined"
-            />
-          </Box>
-          {renderList()}
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            renderList()
+          )}
         </CardContent>
       </Card>
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
-          {editingRequest ? 'Edit' : 'Create New'} Purchase Request
+          {editingRequest ? (editingRequest.pr_status === 'DRAFT' ? 'Edit Requisition' : 'View Requisition') : 'Create New Requisition'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             {renderForm()}
-            {renderItemForm()}
+            {renderLineForm()}
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} startIcon={<Cancel />}>
-            Cancel
+            Close
           </Button>
-          <Button onClick={handleSave} variant="contained" startIcon={<Save />}>
-            {editingRequest ? 'Update' : 'Save'} Request
-          </Button>
+          {(!editingRequest || editingRequest.pr_status === 'DRAFT') && (
+            <Button onClick={handleSave} variant="contained" startIcon={<Save />}>
+              {editingRequest ? 'Update' : 'Save'}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 
@@ -660,8 +730,8 @@ const PurchaseRequest = () => {
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
         >
           {snackbar.message}

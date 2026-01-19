@@ -52,6 +52,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import * as attributeService from '../../services/attributeService';
 
 const AttributesPage = () => {
   const [attributes, setAttributes] = useState([]);
@@ -103,23 +104,19 @@ const AttributesPage = () => {
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     setIsAuthenticated(!!token);
-    
+
     if (token) {
       loadAttributes();
     }
   }, []);
 
-  const loadAttributes = () => {
+  const loadAttributes = async () => {
     setLoading(true);
     try {
-      // Load saved attributes from localStorage
-      const savedAttributes = localStorage.getItem('attributes');
-      if (savedAttributes) {
-        setAttributes(JSON.parse(savedAttributes));
-      } else {
-        // Start with empty array - no predefined attributes
-        setAttributes([]);
-      }
+      const data = await attributeService.fetchAttributes();
+      // Map backend data to frontend format
+      const mappedAttributes = data.map(attr => attributeService.mapBackendToFrontend(attr));
+      setAttributes(mappedAttributes);
     } catch (error) {
       console.error('Error loading attributes:', error);
       setSnackbar({
@@ -127,6 +124,7 @@ const AttributesPage = () => {
         message: 'Error loading attributes. Please try again.',
         severity: 'error',
       });
+      setAttributes([]);
     } finally {
       setLoading(false);
     }
@@ -169,7 +167,7 @@ const AttributesPage = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       if (!attributeForm.caption.trim()) {
         setSnackbar({
@@ -180,19 +178,24 @@ const AttributesPage = () => {
         return;
       }
 
+      setLoading(true);
+
       if (editingAttribute) {
-        // Update existing attribute
-        const updatedAttributes = attributes.map(attr => 
-          attr.id === editingAttribute.id 
-            ? { 
-                ...attr, 
-                ...attributeForm,
-                updated_at: new Date().toISOString()
-              }
-            : attr
+        // Update existing attribute via API
+        const updatedAttribute = await attributeService.updateAttribute(
+          editingAttribute.id,
+          attributeForm
+        );
+
+        // Map backend response to frontend format
+        const mappedAttribute = attributeService.mapBackendToFrontend(updatedAttribute);
+
+        // Update local state
+        const updatedAttributes = attributes.map(attr =>
+          attr.id === editingAttribute.id ? mappedAttribute : attr
         );
         setAttributes(updatedAttributes);
-        localStorage.setItem('attributes', JSON.stringify(updatedAttributes));
+
         setSnackbar({
           open: true,
           message: 'Attribute updated successfully!',
@@ -206,20 +209,19 @@ const AttributesPage = () => {
             message: `Maximum limit of ${MAX_ATTRIBUTES} attributes reached. Please delete an existing attribute before adding a new one.`,
             severity: 'error',
           });
+          setLoading(false);
           return;
         }
 
-        // Create new attribute
-        const newAttribute = {
-          id: `attr_${Date.now()}`,
-          code: `AC${attributes.length + 1}`,
-          ...attributeForm,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        const updatedAttributes = [...attributes, newAttribute];
-        setAttributes(updatedAttributes);
-        localStorage.setItem('attributes', JSON.stringify(updatedAttributes));
+        // Create new attribute via API
+        const newAttribute = await attributeService.createAttribute(attributeForm);
+
+        // Map backend response to frontend format
+        const mappedAttribute = attributeService.mapBackendToFrontend(newAttribute);
+
+        // Update local state
+        setAttributes([...attributes, mappedAttribute]);
+
         setSnackbar({
           open: true,
           message: 'Attribute created successfully!',
@@ -230,20 +232,31 @@ const AttributesPage = () => {
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving attribute:', error);
+      const errorMessage = error.response?.data?.message ||
+        error.response?.data?.error ||
+        'Error saving attribute. Please try again.';
       setSnackbar({
         open: true,
-        message: 'Error saving attribute. Please try again.',
+        message: errorMessage,
         severity: 'error',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this attribute?')) {
       try {
+        setLoading(true);
+
+        // Delete via API
+        await attributeService.deleteAttribute(id);
+
+        // Update local state
         const updatedAttributes = attributes.filter(attr => attr.id !== id);
         setAttributes(updatedAttributes);
-        localStorage.setItem('attributes', JSON.stringify(updatedAttributes));
+
         setSnackbar({
           open: true,
           message: 'Attribute deleted successfully!',
@@ -251,11 +264,16 @@ const AttributesPage = () => {
         });
       } catch (error) {
         console.error('Error deleting attribute:', error);
+        const errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          'Error deleting attribute. Please try again.';
         setSnackbar({
           open: true,
-          message: 'Error deleting attribute. Please try again.',
+          message: errorMessage,
           severity: 'error',
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -280,8 +298,8 @@ const AttributesPage = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
           Please log in to access the Attributes management.
         </Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           onClick={() => window.location.href = '/login'}
         >
           Go to Login
@@ -293,13 +311,13 @@ const AttributesPage = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <PageTitle 
+      <PageTitle
         title="Attributes Management"
         subtitle="Manage product attributes and their configurations"
       />
 
       {/* Attribute Limit Progress Indicator */}
-      <Card sx={{ 
+      <Card sx={{
         borderRadius: 0,
         boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
         mb: 3,
@@ -309,32 +327,32 @@ const AttributesPage = () => {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ 
-                bgcolor: attributes.length >= MAX_ATTRIBUTES ? 'error.main' : 
-                         attributes.length >= MAX_ATTRIBUTES * 0.8 ? 'warning.main' : 'success.main',
-                width: 48, 
-                height: 48 
+              <Avatar sx={{
+                bgcolor: attributes.length >= MAX_ATTRIBUTES ? 'error.main' :
+                  attributes.length >= MAX_ATTRIBUTES * 0.8 ? 'warning.main' : 'success.main',
+                width: 48,
+                height: 48
               }}>
-                {attributes.length >= MAX_ATTRIBUTES ? <WarningIcon /> : 
-                 attributes.length >= MAX_ATTRIBUTES * 0.8 ? <InfoIcon /> : <CheckCircleIcon />}
+                {attributes.length >= MAX_ATTRIBUTES ? <WarningIcon /> :
+                  attributes.length >= MAX_ATTRIBUTES * 0.8 ? <InfoIcon /> : <CheckCircleIcon />}
               </Avatar>
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   Attribute Capacity Status
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {attributes.length >= MAX_ATTRIBUTES ? 
-                    'Maximum capacity reached' : 
+                  {attributes.length >= MAX_ATTRIBUTES ?
+                    'Maximum capacity reached' :
                     `You have room for ${MAX_ATTRIBUTES - attributes.length} more attributes`
                   }
                 </Typography>
               </Box>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="h4" sx={{ 
-                fontWeight: 'bold', 
-                color: attributes.length >= MAX_ATTRIBUTES ? 'error.main' : 
-                       attributes.length >= MAX_ATTRIBUTES * 0.8 ? 'warning.main' : 'success.main'
+              <Typography variant="h4" sx={{
+                fontWeight: 'bold',
+                color: attributes.length >= MAX_ATTRIBUTES ? 'error.main' :
+                  attributes.length >= MAX_ATTRIBUTES * 0.8 ? 'warning.main' : 'success.main'
               }}>
                 {attributes.length}/{MAX_ATTRIBUTES}
               </Typography>
@@ -343,7 +361,7 @@ const AttributesPage = () => {
               </Typography>
             </Box>
           </Box>
-          
+
           {/* Progress Bar */}
           <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -354,8 +372,8 @@ const AttributesPage = () => {
                 {Math.round((attributes.length / MAX_ATTRIBUTES) * 100)}%
               </Typography>
             </Box>
-            <LinearProgress 
-              variant="determinate" 
+            <LinearProgress
+              variant="determinate"
               value={(attributes.length / MAX_ATTRIBUTES) * 100}
               sx={{
                 height: 8,
@@ -363,8 +381,8 @@ const AttributesPage = () => {
                 bgcolor: `${themeColor}15`,
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 4,
-                  bgcolor: attributes.length >= MAX_ATTRIBUTES ? 'error.main' : 
-                           attributes.length >= MAX_ATTRIBUTES * 0.8 ? 'warning.main' : themeColor
+                  bgcolor: attributes.length >= MAX_ATTRIBUTES ? 'error.main' :
+                    attributes.length >= MAX_ATTRIBUTES * 0.8 ? 'warning.main' : themeColor
                 }
               }}
             />
@@ -373,7 +391,7 @@ const AttributesPage = () => {
       </Card>
 
       {/* Main Content Card */}
-      <Card sx={{ 
+      <Card sx={{
         borderRadius: 0,
         boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
         overflow: 'hidden'
@@ -385,8 +403,8 @@ const AttributesPage = () => {
             startIcon={<AddIcon />}
             disabled={attributes.length >= MAX_ATTRIBUTES}
           >
-            <Badge 
-              badgeContent={attributes.length >= MAX_ATTRIBUTES ? 0 : MAX_ATTRIBUTES - attributes.length} 
+            <Badge
+              badgeContent={attributes.length >= MAX_ATTRIBUTES ? 0 : MAX_ATTRIBUTES - attributes.length}
               color="warning"
               sx={{ '& .MuiBadge-badge': { fontSize: '0.75rem', fontWeight: 'bold' } }}
             >
@@ -399,97 +417,97 @@ const AttributesPage = () => {
           {/* Data Table */}
           <TableContainer component={Paper} sx={{ borderRadius: 0 }}>
             <Table>
-                        <TableHead>
-                          <TableRow sx={{ bgcolor: 'grey.50' }}>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Code</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Caption</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Description</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Data Type</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Required</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Display Order</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: themeColor }}>Status</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 600, color: themeColor }}>Actions</TableCell>
-                          </TableRow>
-                        </TableHead>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Code</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Caption</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Description</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Data Type</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Required</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Display Order</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: themeColor }}>Status</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600, color: themeColor }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
               <TableBody>
                 {attributes
                   .sort((a, b) => (a.display_order || 1) - (b.display_order || 1))
                   .map((attribute) => (
-                  <TableRow key={attribute.id} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {attribute.code}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {attribute.caption}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {attribute.description || '-'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={dataTypes.find(dt => dt.value === attribute.data_type)?.label || attribute.data_type}
-                        color={getDataTypeColor(attribute.data_type)}
-                        size="small"
-                        sx={{ borderRadius: 2 }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={attribute.is_required ? 'Yes' : 'No'}
-                        color={attribute.is_required ? 'error' : 'default'}
-                        size="small"
-                        sx={{ borderRadius: 2 }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {attribute.display_order || 1}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={attribute.is_active ? 'Active' : 'Inactive'}
-                        color={attribute.is_active ? 'success' : 'default'}
-                        size="small"
-                        sx={{ borderRadius: 2 }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDialog(attribute)}
-                            sx={{ 
-                              color: 'primary.main',
-                              '&:hover': { bgcolor: 'primary.light', color: 'white' }
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(attribute.id)}
-                            sx={{ 
-                              color: 'error.main',
-                              '&:hover': { bgcolor: 'error.light', color: 'white' }
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                    <TableRow key={attribute.id} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {attribute.code}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {attribute.caption}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {attribute.description || '-'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={dataTypes.find(dt => dt.value === attribute.data_type)?.label || attribute.data_type}
+                          color={getDataTypeColor(attribute.data_type)}
+                          size="small"
+                          sx={{ borderRadius: 2 }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={attribute.is_required ? 'Yes' : 'No'}
+                          color={attribute.is_required ? 'error' : 'default'}
+                          size="small"
+                          sx={{ borderRadius: 2 }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {attribute.display_order || 1}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={attribute.is_active ? 'Active' : 'Inactive'}
+                          color={attribute.is_active ? 'success' : 'default'}
+                          size="small"
+                          sx={{ borderRadius: 2 }}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack direction="row" spacing={1} justifyContent="center">
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenDialog(attribute)}
+                              sx={{
+                                color: 'primary.main',
+                                '&:hover': { bgcolor: 'primary.light', color: 'white' }
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(attribute.id)}
+                              sx={{
+                                color: 'error.main',
+                                '&:hover': { bgcolor: 'error.light', color: 'white' }
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -498,14 +516,14 @@ const AttributesPage = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogHeader 
+        <DialogHeader
           title={`${editingAttribute ? 'Edit' : 'Add'} Attribute`}
           icon={<AssignmentIcon />}
         />
         <DialogContent sx={{ p: 1, maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}>
           <Grid container spacing={1}>
 
-            
+
             <Grid item xs={12} sm={6} sx={{ mt: 1 }}>
               <TextField
                 fullWidth
@@ -599,7 +617,7 @@ const AttributesPage = () => {
           <Button
             onClick={handleCloseDialog}
             startIcon={<CancelIcon />}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600
@@ -611,7 +629,7 @@ const AttributesPage = () => {
             onClick={handleSave}
             variant="contained"
             startIcon={<SaveIcon />}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
@@ -630,8 +648,8 @@ const AttributesPage = () => {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ borderRadius: 2 }}
         >

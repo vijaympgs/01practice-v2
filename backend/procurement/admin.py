@@ -11,7 +11,9 @@ from .models import (
     PurchaseOrder, PurchaseOrderItem,
     GoodsReceivedNote, GoodsReceivedNoteItem,
     PurchaseInvoice, PurchaseInvoiceItem,
-    PurchaseReturn, PurchaseReturnItem
+    PurchaseInvoice, PurchaseInvoiceItem,
+    PurchaseReturn, PurchaseReturnItem,
+    PurchaseRequisition, PurchaseRequisitionLine
 )
 
 
@@ -210,3 +212,27 @@ class PurchaseReturnAdmin(admin.ModelAdmin):
     readonly_fields = ['id', 'return_number', 'created_at', 'updated_at', 'created_by']
     date_hierarchy = 'return_date'
     inlines = [PurchaseReturnItemInline]
+
+
+# ============================================================================
+# Purchase Requisition Admin (4.1)
+# ============================================================================
+
+class PurchaseRequisitionLineInline(admin.TabularInline):
+    """Purchase Requisition Line Inline"""
+    model = PurchaseRequisitionLine
+    extra = 0
+    fields = ['item', 'uom', 'requested_qty', 'already_ordered_qty', 'line_status']
+    readonly_fields = ['already_ordered_qty']
+
+
+@admin.register(PurchaseRequisition)
+class PurchaseRequisitionAdmin(admin.ModelAdmin):
+    """Purchase Requisition Admin"""
+    list_display = ['pr_number', 'created_at', 'requested_by', 'requesting_location', 'priority', 'pr_status']
+    list_filter = ['pr_status', 'priority', 'requesting_location', 'created_at']
+    search_fields = ['pr_number', 'requested_by__username', 'remarks']
+    readonly_fields = ['id', 'pr_number', 'created_at', 'updated_at', 'created_by']
+    date_hierarchy = 'created_at'
+    inlines = [PurchaseRequisitionLineInline]
+

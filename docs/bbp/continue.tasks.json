@@ -1,0 +1,306 @@
+{
+  "project": "Olivine ERP Platform",
+  "version": "0.1",
+  "owner": "Viji",
+  "ai_assistant": "Mindra",
+  "tasks": [
+
+    /** -----------------------------
+     *  PHASE 1 — FOUNDATION
+     * ----------------------------- */
+
+    {
+      "id": "foundation-setup-routing-layout",
+      "title": "Finalize SPA Routing & AppShell Structure",
+      "category": "foundation",
+      "status": "in-progress",
+      "steps": [
+        "Verify main entry file (main.tsx or index.tsx)",
+        "Ensure BrowserRouter wraps AppRoutes",
+        "Implement AppShell logic: login bypass, authenticated layout",
+        "Add console logs for render tracing",
+        "Verify login → dashboard → sidebar → topbar flow",
+        "Fix any unresolved imports"
+      ]
+    },
+    {
+      "id": "foundation-sidebar-config",
+      "title": "Sidebar + menuConfig Finalization",
+      "category": "foundation",
+      "status": "pending",
+      "steps": [
+        "Ensure Sidebar pulls items from menuConfig.ts",
+        "Apply navigation using react-router NavLink",
+        "Highlight active menu item",
+        "Test all navigation entries manually"
+      ]
+    },
+    {
+      "id": "foundation-common-ui",
+      "title": "Standardize Common UI Components",
+      "category": "foundation",
+      "status": "pending",
+      "steps": [
+        "Create or verify PageContainer.tsx",
+        "Confirm Topbar component behavior",
+        "Unify spacing, container widths, and scrolling behavior"
+      ]
+    },
+    {
+      "id": "foundation-protected-routes",
+      "title": "Guard Protected Routes",
+      "category": "foundation",
+      "status": "pending",
+      "steps": [
+        "Add token validation before allowing route access",
+        "Redirect missing token to /login",
+        "Ensure reload preserves auth state"
+      ]
+    },
+
+
+
+    /** -----------------------------
+     *  PHASE 2 — MASTER DATA
+     * ----------------------------- */
+
+    {
+      "id": "master-customer",
+      "title": "Implement Customer Master Module",
+      "category": "masters",
+      "status": "pending",
+      "depends_on": ["foundation-setup-routing-layout", "foundation-sidebar-config"],
+      "steps": [
+        "Analyze MVP Customer fields and validations",
+        "Create module folder: src/modules/customers",
+        "Implement CustomerPage list view",
+        "Implement CustomerForm with validation rules",
+        "Create customer API service (mock if backend not ready)",
+        "Register route: /partners/customers",
+        "Add menuConfig entry for Customers",
+        "Test CRUD and navigation"
+      ]
+    },
+    {
+      "id": "master-supplier",
+      "title": "Implement Supplier Master Module",
+      "category": "masters",
+      "status": "pending",
+      "depends_on": ["master-customer"],
+      "steps": [
+        "Analyze MVP Supplier model",
+        "Create module folder: src/modules/suppliers",
+        "Build SupplierPage and SupplierForm",
+        "Create mock API or REST hooks",
+        "Register /partners/suppliers route",
+        "Update menuConfig",
+        "Test End-to-End flow"
+      ]
+    },
+    {
+      "id": "master-attributes",
+      "title": "Attributes + Attribute Values Module",
+      "category": "masters",
+      "status": "pending",
+      "steps": [
+        "Extract field logic from MVP attributes",
+        "Create UI: list + attribute value nesting",
+        "Register route: /items/attributes",
+        "Add menu entry",
+        "Test required flows"
+      ]
+    },
+    {
+      "id": "master-item-master",
+      "title": "Item Master (SKU + Variants)",
+      "category": "masters",
+      "status": "pending",
+      "steps": [
+        "Analyze MVP item model",
+        "Design form UI including attribute lookup, SKU code logic",
+        "Build list page",
+        "Register route: /items/master",
+        "Add menu entry",
+        "Test integration with attributes"
+      ]
+    },
+
+
+
+    /** -----------------------------
+     *  PHASE 3 — AUTH & RBAC
+     * ----------------------------- */
+
+    {
+      "id": "auth-jwt",
+      "title": "Integrate JWT Authentication",
+      "category": "auth",
+      "status": "pending",
+      "steps": [
+        "Connect LoginPage to actual token API",
+        "Store token in secure storage",
+        "Auto-attach token to API calls",
+        "Test login/logout flows"
+      ]
+    },
+    {
+      "id": "auth-rbac",
+      "title": "Role-Based Access Control",
+      "category": "auth",
+      "status": "pending",
+      "depends_on": ["auth-jwt"],
+      "steps": [
+        "Determine role metadata structure",
+        "Hide menu items based on role",
+        "Block route access when unauthorized",
+        "Create permission matrix"
+      ]
+    },
+    {
+      "id": "auth-user-management",
+      "title": "User Management UI",
+      "category": "auth",
+      "status": "pending",
+      "depends_on": ["auth-rbac"],
+      "steps": [
+        "Create user list + role assignment UI",
+        "Register /admin/users route",
+        "Add menu sidebar entry"
+      ]
+    },
+
+
+
+    /** -----------------------------
+     *  PHASE 4 — PROCUREMENT (BBP)
+     * ----------------------------- */
+
+    {
+      "id": "procurement-pr",
+      "title": "Purchase Requisition (PR)",
+      "category": "procurement",
+      "depends_on": ["master-item-master", "master-supplier"],
+      "status": "pending",
+      "steps": [
+        "Create PR screens (list + form)",
+        "Support workflow states: Draft → Submitted → Approved",
+        "Implement validation rules from BBP 4.1",
+        "Link items, supplier suggestion, required date"
+      ]
+    },
+    {
+      "id": "procurement-po",
+      "title": "Purchase Order Module",
+      "category": "procurement",
+      "depends_on": ["procurement-pr"],
+      "status": "pending",
+      "steps": [
+        "Create PO list + form from PR structure",
+        "Implement PR→PO conversion",
+        "Add supplier terms and PO metadata"
+      ]
+    },
+    {
+      "id": "procurement-asn",
+      "title": "Advance Shipment Notice",
+      "category": "procurement",
+      "status": "pending",
+      "steps": [
+        "Build ASN entry form",
+        "Enable PO linking and expected qty",
+        "Register routing and menu entry"
+      ]
+    },
+    {
+      "id": "procurement-grn",
+      "title": "Goods Receipt (GRN + QC)",
+      "category": "procurement",
+      "status": "pending",
+      "steps": [
+        "Enable receiving flow from ASN/PO",
+        "Add accepted/rejected quantity logic",
+        "Add QC hold workflow"
+      ]
+    },
+    {
+      "id": "procurement-matching",
+      "title": "Invoice Matching (3-way / 4-way)",
+      "category": "procurement",
+      "status": "pending",
+      "steps": [
+        "Implement matching engine",
+        "Display mismatch alerts",
+        "Support correction flow"
+      ]
+    },
+    {
+      "id": "procurement-rto",
+      "title": "Supplier Returns (RTO)",
+      "category": "procurement",
+      "status": "pending",
+      "steps": [
+        "Create flow for return request",
+        "Support quantity validation",
+        "Track approval and closure"
+      ]
+    },
+
+
+
+    /** -----------------------------
+     *  PHASE 5 — POS & OPERATIONS
+     * ----------------------------- */
+
+    {
+      "id": "pos-ui",
+      "title": "POS Billing Interface",
+      "category": "pos",
+      "status": "pending",
+      "steps": [
+        "Review MVP POS",
+        "Rebuild UI using Olivine styling",
+        "Support item scan + fast search",
+        "Add customer selection"
+      ]
+    },
+    {
+      "id": "pos-payments",
+      "title": "Payment & Tendering",
+      "category": "pos",
+      "status": "pending",
+      "steps": [
+        "Allow multiple tenders",
+        "Support rounding rules",
+        "Receipt generation and preview"
+      ]
+    },
+
+
+    /** -----------------------------
+     *  PHASE 6 — FUTURE MODULES
+     * ----------------------------- */
+
+    {
+      "id": "future-pricing-engine",
+      "title": "Pricing & Promotion Engine",
+      "category": "future",
+      "status": "future",
+      "steps": [
+        "Build rule engine",
+        "Support promo preview",
+        "Integrate with POS"
+      ]
+    },
+    {
+      "id": "future-analytics",
+      "title": "Analytics Dashboard",
+      "category": "future",
+      "status": "future",
+      "steps": [
+        "Create executive dashboard",
+        "Add procurement, sales, and inventory dashboards",
+        "Export & reporting support"
+      ]
+    }
+  ]
+}

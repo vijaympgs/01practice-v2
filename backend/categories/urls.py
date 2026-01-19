@@ -10,7 +10,9 @@ from .views import (
     AttributeDetailView,
     AttributeValueListCreateView,
     AttributeValueDetailView,
-    AttributeValuesByAttributeView
+    AttributeValuesByAttributeView,
+    ProductAttributeTemplateListCreateView,
+    ProductAttributeTemplateDetailView
 )
 
 app_name = 'categories'
@@ -34,30 +36,8 @@ urlpatterns = [
     # Attribute Value URLs
     path('attribute-values/', AttributeValueListCreateView.as_view(), name='attribute-value-list-create'),
     path('attribute-values/<uuid:pk>/', AttributeValueDetailView.as_view(), name='attribute-value-detail'),
+
+    # Product Attribute Template URLs
+    path('templates/', ProductAttributeTemplateListCreateView.as_view(), name='template-list-create'),
+    path('templates/<uuid:pk>/', ProductAttributeTemplateDetailView.as_view(), name='template-detail'),
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

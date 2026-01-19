@@ -72,6 +72,7 @@ import {
   ViewQuilt,
   Language,
   Preview,
+  Rocket,
 } from '@mui/icons-material';
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -140,6 +141,8 @@ const iconComponents = {
   'AssignmentReturn': AssignmentReturn,
   // Fallback icons for missing ones
   'SalesOrder': ShoppingCart,
+  // Ultra Item Master icon
+  'Rocket': Rocket,
 };
 
 // Helper function to get icon component from string name
@@ -156,17 +159,17 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   // Get layout context - hooks must be called at top level
   const layoutContext = useLayout();
-  
+
   // State for dynamic menu from backend
   const [dynamicMenuCategories, setDynamicMenuCategories] = useState([]);
   const [menuLoading, setMenuLoading] = useState(false);
-  
+
   // Load hidden menu categories from localStorage
   const [hiddenMenuCategories, setHiddenMenuCategories] = useState(new Set());
-  
+
   // Safely get menu visibility with fallbacks
   const menuVisibility = layoutContext?.getMenuVisibility || {};
   const visibilityMap = typeof menuVisibility === 'function' ? menuVisibility() : (menuVisibility || {});
@@ -187,7 +190,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
     };
 
     loadHiddenCategories();
-    
+
     // Listen for changes to hidden menu categories in localStorage
     const handleStorageChange = (e) => {
       if (e.key === 'hiddenMenuCategories') {
@@ -209,10 +212,10 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
       try {
         setMenuLoading(true);
         console.log('🔄 Loading dynamic menu from backend...');
-        
+
         const menuData = await menuService.getCompleteMenuStructure();
         console.log('📊 Backend menu data:', menuData);
-        
+
         if (menuData && menuData.categories && menuData.categories.length > 0) {
           setDynamicMenuCategories(menuData.categories);
           console.log('✅ Dynamic menu loaded with categories:', menuData.categories.map(cat => cat.title));
@@ -249,7 +252,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
 
     return true;
   };
-  
+
   // Enhanced behavior and styles with responsive design
   const behavior = {
     showIcons: true,
@@ -271,7 +274,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
       // 'Archive': false  // Archive category hidden
     }
   };
-  
+
   // Load sidebar preferences from localStorage
   const getSidebarPreferences = () => {
     try {
@@ -297,7 +300,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
   };
 
   const styles = getSidebarPreferences();
-  
+
   const [expandedSections, setExpandedSections] = useState(behavior.expandedSections);
   const [favorites, setFavorites] = useState(new Set(['/pos/day-open', '/inventory']));
   const [topMenuAnchors, setTopMenuAnchors] = useState({}); // Track menu anchors for top position
@@ -356,21 +359,21 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
   const renderCategoryHeader = (category) => {
     if (!category) return null; // Skip invalid categories
     if (!shouldShowCategory(category)) return null;
-    
+
     // For dynamic categories, check if they have items or a direct path
     const hasItems = category.items && category.items.length > 0;
     const hasDirectPath = category.path && (!category.items || category.items.length === 0);
-    
+
     // Skip categories that have no items and no direct path (empty categories)
     if (!hasItems && !hasDirectPath) return null;
-    
+
     const isExpanded = expandedSections[category.title];
     const isPOSLegacyCategory = category.title === 'Point of Sale';
     const isSelected = hasDirectPath && location.pathname === category.path;
-    
+
     return (
       <ListItem key={`header-${category.title}`} disablePadding>
-        <ListItemButton 
+        <ListItemButton
           onClick={() => {
             if (isPOSLegacyCategory) {
               handleSectionToggle(category.title);
@@ -405,23 +408,23 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
           }}
         >
           {behavior.showIcons && (
-            <ListItemIcon sx={{ 
-              minWidth: styles.compact ? 32 : 36, 
-              '& .MuiSvgIcon-root': { 
+            <ListItemIcon sx={{
+              minWidth: styles.compact ? 32 : 36,
+              '& .MuiSvgIcon-root': {
                 fontSize: '1.2rem',
                 color: isExpanded ? 'primary.main' : 'action.active'
-              } 
+              }
             }}>
               {getIconComponent(category.icon)}
             </ListItemIcon>
           )}
           {behavior.showLabels && (
-            <ListItemText 
+            <ListItemText
               primary={
-                <Typography 
-                  variant="subtitle2" 
+                <Typography
+                  variant="subtitle2"
                   fontWeight="bold"
-                  sx={{ 
+                  sx={{
                     fontSize: styles.compact ? '0.7rem' : '0.75rem',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -434,10 +437,10 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
               }
               secondary={
                 category.description && (
-                  <Typography 
-                    variant="caption" 
+                  <Typography
+                    variant="caption"
                     color="text.secondary"
-                    sx={{ 
+                    sx={{
                       fontSize: styles.compact ? '0.6rem' : '0.65rem',
                       lineHeight: 1.2,
                       display: '-webkit-box',
@@ -467,7 +470,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
     if (!item || typeof item !== 'object') {
       return null;
     }
-    
+
     // Ensure item has required properties
     if (!item.path && !item.text) {
       return null;
@@ -477,130 +480,130 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
     if (!isItemVisible(item)) {
       return null;
     }
-    
+
     try {
       const isSelected = location.pathname === (item.path || '');
       const isSubGroup = item.isSubGroup || false;
       const isSubItem = item.isSubItem || isSubItemParam;
       const isSubcategory = item.isSubcategory || false;
-    
-    // For items with sub-items, add expand/collapse toggle
-    const expandKey = isSubcategory ? item.text : item.moduleName;
-    const isExpanded = hasSubItems ? expandedSections[expandKey] !== false : false;
-    const handleToggle = (e) => {
-      e.stopPropagation();
-      setExpandedSections(prev => ({
-        ...prev,
-        [expandKey]: !prev[expandKey]
-      }));
-    };
-    
-    const isSubSubItem = item.isSubSubItem || false;
-    const isFavorite = favorites.has(item.path);
-    const notificationCount = getNotificationCount(item.moduleName);
-    
-    return (
-      <ListItem key={item.text || item.path || `item-${Math.random()}`} disablePadding>
-        <ListItemButton
-          selected={isSelected}
-          onClick={() => {
-            if (item.path) {
-              navigate(item.path);
-            }
-          }}
-          sx={{
-            pl: isSubGroup ? (styles.compact ? 2.5 : 3) : 
+
+      // For items with sub-items, add expand/collapse toggle
+      const expandKey = isSubcategory ? item.text : item.moduleName;
+      const isExpanded = hasSubItems ? expandedSections[expandKey] !== false : false;
+      const handleToggle = (e) => {
+        e.stopPropagation();
+        setExpandedSections(prev => ({
+          ...prev,
+          [expandKey]: !prev[expandKey]
+        }));
+      };
+
+      const isSubSubItem = item.isSubSubItem || false;
+      const isFavorite = favorites.has(item.path);
+      const notificationCount = getNotificationCount(item.moduleName);
+
+      return (
+        <ListItem key={item.text || item.path || `item-${Math.random()}`} disablePadding>
+          <ListItemButton
+            selected={isSelected}
+            onClick={() => {
+              if (item.path) {
+                navigate(item.path);
+              }
+            }}
+            sx={{
+              pl: isSubGroup ? (styles.compact ? 2.5 : 3) :
                 isSubSubItem ? (styles.compact ? 6 : 7) :
-                isSubItem ? (styles.compact ? 4 : 5) : 
-                (styles.compact ? 1.5 : 2),
-            pr: styles.compact ? 0.75 : 1,
-            py: styles.compact ? 0.25 : 0.5,
-            mx: styles.compact ? 0.25 : 0.5,
-            mb: 0.125,
-            borderRadius: 1,
-            backgroundColor: isSubGroup ? 'action.selected' : 'transparent',
-            borderLeft: isSubGroup ? '3px solid' : 'none',
-            borderLeftColor: isSubGroup ? 'primary.main' : 'transparent',
-            position: 'relative',
-            '&.Mui-selected': {
-              backgroundColor: 'primary.main',
-              color: 'primary.contrastText',
-              '&:hover': {
-                backgroundColor: 'primary.dark',
-              },
-              '& .MuiListItemIcon-root': {
-                color: 'primary.contrastText',
-              }
-            },
-            '&:hover': {
-              backgroundColor: isSubGroup ? 'action.hover' : 'action.hover',
+                  isSubItem ? (styles.compact ? 4 : 5) :
+                    (styles.compact ? 1.5 : 2),
+              pr: styles.compact ? 0.75 : 1,
+              py: styles.compact ? 0.25 : 0.5,
+              mx: styles.compact ? 0.25 : 0.5,
+              mb: 0.125,
               borderRadius: 1,
-              transform: 'translateX(2px)',
-              transition: 'all 0.2s ease-in-out',
-            },
-          }}
-        >
-          {behavior.showIcons && item.icon && (
-            <ListItemIcon sx={{ 
-              minWidth: isSubGroup ? (styles.compact ? 28 : 32) : 
-                       isSubSubItem ? (styles.compact ? 24 : 28) :
-                       isSubItem ? (styles.compact ? 28 : 32) : 
-                       (styles.compact ? 32 : 36),
-              color: isSelected ? 'inherit' : (isSubGroup ? 'primary.main' : 'action.active'),
-              '& .MuiSvgIcon-root': { fontSize: '1.1rem' }
-            }}>
-              {getIconComponent(item.icon)}
-            </ListItemIcon>
-          )}
-          {behavior.showLabels && (
-            <ListItemText
-              primary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography
-                    variant={isSubGroup ? 'body1' : isSubSubItem ? 'body2' : isSubItem ? 'body2' : 'body1'}
-                    fontWeight={isSubGroup ? 600 : isSelected ? 600 : 400}
-                    fontSize={styles.compact ? 
-                      (isSubGroup ? '0.75rem' : isSubSubItem ? '0.65rem' : isSubItem ? '0.7rem' : '0.75rem') : 
-                      (isSubGroup ? '0.8rem' : isSubSubItem ? '0.7rem' : isSubItem ? '0.75rem' : '0.8rem')
-                    }
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      color: isSubGroup ? 'primary.main' : 'inherit',
-                      flex: 1
-                    }}
-                  >
-                    {item.text}
-                  </Typography>
-                </Box>
-              }
-            />
-          )}
-          
-          {/* Expand/Collapse icon for items with sub-items */}
-          {hasSubItems && (
-            <IconButton 
-              size="small" 
-              onClick={handleToggle}
-              sx={{ ml: 'auto', mr: 0.5, color: 'inherit' }}
-            >
-              {isExpanded ? <ExpandLess /> : <ExpandMore />}
-            </IconButton>
-          )}
-        </ListItemButton>
-      </ListItem>
-    );
-  } catch (error) {
-    console.error('Error rendering menu item:', error, item);
-    return null;
-  }
-};
+              backgroundColor: isSubGroup ? 'action.selected' : 'transparent',
+              borderLeft: isSubGroup ? '3px solid' : 'none',
+              borderLeftColor: isSubGroup ? 'primary.main' : 'transparent',
+              position: 'relative',
+              '&.Mui-selected': {
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                },
+                '& .MuiListItemIcon-root': {
+                  color: 'primary.contrastText',
+                }
+              },
+              '&:hover': {
+                backgroundColor: isSubGroup ? 'action.hover' : 'action.hover',
+                borderRadius: 1,
+                transform: 'translateX(2px)',
+                transition: 'all 0.2s ease-in-out',
+              },
+            }}
+          >
+            {behavior.showIcons && item.icon && (
+              <ListItemIcon sx={{
+                minWidth: isSubGroup ? (styles.compact ? 28 : 32) :
+                  isSubSubItem ? (styles.compact ? 24 : 28) :
+                    isSubItem ? (styles.compact ? 28 : 32) :
+                      (styles.compact ? 32 : 36),
+                color: isSelected ? 'inherit' : (isSubGroup ? 'primary.main' : 'action.active'),
+                '& .MuiSvgIcon-root': { fontSize: '1.1rem' }
+              }}>
+                {getIconComponent(item.icon)}
+              </ListItemIcon>
+            )}
+            {behavior.showLabels && (
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography
+                      variant={isSubGroup ? 'body1' : isSubSubItem ? 'body2' : isSubItem ? 'body2' : 'body1'}
+                      fontWeight={isSubGroup ? 600 : isSelected ? 600 : 400}
+                      fontSize={styles.compact ?
+                        (isSubGroup ? '0.75rem' : isSubSubItem ? '0.65rem' : isSubItem ? '0.7rem' : '0.75rem') :
+                        (isSubGroup ? '0.8rem' : isSubSubItem ? '0.7rem' : isSubItem ? '0.75rem' : '0.8rem')
+                      }
+                      sx={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        color: isSubGroup ? 'primary.main' : 'inherit',
+                        flex: 1
+                      }}
+                    >
+                      {item.text}
+                    </Typography>
+                  </Box>
+                }
+              />
+            )}
+
+            {/* Expand/Collapse icon for items with sub-items */}
+            {hasSubItems && (
+              <IconButton
+                size="small"
+                onClick={handleToggle}
+                sx={{ ml: 'auto', mr: 0.5, color: 'inherit' }}
+              >
+                {isExpanded ? <ExpandLess /> : <ExpandMore />}
+              </IconButton>
+            )}
+          </ListItemButton>
+        </ListItem>
+      );
+    } catch (error) {
+      console.error('Error rendering menu item:', error, item);
+      return null;
+    }
+  };
 
   const renderSubcategoryHeader = (subcategory, categoryTitle) => {
     const expandKey = `${categoryTitle}-${subcategory}`;
     const isExpanded = expandedSections[expandKey] !== false;
-    
+
     return (
       <ListItem key={`subcategory-${subcategory}`} disablePadding>
         <ListItemButton
@@ -623,7 +626,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
             }
           }}
         >
-          <ListItemIcon sx={{ 
+          <ListItemIcon sx={{
             minWidth: styles.compact ? 24 : 28,
             color: 'primary.main',
             '& .MuiSvgIcon-root': { fontSize: '1rem' }
@@ -671,13 +674,13 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
       <>
         {/* Render items without subcategory first */}
         {itemsWithoutSubcategory.map((item) => renderMenuItem(item, false, false))}
-        
+
         {/* Render subcategories and their items */}
         {subcategories.map(subcategory => {
           const expandKey = `${category.title}-${subcategory}`;
           const isExpanded = expandedSections[expandKey] !== false;
           const subcategoryItems = itemsWithSubcategory.filter(item => item.subcategory === subcategory);
-          
+
           return (
             <Box key={subcategory}>
               {renderSubcategoryHeader(subcategory, category.title)}
@@ -701,7 +704,7 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
       variant={isMobile ? 'temporary' : 'persistent'}
       anchor={styles.position}
       open={open}
-      onClose={() => {}}
+      onClose={() => { }}
       sx={{
         width: styles.width,
         flexShrink: 0,
@@ -730,31 +733,31 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
       }}
     >
       <Toolbar />
-      
+
       {/* Sticky Favorites Section with Accordion */}
       {Array.from(favorites).length > 0 && favoritesVisible && (
-        <Box sx={{ 
-          position: 'sticky', 
-          top: 0, 
-          zIndex: 1100, 
+        <Box sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1100,
           backgroundColor: 'background.paper',
           borderBottom: '1px solid',
           borderColor: 'divider',
           pb: 1,
           mb: 1
         }}>
-          <Accordion 
-            defaultExpanded 
+          <Accordion
+            defaultExpanded
             elevation={0}
-            sx={{ 
+            sx={{
               '&:before': { display: 'none' },
               boxShadow: 'none',
               backgroundColor: 'transparent',
             }}
           >
-            <AccordionSummary 
+            <AccordionSummary
               expandIcon={<ExpandMore />}
-              sx={{ 
+              sx={{
                 minHeight: 'auto !important',
                 '& .MuiAccordionSummary-content': {
                   margin: '8px 0',
@@ -766,10 +769,10 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
                 <Typography variant="subtitle2" fontWeight="bold">
                   Favorites
                 </Typography>
-                <Chip 
-                  label={favorites.size} 
-                  size="small" 
-                  color="primary" 
+                <Chip
+                  label={favorites.size}
+                  size="small"
+                  color="primary"
                   variant="outlined"
                 />
               </Box>
@@ -792,15 +795,15 @@ const Sidebar = ({ open = true, showSidebar = true, favoritesVisible = true }) =
       <List sx={{ px: 1, py: 1 }}>
         {menuCategories.map((category) => {
           if (!shouldShowCategory(category)) return null;
-          
+
           const isExpanded = expandedSections[category.title];
           const hasItems = category.items && category.items.length > 0;
           const hasDirectPath = category.path && (!category.items || category.items.length === 0);
-          
+
           return (
             <Box key={category.title}>
               {renderCategoryHeader(category)}
-              
+
               {hasItems && (
                 <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                   <List component="div" disablePadding dense>

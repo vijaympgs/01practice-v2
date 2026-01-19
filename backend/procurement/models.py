@@ -10,6 +10,7 @@ from decimal import Decimal
 import uuid
 
 User = get_user_model()
+from products.models import ItemVariant
 
 
 # ============================================================================
@@ -104,7 +105,7 @@ class PurchaseRequestItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         related_name='purchase_request_items',
         null=True,
@@ -218,7 +219,7 @@ class PurchaseEnquiryItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         null=True,
         blank=True
@@ -333,7 +334,7 @@ class PurchaseQuotationItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         null=True,
         blank=True
@@ -486,7 +487,7 @@ class PurchaseOrderItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         related_name='purchase_order_items',
         null=True,
@@ -658,7 +659,7 @@ class GoodsReceivedNoteItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         null=True,
         blank=True
@@ -797,7 +798,7 @@ class PurchaseInvoiceItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         null=True,
         blank=True
@@ -930,7 +931,7 @@ class PurchaseReturnItem(models.Model):
     
     # Item details
     product = models.ForeignKey(
-        'products.Product',
+        ItemVariant,
         on_delete=models.PROTECT,
         null=True,
         blank=True
@@ -966,3 +967,173 @@ class PurchaseReturnItem(models.Model):
         self.total = subtotal + self.tax_amount
         
         super().save(*args, **kwargs)
+
+
+# ============================================================================
+# Purchase Requisition Models (4.1 - New BBP Implementation)
+# ============================================================================
+
+class PurchaseRequisition(models.Model):
+    """
+    Purchase Requisition - Internal request to procure goods/services
+    Template: _txn_02 (Medium Transaction)
+    """
+    
+    STATUS_CHOICES = [
+        ('DRAFT', 'Draft'),
+        ('SUBMITTED', 'Submitted'),
+        ('APPROVED', 'Approved'),
+        ('PARTIALLY_ORDERED', 'Partially Ordered'),
+        ('FULLY_ORDERED', 'Fully Ordered'),
+        ('REJECTED', 'Rejected'),
+        ('CANCELLED', 'Cancelled'),
+        ('CLOSED', 'Closed'),
+    ]
+    
+    PRIORITY_CHOICES = [
+        ('LOW', 'Low'),
+        ('NORMAL', 'Normal'),
+        ('HIGH', 'High'),
+        ('URGENT', 'Urgent'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey('organization.Company', on_delete=models.PROTECT, related_name='purchase_requisitions')
+    pr_number = models.CharField(max_length=30, unique=True, db_index=True)
+    pr_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT', db_index=True)
+    
+    # Requesting info
+    requested_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='requested_prs')
+    requesting_location = models.ForeignKey('organization.Location', on_delete=models.PROTECT, related_name='purchase_requisitions')
+    required_by_date = models.DateField(null=True, blank=True)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='NORMAL')
+    
+    # Optional supplier hint
+    supplier_hint = models.ForeignKey('suppliers.Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='requisition_hints')
+    
+    # Additional info
+    remarks = models.TextField(blank=True)
+    
+    # Approval workflow
+    approval_required = models.BooleanField(default=True)
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_prs')
+    approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='rejected_prs')
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True)
+    
+    # PO conversion tracking
+    converted_to_po = models.BooleanField(default=False)
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_prs')
+    
+    class Meta:
+        db_table = 'purchase_requisition'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['company', 'pr_status']),
+            models.Index(fields=['requesting_location', 'pr_status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['pr_number']),
+        ]
+    
+    def __str__(self):
+        return f"{self.pr_number} - {self.get_pr_status_display()}"
+    
+    def save(self, *args, **kwargs):
+        if not self.pr_number:
+            # Generate PR number: PR-YYYYMMDD-XXX
+            from django.utils import timezone
+            date_str = timezone.now().strftime('%Y%m%d')
+            last_pr = PurchaseRequisition.objects.filter(
+                pr_number__startswith=f'PR-{date_str}'
+            ).order_by('-pr_number').first()
+            
+            if last_pr:
+                last_num = int(last_pr.pr_number.split('-')[-1])
+                new_num = last_num + 1
+            else:
+                new_num = 1
+            self.pr_number = f'PR-{date_str}-{str(new_num).zfill(4)}'
+        
+        super().save(*args, **kwargs)
+
+
+class PurchaseRequisitionLine(models.Model):
+    """Purchase Requisition Line - Individual item request"""
+    
+    LINE_STATUS_CHOICES = [
+        ('OPEN', 'Open'),
+        ('PARTIALLY_ORDERED', 'Partially Ordered'),
+        ('FULLY_ORDERED', 'Fully Ordered'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    purchase_requisition = models.ForeignKey(PurchaseRequisition, on_delete=models.CASCADE, related_name='lines')
+    
+    # Item reference
+    item = models.ForeignKey(ItemVariant, on_delete=models.PROTECT, related_name='item_pr_lines')
+    # item_variant = models.ForeignKey('products.ItemVariant', on_delete=models.PROTECT, related_name='variant_pr_lines', null=True, blank=True)
+    
+    # Quantity & UOM
+    uom = models.ForeignKey('products.UOM', on_delete=models.PROTECT, related_name='uom_pr_lines')
+    requested_qty = models.DecimalField(max_digits=15, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
+    already_ordered_qty = models.DecimalField(max_digits=15, decimal_places=3, default=Decimal('0'))
+    
+    # Line-specific info
+    required_by_date = models.DateField(null=True, blank=True)
+    line_remarks = models.TextField(blank=True)
+    line_status = models.CharField(max_length=20, choices=LINE_STATUS_CHOICES, default='OPEN')
+    
+    # Sequence
+    line_number = models.IntegerField(default=1)
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'purchase_requisition_line'
+        ordering = ['purchase_requisition', 'line_number']
+        indexes = [
+            models.Index(fields=['purchase_requisition', 'line_status']),
+            models.Index(fields=['item', 'line_status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.purchase_requisition.pr_number} - Line {self.line_number}"
+    
+    @property
+    def remaining_qty(self):
+        """Calculate remaining quantity to be ordered"""
+        return self.requested_qty - self.already_ordered_qty
+
+
+class PurchaseRequisitionPOLink(models.Model):
+    """Link between PR lines and PO lines - tracks fulfillment"""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pr_line = models.ForeignKey(PurchaseRequisitionLine, on_delete=models.CASCADE, related_name='po_links')
+    
+    # These will reference PurchaseOrder models (to be enhanced in 4.2)
+    purchase_order = models.UUIDField(help_text="Reference to Purchase Order ID")
+    po_line = models.UUIDField(help_text="Reference to Purchase Order Line ID")
+    
+    ordered_qty_from_pr = models.DecimalField(max_digits=15, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'purchase_requisition_po_link'
+        indexes = [
+            models.Index(fields=['pr_line']),
+            models.Index(fields=['purchase_order']),
+        ]
+    
+    def __str__(self):
+        return f"PR Line {self.pr_line_id} → PO {self.purchase_order}"

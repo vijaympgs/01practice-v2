@@ -59,6 +59,7 @@ export const getMenuCategories = (menuVisibility) => [
     description: '',
     items: [
       { text: 'Item Master', icon: 'Inventory', path: '/item/item-master', moduleName: 'item_master' },
+      { text: 'Ultra Item Master', icon: 'Rocket', path: '/item/ultra-item-master', moduleName: 'ultra_item_master', badge: 'NEW' },
       { text: 'Attributes', icon: 'Settings', path: '/item/attributes', moduleName: 'item_attributes' },
       { text: 'Attribute Values', icon: 'Category', path: '/item/attribute-values', moduleName: 'item_attribute_values' },
     ]
@@ -118,6 +119,7 @@ export const getMenuCategories = (menuVisibility) => [
     color: 'info',
     description: '',
     items: [
+      { text: 'Purchase Console', icon: 'ShoppingCart', path: '/procurement/purchase-console', moduleName: 'procurement_purchase_console' },
       { text: 'Purchase Request', icon: 'ShoppingCart', path: '/procurement/purchase-request', moduleName: 'procurement_purchase_request' },
       { text: 'Purchase Enquiry', icon: 'Search', path: '/procurement/purchase-enquiry', moduleName: 'procurement_purchase_enquiry' },
       { text: 'Purchase Quotation', icon: 'RequestQuote', path: '/procurement/purchase-quotation', moduleName: 'procurement_purchase_quotation' },

@@ -1057,98 +1057,114 @@ const loadSettlementReasons = async () => {
               <Typography variant="subtitle2" color="text.secondary" sx={{ letterSpacing: 1 }}>
                 Settlement Timeline
               </Typography>
-              <Stack spacing={condensed ? 1 : 1.5}>
-                {timelineSteps.map((step) => {
-                  const isActive = step.key === activeStepKey;
-                  const statusColor = step.status === 'complete'
-                    ? theme.palette.success.main
-                    : step.status === 'in-progress'
-                      ? theme.palette.primary.main
-                      : step.status === 'in-review'
-                        ? theme.palette.warning.main
-                        : theme.palette.grey[500];
+              {/* Horizontal Timeline Navigation */}
+              <Box sx={{ mb: 2 }}>
+                <Stack direction="row" spacing={1} justifyContent="center" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                  {timelineSteps.map((step) => {
+                    const statusColor = step.status === 'complete'
+                      ? theme.palette.success.main
+                      : step.status === 'in-progress'
+                        ? theme.palette.primary.main
+                        : step.status === 'in-review'
+                          ? theme.palette.warning.main
+                          : theme.palette.grey[500];
 
-                  return (
-                    <Paper
-                      key={step.key}
-                      variant="outlined"
-                      onClick={() => setActiveStepKey(step.key)}
-                      sx={{
-                        p: condensed ? 1.25 : 1.5,
-                        borderRadius: condensed ? 1 : 2,
-                        borderColor: isActive
-                          ? alpha(theme.palette.primary.main, 0.6)
-                          : alpha(theme.palette.divider, 0.6),
-                        background: isActive
-                          ? alpha(theme.palette.primary.main, 0.1)
-                          : alpha(theme.palette.background.paper, condensed ? 1 : 0.9),
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: isActive
-                          ? `0 16px 36px ${alpha(theme.palette.primary.main, 0.2)}`
-                          : condensed
-                            ? 'none'
-                            : '0 8px 18px rgba(15, 23, 42, 0.08)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={1.5} alignItems="center">
-                        <Box
-                          sx={{
-                            width: condensed ? 32 : 36,
-                            height: condensed ? 32 : 36,
-                            borderRadius: condensed ? 1 : 2,
-                            background: alpha(statusColor, 0.15),
-                            color: statusColor,
-                            display: 'grid',
-                            placeItems: 'center',
-                          }}
-                        >
-                          {step.icon}
-                        </Box>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: isActive ? 700 : 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    return (
+                      <Button
+                        key={step.key}
+                        variant={step.status === 'complete' ? 'contained' : 'outlined'}
+                        onClick={() => setActiveStepKey(step.key)}
+                        startIcon={
+                          step.status === 'complete' ? <AccountBalance fontSize="small" /> :
+                          step.status === 'in-progress' ? <CircularProgress size={14} /> :
+                          <AccessTime fontSize="small" />
+                        }
+                        sx={{
+                          backgroundColor: step.status === 'complete' ? statusColor : 'transparent',
+                          color: step.status === 'complete' ? 'white' : statusColor,
+                          borderColor: statusColor,
+                          borderWidth: 2,
+                          px: 1,
+                          py: 0.5,
+                          minWidth: condensed ? 120 : 140,
+                          borderRadius: 2,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          boxShadow: step.status === 'complete' ? 2 : 0,
+                          '&:hover': {
+                            backgroundColor: statusColor,
+                            color: 'white',
+                            transform: 'translateY(-2px)',
+                            boxShadow: 3,
+                          },
+                          transition: 'all 0.2s ease-in-out',
+                          position: 'relative',
+                        }}
+                      >
+                        <Box sx={{ textAlign: 'left' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: '0.7rem' }}>
                             {step.title}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {step.subtitle}
+                          <Typography variant="caption" sx={{ fontSize: '0.6rem', opacity: 0.8 }}>
+                            {step.status === 'complete' ? 'Done' :
+                             step.status === 'in-progress' ? 'In Progress' :
+                             step.status === 'in-review' ? 'Review' : 'Pending'}
                           </Typography>
                         </Box>
-                      </Stack>
-                      <Divider sx={{ my: condensed ? 1 : 1.5, borderStyle: condensed ? 'solid' : 'dashed' }} />
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Chip
-                          size="small"
-                          label={step.caption}
-                          sx={{ borderRadius: 99 }}
+                      </Button>
+                    );
+                  })}
+                </Stack>
+              </Box>
+              {/* Progress Summary */}
+              <Box sx={{ mt: 2, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.04), borderRadius: 2 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
+                  Progress Summary
+                </Typography>
+                <Stack spacing={1}>
+                  {timelineSteps.map((step) => {
+                    const statusColor = step.status === 'complete'
+                      ? theme.palette.success.main
+                      : step.status === 'in-progress'
+                        ? theme.palette.primary.main
+                        : step.status === 'in-review'
+                          ? theme.palette.warning.main
+                          : theme.palette.grey[500];
+
+                    return (
+                      <Box key={step.key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: statusColor,
+                          }}
                         />
+                        <Typography variant="caption" sx={{ flex: 1, fontSize: '0.7rem' }}>
+                          {step.title}
+                        </Typography>
                         <Chip
                           size="small"
                           label={
-                            step.status === 'complete'
-                              ? 'Done'
-                              : step.status === 'in-progress'
-                                ? 'In progress'
-                                : step.status === 'in-review'
-                                  ? 'Review'
-                                  : 'Pending'
+                            step.status === 'complete' ? 'Done' :
+                            step.status === 'in-progress' ? 'In Progress' :
+                            step.status === 'in-review' ? 'Review' : 'Pending'
                           }
                           color={
-                            step.status === 'complete'
-                              ? 'success'
-                              : step.status === 'in-progress'
-                                ? 'primary'
-                                : step.status === 'in-review'
-                                  ? 'warning'
-                                  : 'default'
+                            step.status === 'complete' ? 'success' :
+                            step.status === 'in-progress' ? 'primary' :
+                            step.status === 'in-review' ? 'warning' : 'default'
                           }
-                          variant={isActive ? 'filled' : 'outlined'}
-                          sx={{ borderRadius: 99 }}
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.6rem' }}
                         />
-                      </Stack>
-                    </Paper>
-                  );
-                })}
-              </Stack>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
             </Paper>
           </Grid>
 

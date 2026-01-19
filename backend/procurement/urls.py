@@ -12,7 +12,9 @@ from .views import (
     PurchaseOrderViewSet, PurchaseOrderItemViewSet,
     GoodsReceivedNoteViewSet, GoodsReceivedNoteItemViewSet,
     PurchaseInvoiceViewSet, PurchaseInvoiceItemViewSet,
-    PurchaseReturnViewSet, PurchaseReturnItemViewSet
+    PurchaseInvoiceViewSet, PurchaseInvoiceItemViewSet,
+    PurchaseReturnViewSet, PurchaseReturnItemViewSet,
+    PurchaseRequisitionViewSet, PurchaseRequisitionLineViewSet
 )
 
 router = DefaultRouter()
@@ -44,6 +46,10 @@ router.register(r'purchase-invoice-items', PurchaseInvoiceItemViewSet, basename=
 # Purchase Returns
 router.register(r'purchase-returns', PurchaseReturnViewSet, basename='purchase-return')
 router.register(r'purchase-return-items', PurchaseReturnItemViewSet, basename='purchase-return-item')
+
+# Purchase Requisitions (4.1)
+router.register(r'purchase-requisitions', PurchaseRequisitionViewSet, basename='purchase-requisition')
+router.register(r'purchase-requisition-lines', PurchaseRequisitionLineViewSet, basename='purchase-requisition-line')
 
 urlpatterns = [
     path('', include(router.urls)),

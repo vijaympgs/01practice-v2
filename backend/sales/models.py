@@ -7,6 +7,8 @@ from decimal import Decimal
 import uuid
 from datetime import datetime, date, timedelta
 from pos_masters.models import SettlementReason
+from organization.models import Company
+from products.models import ItemVariant
 
 User = get_user_model()
 
@@ -40,6 +42,7 @@ class Sale(models.Model):
     
     # Primary Key
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='sales', null=True, blank=True)
     sale_number = models.CharField(
         max_length=50,
         unique=True,
@@ -121,6 +124,7 @@ class Sale(models.Model):
             models.Index(fields=['status', 'sale_date']),
             models.Index(fields=['location', 'sale_date']),
         ]
+        unique_together = ['company', 'sale_number']
     
     def __str__(self):
         return f"{self.sale_number} - {self.total_amount}"
@@ -185,7 +189,7 @@ class SaleItem(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey('products.ItemMaster', on_delete=models.PROTECT, related_name='sale_items')
+    product = models.ForeignKey(ItemVariant, on_delete=models.PROTECT, related_name='sale_items')
     
     quantity = models.DecimalField(max_digits=10, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
     unit_price = models.DecimalField(max_digits=18, decimal_places=2)
@@ -197,7 +201,7 @@ class SaleItem(models.Model):
         db_table = 'sale_items'
     
     def __str__(self):
-        return f"{self.sale.sale_number} - {self.product.name} x{self.quantity}"
+        return f"{self.sale.sale_number} - {self.product.variant_name} x{self.quantity}"
 
 
 class Payment(models.Model):
@@ -246,6 +250,7 @@ class POSSession(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='pos_sessions', null=True, blank=True)
     session_number = models.CharField(max_length=50, unique=True, db_index=True)
     cashier = models.ForeignKey(User, on_delete=models.PROTECT, related_name='pos_sessions')
     terminal = models.ForeignKey(
@@ -320,6 +325,7 @@ class POSSession(models.Model):
     class Meta:
         db_table = 'pos_sessions'
         ordering = ['-opened_at']
+        unique_together = ['company', 'session_number']
     
     def __str__(self):
         return f"{self.session_number} - {self.cashier.username}"
@@ -383,6 +389,7 @@ class DayOpen(models.Model):
     """
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='day_opens', null=True, blank=True)
     location = models.ForeignKey(
         'organization.Location',
         on_delete=models.PROTECT,
@@ -432,7 +439,7 @@ class DayOpen(models.Model):
     class Meta:
         db_table = 'day_opens'
         ordering = ['-business_date', '-opened_at']
-        unique_together = [['location', 'business_date']]
+        unique_together = [['company', 'location', 'business_date']]
         indexes = [
             models.Index(fields=['location', 'business_date']),
             models.Index(fields=['is_active']),
@@ -462,6 +469,7 @@ class DayClose(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='day_closes', null=True, blank=True)
     location = models.ForeignKey(
         'organization.Location',
         on_delete=models.PROTECT,
@@ -533,7 +541,7 @@ class DayClose(models.Model):
     class Meta:
         db_table = 'day_closes'
         ordering = ['-business_date', '-initiated_at']
-        unique_together = [['location', 'business_date']]
+        unique_together = [['company', 'location', 'business_date']]
         indexes = [
             models.Index(fields=['location', 'business_date']),
             models.Index(fields=['status', 'business_date']),

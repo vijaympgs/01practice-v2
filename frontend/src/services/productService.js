@@ -103,8 +103,8 @@ const productService = {
    */
   async getLowStockProducts(threshold = 0) {
     try {
-      const response = await api.get('/products/low-stock/', { 
-        params: { threshold } 
+      const response = await api.get('/products/low-stock/', {
+        params: { threshold }
       });
       return response.data;
     } catch (error) {
@@ -129,8 +129,8 @@ const productService = {
    */
   async updateStock(id, stockQuantity) {
     try {
-      const response = await api.patch(`/products/${id}/`, { 
-        stock_quantity: stockQuantity 
+      const response = await api.patch(`/products/${id}/`, {
+        stock_quantity: stockQuantity
       });
       return response.data;
     } catch (error) {
@@ -143,8 +143,8 @@ const productService = {
    */
   async getProductsByCategory(categoryId, params = {}) {
     try {
-      const response = await api.get('/products/', { 
-        params: { category: categoryId, ...params } 
+      const response = await api.get('/products/', {
+        params: { category: categoryId, ...params }
       });
       return response.data;
     } catch (error) {
@@ -157,8 +157,8 @@ const productService = {
    */
   async getProductsByStockStatus(status, params = {}) {
     try {
-      const response = await api.get('/products/', { 
-        params: { stock_status: status, ...params } 
+      const response = await api.get('/products/', {
+        params: { stock_status: status, ...params }
       });
       return response.data;
     } catch (error) {
@@ -171,8 +171,8 @@ const productService = {
    */
   async getProductsByPriceRange(minPrice, maxPrice, params = {}) {
     try {
-      const response = await api.get('/products/', { 
-        params: { min_price: minPrice, max_price: maxPrice, ...params } 
+      const response = await api.get('/products/', {
+        params: { min_price: minPrice, max_price: maxPrice, ...params }
       });
       return response.data;
     } catch (error) {
@@ -185,8 +185,8 @@ const productService = {
    */
   async getActiveProducts(params = {}) {
     try {
-      const response = await api.get('/products/', { 
-        params: { is_active: true, ...params } 
+      const response = await api.get('/products/', {
+        params: { is_active: true, ...params }
       });
       return response.data;
     } catch (error) {
@@ -199,8 +199,8 @@ const productService = {
    */
   async getSellableProducts(params = {}) {
     try {
-      const response = await api.get('/products/', { 
-        params: { is_active: true, stock_quantity__gt: 0, ...params } 
+      const response = await api.get('/products/', {
+        params: { is_active: true, stock_quantity__gt: 0, ...params }
       });
       return response.data;
     } catch (error) {
@@ -300,6 +300,18 @@ const productService = {
     if (margin < 0) return '#f44336';
     if (margin < 20) return '#ff9800';
     return '#4caf50';
+  },
+
+  /**
+   * Get all UOMs
+   */
+  async getUOMs(params = {}) {
+    try {
+      const response = await api.get('/products/uom/', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch UOMs');
+    }
   }
 };
 

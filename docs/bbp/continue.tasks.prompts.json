@@ -1,0 +1,92 @@
+{
+  "project": "Olivine ERP Platform",
+  "assistant": "Mindra",
+  "prompts": [
+
+    {
+      "id": "module-crud-template",
+      "title": "Generate CRUD Module",
+      "instruction": [
+        "Create a new module based on the existing Company module pattern inside `spa/olivine-app-core/src/modules/`.",
+        "Include a List Page, Form Component, and API service or hooks.",
+        "Use PageContainer layout and Olivine UI spacing patterns.",
+        "Apply TypeScript, Tailwind, and reusable UI patterns.",
+        "Update menuConfig and routes.tsx.",
+        "Use validation rules based on provided specification or MVP reference.",
+        "After implementation, confirm compile success and navigation test."
+      ]
+    },
+
+    {
+      "id": "connect-api-endpoints",
+      "title": "Connect API Module to Backend",
+      "instruction": [
+        "Identify existing API client or Axios configuration inside Olivine.",
+        "Attach authentication token stored in localStorage.",
+        "Wire CRUD endpoints following REST naming consistency.",
+        "Add proper error handling, loading states, and success notifications.",
+        "Update mock API if backend endpoint is missing (include TODO)."
+      ]
+    },
+
+    {
+      "id": "refactor-ui-to-olivine-style",
+      "title": "Refactor UI to Match Olivine Style",
+      "instruction": [
+        "Remove old UI layouts and replace with Olivine styling.",
+        "Use Tailwind spacing, typography, and PageContainer.",
+        "Ensure consistent button placement (primary right-aligned).",
+        "Use existing reusable UI components if available.",
+        "Do not change the global layout or AppShell unless necessary."
+      ]
+    },
+
+    {
+      "id": "import-from-mvp",
+      "title": "Extract Logic or Fields From MVP Code",
+      "instruction": [
+        "Search recursively for matching component or model in the older MVP folder.",
+        "Extract only: fields, validation rules, naming conventions, useful logic.",
+        "Do NOT copy layout, CSS, old patterns, or outdated architecture.",
+        "Transform extracted logic to align with Olivine folder structure and patterns."
+      ]
+    },
+
+    {
+      "id": "bootstrap-new-transaction-module",
+      "title": "Generate Transaction Module (BBP Spec-Based)",
+      "instruction": [
+        "Use BBP (Blueprint) to map required fields, sections, workflow states, and rules.",
+        "Create List view, Form screen, and Workflow action buttons.",
+        "Ensure screen respects Olivine UX standards.",
+        "Add placeholders for workflow actions (Submit, Approve, Reject, Cancel).",
+        "Wire model to mock API if backend isn’t ready.",
+        "Mark backend TODO areas clearly."
+      ]
+    },
+
+    {
+      "id": "bbp-validation-check",
+      "title": "Validate Against BBP",
+      "instruction": [
+        "Compare current module implementation against BBP specification.",
+        "Check: fields, workflow states, validation rules, required flags, data types, relationships.",
+        "Generate a mismatch report if deviations exist.",
+        "Suggest fixes but do NOT apply unless instructed."
+      ]
+    },
+
+    {
+      "id": "code-cleanup-review",
+      "title": "Code Cleanup & Standardization",
+      "instruction": [
+        "Remove unused imports, commented-out legacy code, or deprecated logic.",
+        "Verify naming conventions follow Olivine standards.",
+        "Run formatting rules (TS rules + Prettier).",
+        "Ensure type safety and avoid `any` unless temporary.",
+        "Summarize all changes after modification."
+      ]
+    }
+
+  ]
+}

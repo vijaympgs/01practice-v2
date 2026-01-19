@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
-from .models import Category, Attribute, AttributeValue
+from .models import Category, Attribute, AttributeValue, ProductAttributeTemplate
 from .serializers import (
     CategorySerializer,
     CategoryCreateSerializer,
@@ -13,7 +13,8 @@ from .serializers import (
     CategoryListSerializer,
     AttributeSerializer,
     AttributeListSerializer,
-    AttributeValueSerializer
+    AttributeValueSerializer,
+    ProductAttributeTemplateSerializer
 )
 
 
@@ -26,9 +27,9 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     """
     
     queryset = Category.objects.all()
-    permission_classes = [permissions.IsAuthenticated] if not settings.DEBUG else [] if not settings.DEBUG else []
+    permission_classes = [permissions.IsAuthenticated] if not settings.DEBUG else []
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['is_active', 'parent']
+    filterset_fields = ['is_active', 'parent', 'company']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'sort_order', 'created_at']
     ordering = ['sort_order', 'name']
@@ -56,6 +57,11 @@ class CategoryListCreateView(generics.ListCreateAPIView):
         root_only = self.request.query_params.get('root_only')
         if root_only and root_only.lower() == 'true':
             queryset = queryset.filter(parent__isnull=True)
+            
+        # Filter by company if present in query params (or could be from user context)
+        company_id = self.request.query_params.get('company')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
         
         return queryset
     
@@ -131,6 +137,11 @@ class CategoryTreeView(APIView):
             is_active=True
         ).order_by('sort_order', 'name')
         
+        # Filter by company if provided
+        company_id = request.query_params.get('company')
+        if company_id:
+            root_categories = root_categories.filter(company_id=company_id)
+        
         serializer = CategoryTreeSerializer(root_categories, many=True)
         return Response({
             'categories': serializer.data,
@@ -154,6 +165,7 @@ class CategorySearchView(APIView):
         is_active = request.query_params.get('is_active')
         parent_id = request.query_params.get('parent_id')
         level = request.query_params.get('level')
+        company_id = request.query_params.get('company')
         
         queryset = Category.objects.all()
         
@@ -171,6 +183,10 @@ class CategorySearchView(APIView):
         # Filter by parent
         if parent_id:
             queryset = queryset.filter(parent_id=parent_id)
+            
+        # Filter by company
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
         
         # Filter by level (depth in hierarchy)
         if level is not None:
@@ -255,10 +271,16 @@ class CategoryStatsView(APIView):
     
     def get(self, request):
         """Return category statistics."""
-        total_categories = Category.objects.count()
-        active_categories = Category.objects.filter(is_active=True).count()
+        # Optional company filter
+        company_id = request.query_params.get('company')
+        qs = Category.objects.all()
+        if company_id:
+            qs = qs.filter(company_id=company_id)
+            
+        total_categories = qs.count()
+        active_categories = qs.filter(is_active=True).count()
         inactive_categories = total_categories - active_categories
-        root_categories = Category.objects.filter(parent__isnull=True).count()
+        root_categories = qs.filter(parent__isnull=True).count()
         
         # Categories with products (when products are implemented)
         categories_with_products = 0  # Will be updated when products are implemented
@@ -283,8 +305,8 @@ class AttributeListCreateView(generics.ListCreateAPIView):
     queryset = Attribute.objects.all()
     permission_classes = [permissions.IsAuthenticated] if not settings.DEBUG else []
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['is_active', 'data_type']
-    search_fields = ['name', 'description']
+    filterset_fields = ['is_active', 'input_type', 'company']
+    search_fields = ['name', 'attribute_code', 'description']
     ordering_fields = ['name', 'sort_order', 'created_at']
     ordering = ['sort_order', 'name']
     
@@ -319,10 +341,10 @@ class AttributeValueListCreateView(generics.ListCreateAPIView):
     queryset = AttributeValue.objects.all()
     permission_classes = [permissions.IsAuthenticated] if not settings.DEBUG else []
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['is_active', 'attribute']
-    search_fields = ['value', 'description']
-    ordering_fields = ['value', 'sort_order', 'created_at']
-    ordering = ['sort_order', 'value']
+    filterset_fields = ['is_active', 'attribute', 'company']
+    search_fields = ['value_label', 'value_code', 'description']
+    ordering_fields = ['value_label', 'sort_order', 'created_at']
+    ordering = ['sort_order', 'value_label']
     
     def get_serializer_class(self):
         return AttributeValueSerializer
@@ -335,6 +357,10 @@ class AttributeValueListCreateView(generics.ListCreateAPIView):
         attribute_id = self.request.query_params.get('attribute_id')
         if attribute_id:
             queryset = queryset.filter(attribute_id=attribute_id)
+            
+        company_id = self.request.query_params.get('company')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
         
         return queryset
 
@@ -369,7 +395,7 @@ class AttributeValuesByAttributeView(APIView):
             values = AttributeValue.objects.filter(
                 attribute=attribute,
                 is_active=True
-            ).order_by('sort_order', 'value')
+            ).order_by('sort_order', 'value_label')
             
             serializer = AttributeValueSerializer(values, many=True)
             return Response({
@@ -384,5 +410,22 @@ class AttributeValuesByAttributeView(APIView):
             )
 
 
+class ProductAttributeTemplateListCreateView(generics.ListCreateAPIView):
+    """
+    List all attribute templates or create a new one.
+    """
+    queryset = ProductAttributeTemplate.objects.all()
+    serializer_class = ProductAttributeTemplateSerializer
+    permission_classes = [permissions.IsAuthenticated] if not settings.DEBUG else []
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['company', 'is_active', 'template_mode']
+    search_fields = ['template_name', 'template_code']
 
 
+class ProductAttributeTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete an attribute template.
+    """
+    queryset = ProductAttributeTemplate.objects.all()
+    serializer_class = ProductAttributeTemplateSerializer
+    permission_classes = [permissions.IsAuthenticated] if not settings.DEBUG else []

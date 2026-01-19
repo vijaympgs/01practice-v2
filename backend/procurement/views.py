@@ -17,7 +17,8 @@ from .models import (
     PurchaseOrder, PurchaseOrderItem,
     GoodsReceivedNote, GoodsReceivedNoteItem,
     PurchaseInvoice, PurchaseInvoiceItem,
-    PurchaseReturn, PurchaseReturnItem
+    PurchaseReturn, PurchaseReturnItem,
+    PurchaseRequisition, PurchaseRequisitionLine
 )
 
 from .serializers import (
@@ -27,7 +28,9 @@ from .serializers import (
     PurchaseOrderSerializer, PurchaseOrderItemSerializer,
     GoodsReceivedNoteSerializer, GoodsReceivedNoteItemSerializer,
     PurchaseInvoiceSerializer, PurchaseInvoiceItemSerializer,
-    PurchaseReturnSerializer, PurchaseReturnItemSerializer
+    PurchaseReturnSerializer, PurchaseReturnItemSerializer,
+    PurchaseRequisitionSerializer, PurchaseRequisitionCreateUpdateSerializer,
+    PurchaseRequisitionLineSerializer
 )
 
 
@@ -284,3 +287,135 @@ class PurchaseReturnItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['purchase_return']
+
+# ============================================================================
+# Purchase Requisition ViewSets (4.1)
+# ============================================================================
+
+class PurchaseRequisitionViewSet(viewsets.ModelViewSet):
+    """Purchase Requisition ViewSet"""
+    queryset = PurchaseRequisition.objects.all().select_related(
+        'requested_by', 'requesting_location', 'supplier_hint', 
+        'approved_by', 'rejected_by', 'created_by'
+    )
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['pr_status', 'priority', 'requesting_location', 'company', 'requested_by']
+    search_fields = ['pr_number', 'requested_by__username', 'remarks']
+    ordering = ['-created_at']
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PurchaseRequisitionCreateUpdateSerializer
+        return PurchaseRequisitionSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user, requested_by=self.request.user)
+        
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        """Submit PR for approval"""
+        pr = self.get_object()
+        if pr.pr_status != 'DRAFT':
+            return Response(
+                {'error': 'Only draft PRs can be submitted'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if lines exist
+        if not pr.lines.exists():
+            return Response(
+                {'error': 'Cannot submit PR with no lines'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        pr.pr_status = 'SUBMITTED'
+        pr.save()
+        
+        # If approval not required, auto-approve (simple logic for now)
+        if not pr.approval_required:
+            from django.utils import timezone
+            pr.pr_status = 'APPROVED'
+            pr.approved_by = request.user # Auto-approve by submitter if no approval needed
+            pr.approved_at = timezone.now()
+            pr.save()
+            
+        return Response(PurchaseRequisitionSerializer(pr).data)
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """Approve PR"""
+        pr = self.get_object()
+        if pr.pr_status != 'SUBMITTED':
+            return Response(
+                {'error': 'Only submitted PRs can be approved'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        from django.utils import timezone
+        pr.pr_status = 'APPROVED'
+        pr.approved_by = request.user
+        pr.approved_at = timezone.now()
+        pr.save()
+        
+        return Response(PurchaseRequisitionSerializer(pr).data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """Reject PR"""
+        pr = self.get_object()
+        if pr.pr_status != 'SUBMITTED':
+            return Response(
+                {'error': 'Only submitted PRs can be rejected'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        reason = request.data.get('reason', '')
+        if not reason:
+             return Response(
+                {'error': 'Rejection reason is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        from django.utils import timezone
+        pr.pr_status = 'REJECTED'
+        pr.rejected_by = request.user
+        pr.rejected_at = timezone.now()
+        pr.rejection_reason = reason
+        pr.save()
+        
+        return Response(PurchaseRequisitionSerializer(pr).data)
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancel PR"""
+        pr = self.get_object()
+        if pr.pr_status in ['FULLY_ORDERED', 'CLOSED', 'CANCELLED']:
+            return Response(
+                {'error': f'Cannot cancel PR in {pr.pr_status} status'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Check if any lines are ordered
+        if pr.lines.filter(already_ordered_qty__gt=0).exists():
+             return Response(
+                {'error': 'Cannot cancel PR with ordered lines'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        pr.pr_status = 'CANCELLED'
+        pr.save()
+        
+        # Cancel all lines
+        pr.lines.update(line_status='CANCELLED')
+        
+        return Response(PurchaseRequisitionSerializer(pr).data)
+
+
+class PurchaseRequisitionLineViewSet(viewsets.ModelViewSet):
+    """Purchase Requisition Line ViewSet"""
+    queryset = PurchaseRequisitionLine.objects.all().select_related('item', 'uom', 'item_variant')
+    serializer_class = PurchaseRequisitionLineSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['purchase_requisition', 'line_status']

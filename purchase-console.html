@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Console</title>
+    <style>
+        /* Basic reset and layout styles - replace with Tailwind classes */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: #f8fafc;
+            color: #374151;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .hidden { display: none; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- MAIN CONTENT AREA (Inside existing app frame) -->
+    <div class="p-6">
+        
+        <!-- PAGE HEADER (Like Enhanced Item Master) -->
+        <div class="flex items-center justify-between mb-6">
+            <!-- Left: Page Title & Subtitle -->
+            <div>
+                <h1 class="text-xl font-semibold text-gray-900 mb-1">Purchase Console</h1>
+                <p class="text-sm text-gray-600">Unified procurement workflow management</p>
+            </div>
+            
+            <!-- Right: Primary Actions -->
+            <div class="flex items-center space-x-3">
+                <button class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    View Config
+                </button>
+                <button class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    View Audit
+                </button>
+                <button class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Help
+                </button>
+            </div>
+        </div>
+
+        <!-- SECONDARY NAV / CONTEXT BAR -->
+        <div class="bg-white border border-gray-200 rounded-lg mb-6 px-4 py-3">
+            <div class="flex items-center space-x-6 text-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">Supplier:</span>
+                    <span class="font-medium text-gray-900">ABC Electronics Ltd</span>
+                </div>
+                <div class="text-gray-300">|</div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">Company:</span>
+                    <span class="font-medium text-gray-900">TechCorp Inc</span>
+                </div>
+                <div class="text-gray-300">|</div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">Location:</span>
+                    <span class="font-medium text-gray-900">Warehouse A</span>
+                </div>
+                <div class="text-gray-300">|</div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">Status:</span>
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">In Progress</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA (CARD-BASED) -->
+        <div class="grid grid-cols-12 gap-6">
+            
+            <!-- LEFT CARD (≈30%) - Purchase List -->
+            <div class="col-span-4">
+                <div class="bg-white border border-gray-200 rounded-lg">
+                    <!-- Card Header -->
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h3 class="text-sm font-semibold text-gray-900">Purchase Orders</h3>
+                    </div>
+                    
+                    <!-- Filters Section -->
+                    <div class="px-4 py-4 border-b border-gray-200 bg-gray-50">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Supplier</label>
+                                <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                                    <option>All Suppliers</option>
+                                    <option selected>ABC Electronics Ltd</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Date Range</label>
+                                <input type="date" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white" value="2024-01-01">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                                <select class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                                    <option>All Status</option>
+                                    <option selected>In Progress</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purchase List -->
+                    <div class="max-h-96 overflow-y-auto">
+                        <div class="p-4 space-y-3">
+                            <!-- Active Purchase -->
+                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-md cursor-pointer">
+                                <div class="text-sm font-medium text-gray-900 mb-1">PO-2024-001</div>
+                                <div class="text-xs text-gray-600 mb-2">ABC Electronics Ltd</div>
+                                <div>
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">GRN Pending</span>
+                                </div>
+                            </div>
+
+                            <!-- Other Purchases -->
+                            <div class="p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                                <div class="text-sm font-medium text-gray-900 mb-1">PO-2024-002</div>
+                                <div class="text-xs text-gray-600 mb-2">XYZ Components</div>
+                                <div>
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Completed</span>
+                                </div>
+                            </div>
+
+                            <div class="p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                                <div class="text-sm font-medium text-gray-900 mb-1">PO-2024-003</div>
+                                <div class="text-xs text-gray-600 mb-2">ABC Electronics Ltd</div>
+                                <div>
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">Blocked</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT LARGE CARD (≈70%) - Purchase Timeline -->
+            <div class="col-span-8">
+                <div class="bg-white border border-gray-200 rounded-lg">
+                    <!-- Card Header with Actions -->
+                    <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">Purchase Order: PO-2024-001</h3>
+                            <p class="text-xs text-gray-600 mt-1">Timeline showing procurement flow progress</p>
+                        </div>
+                        
+                        <!-- Integrated Actions -->
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700">
+                                Post GRN
+                            </button>
+                            <button class="px-3 py-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100">
+                                Perform QC
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Content -->
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            
+                            <!-- PR Step Section Card -->
+                            <div class="border border-gray-200 rounded-md">
+                                <!-- Section Header -->
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-900">Purchase Requisition (PR)</h4>
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">Completed</span>
+                                </div>
+                                <!-- Key/Value Grid -->
+                                <div class="px-4 py-3">
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-600">Reference:</span>
+                                            <span class="text-gray-900 ml-2 font-medium">PR-2024-001</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Created:</span>
+                                            <span class="text-gray-900 ml-2">Jan 15, 2024</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Requested By:</span>
+                                            <span class="text-gray-900 ml-2">John Smith</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Department:</span>
+                                            <span class="text-gray-900 ml-2">IT Operations</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RFQ Step Section Card (Skipped) -->
+                            <div class="border border-gray-200 rounded-md opacity-60">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-600">Request for Quotation (RFQ)</h4>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">Skipped</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="text-sm text-gray-500">Optional step - not required for this purchase</div>
+                                </div>
+                            </div>
+
+                            <!-- PO Step Section Card -->
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-900">Purchase Order (PO)</h4>
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">Completed</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-600">Reference:</span>
+                                            <span class="text-gray-900 ml-2 font-medium">PO-2024-001</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Created:</span>
+                                            <span class="text-gray-900 ml-2">Jan 16, 2024</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Payment Terms:</span>
+                                            <span class="text-gray-900 ml-2">Net 30</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Total Amount:</span>
+                                            <span class="text-gray-900 ml-2 font-semibold">$15,750.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ASN Step Section Card (Not Required) -->
+                            <div class="border border-gray-200 rounded-md opacity-60">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-600">Advanced Shipping Notice (ASN)</h4>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">Not Required</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="text-sm text-gray-500">Optional step - not configured for this supplier</div>
+                                </div>
+                            </div>
+
+                            <!-- GRN/QC Step Section Card (Current) -->
+                            <div class="border border-blue-200 rounded-md bg-blue-50">
+                                <div class="px-4 py-3 bg-blue-100 border-b border-blue-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-900">Goods Receipt Note (GRN) / Quality Control</h4>
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">Pending</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-600">Delivery Date:</span>
+                                            <span class="text-gray-900 ml-2">Jan 24, 2024</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-600">Status:</span>
+                                            <span class="text-gray-900 ml-2">Awaiting QC inspection</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Matching Step Section Card -->
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-600">Invoice Matching</h4>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">Pending</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="text-sm text-gray-500">Awaiting GRN completion</div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Step Section Card -->
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-600">Payment</h4>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">Pending</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="text-sm text-gray-500">Awaiting invoice matching</div>
+                                </div>
+                            </div>
+
+                            <!-- Returns Step Section Card -->
+                            <div class="border border-gray-200 rounded-md">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-sm font-medium text-gray-600">Returns</h4>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded">Not Applicable</span>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="text-sm text-gray-500">Available after goods receipt</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items Section Card -->
+                        <div class="mt-6 border border-gray-200 rounded-md">
+                            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-900">Items</h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-50 border-b border-gray-200">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Item</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Ordered</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Received</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Unit Price</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-4 py-2 text-gray-900">Laptop - Dell XPS 13</td>
+                                            <td class="px-4 py-2 text-gray-900">10</td>
+                                            <td class="px-4 py-2 text-yellow-600 font-medium">0</td>
+                                            <td class="px-4 py-2 text-gray-900">$1,250.00</td>
+                                            <td class="px-4 py-2 text-gray-900">$12,500.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2 text-gray-900">Wireless Mouse</td>
+                                            <td class="px-4 py-2 text-gray-900">25</td>
+                                            <td class="px-4 py-2 text-yellow-600 font-medium">0</td>
+                                            <td class="px-4 py-2 text-gray-900">$45.00</td>
+                                            <td class="px-4 py-2 text-gray-900">$1,125.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-4 py-2 text-gray-900">USB-C Hub</td>
+                                            <td class="px-4 py-2 text-gray-900">15</td>
+                                            <td class="px-4 py-2 text-yellow-600 font-medium">0</td>
+                                            <td class="px-4 py-2 text-gray-900">$85.00</td>
+                                            <td class="px-4 py-2 text-gray-900">$1,275.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Financial Summary Section Card -->
+                        <div class="mt-4 border border-gray-200 rounded-md">
+                            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-900">Financial Summary</h4>
+                            </div>
+                            <div class="px-4 py-3">
+                                <div class="grid grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <div class="text-gray-600">Subtotal</div>
+                                        <div class="text-lg font-semibold text-gray-900">$14,900.00</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-600">Tax</div>
+                                        <div class="text-lg font-semibold text-gray-900">$850.00</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-600">Variance</div>
+                                        <div class="text-lg font-semibold text-yellow-600">$0.00</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-600">Total</div>
+                                        <div class="text-lg font-semibold text-gray-900">$15,750.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuration Note -->
+                        <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                            <div class="text-xs text-gray-600">
+                                <span class="font-medium">Configuration Note:</span> Actions controlled by Procurement Configuration (4.10).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>""

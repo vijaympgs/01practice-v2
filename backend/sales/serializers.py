@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Sale, SaleItem, Payment, POSSession, DayOpen, DayClose
-from products.models import Product
+from products.models import ItemVariant
 from customers.models import Customer
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -25,9 +25,9 @@ except ImportError:
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for sale line items."""
     
-    product_name = serializers.CharField(source='product.item_name', read_only=True)
-    product_barcode = serializers.CharField(source='product.ean_upc_code', read_only=True)
-    product_sku = serializers.CharField(source='product.item_code', read_only=True)
+    product_name = serializers.CharField(source='product.variant_name', read_only=True)
+    product_barcode = serializers.CharField(source='product.barcode', read_only=True)
+    product_sku = serializers.CharField(source='product.sku_code', read_only=True)
     tax_rate = serializers.DecimalField(max_digits=5, decimal_places=2, required=False, write_only=True, help_text="Tax rate percentage (write-only, used to calculate tax_amount)")
     subtotal = serializers.SerializerMethodField(read_only=True)
     total = serializers.SerializerMethodField(read_only=True)
@@ -59,7 +59,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
         unit_price = validated_data.get('unit_price')
         if unit_price is None:
             # Try to get price from product
-            unit_price = getattr(product, 'sell_price', Decimal('0.00'))
+            unit_price = getattr(product, 'default_price', Decimal('0.00'))
         else:
             unit_price = Decimal(str(unit_price))
         
@@ -67,9 +67,8 @@ class SaleItemSerializer(serializers.ModelSerializer):
         if not isinstance(discount_amount, Decimal):
             discount_amount = Decimal(str(discount_amount))
         
-        # Get tax_rate from input or product
+        # Get tax_rate from input or default to 0
         if tax_rate is None:
-            # ItemMaster doesn't have tax_rate directly, default to 0 or fetch from tax details if needed
             tax_rate = Decimal('0.00')
         else:
             tax_rate = Decimal(str(tax_rate))
@@ -138,7 +137,7 @@ class SaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = [
-            'id', 'sale_number', 'sale_type', 'sale_type_display',
+            'id', 'company', 'sale_number', 'sale_type', 'sale_type_display',
             'customer', 'customer_name', 'cashier', 'cashier_name',
             'delivery_type', 'delivery_address',
             'subtotal', 'tax_amount', 'discount_amount',
@@ -163,7 +162,7 @@ class SaleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = [
-            'id', 'sale_number',  # Include id and sale_number so they're returned in response
+            'id', 'company', 'sale_number',  # Include id and sale_number so they're returned in response
             'sale_type', 'customer', 'cashier',
             'delivery_type', 'delivery_address',
             'discount_percentage', 'notes', 'status',
@@ -277,15 +276,21 @@ class SaleCreateSerializer(serializers.ModelSerializer):
                 product = item_data['product']
                 quantity = Decimal(str(item_data['quantity']))
                 
-                # Get unit_price - Product model uses 'price', not 'unit_price'
+                # Get unit_price
                 unit_price = item_data.get('unit_price')
                 if unit_price is None:
-                    unit_price = getattr(product, 'sell_price', Decimal('0.00'))
+                    unit_price = getattr(product, 'default_price', Decimal('0.00'))
                 else:
                     unit_price = Decimal(str(unit_price))
                 
                 discount_amount = Decimal(str(item_data.get('discount_amount', 0)))
-                tax_rate = Decimal(str(item_data.get('tax_rate', getattr(product, 'tax_rate', Decimal('0.00')))))
+                
+                # Get tax rate
+                tax_rate_val = item_data.get('tax_rate')
+                if tax_rate_val is None:
+                    tax_rate = Decimal('0.00')
+                else:
+                    tax_rate = Decimal(str(tax_rate_val))
                 
                 # Ensure all values are Decimal
                 if not isinstance(unit_price, Decimal):
@@ -375,7 +380,6 @@ class POSSessionSerializer(serializers.ModelSerializer):
     variance_reason_name = serializers.CharField(source='variance_reason.name', read_only=True, default=None)
     
     # Make terminal and location writable for create/update, returns UUID on read
-    # These fields are writable (can be set during creation) but return just the UUID when reading
     terminal = serializers.PrimaryKeyRelatedField(
         queryset=Terminal.objects.all() if Terminal else None,
         allow_null=True,
@@ -405,7 +409,7 @@ class POSSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = POSSession
         fields = [
-            'id', 'session_number', 'cashier', 'cashier_name',
+            'id', 'company', 'session_number', 'cashier', 'cashier_name',
             'terminal', 'location',
             'opening_cash', 'closing_cash', 'expected_cash', 'cash_difference',
             'opened_at', 'closed_at', 'status', 'status_display',
@@ -417,7 +421,7 @@ class POSSessionSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 'session_number', 'expected_cash', 'cash_difference',
             'opened_at', 'closed_at', 'total_sales',
-            'interim_settlements', 'variance_reason_name'
+             'interim_settlements', 'variance_reason_name'
         ]
         extra_kwargs = {
             'interim_settlements': {'required': False},
@@ -517,7 +521,7 @@ class DayOpenSerializer(serializers.ModelSerializer):
     class Meta:
         model = DayOpen
         fields = [
-            'id', 'location', 'location_name', 'business_date',
+            'id', 'company', 'location', 'location_name', 'business_date',
             'opened_by', 'opened_by_name', 'opened_at',
             'next_sale_number', 'next_session_number',
             'is_active', 'closed_at', 'closed_by', 'closed_by_name',
@@ -537,7 +541,7 @@ class DayCloseSerializer(serializers.ModelSerializer):
     class Meta:
         model = DayClose
         fields = [
-            'id', 'location', 'location_name', 'business_date',
+            'id', 'company', 'location', 'location_name', 'business_date',
             'initiated_by', 'initiated_by_name', 'initiated_at',
             'completed_at', 'reverted_at', 'reverted_by', 'reverted_by_name',
             'status', 'status_display',
@@ -551,8 +555,3 @@ class DayCloseSerializer(serializers.ModelSerializer):
             'total_transactions', 'total_sales_amount', 'total_sessions', 'total_items_sold',
             'next_sale_number', 'next_session_number', 'errors', 'warnings'
         ]
-
-
-
-
-

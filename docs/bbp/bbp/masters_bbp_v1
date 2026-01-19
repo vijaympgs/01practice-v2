@@ -1,0 +1,832 @@
+Applied. Here’s the updated root urls.py with the Django admin route added while preserving existing API routes.
+
+### 1.1 Company
+
+#### 1.1.1 Business Purpose
+
+Defines the legal entity operating the retail business. It acts as the root master for configuration, reporting boundaries, stock ownership, financial settings, and business hierarchies.
+
+#### 1.1.2 Data Model
+
+| Field               | Type         | Required    | Description                              |
+| ------------------- | ------------ | ----------- | ---------------------------------------- |
+| id                  | UUID         | Yes         | Primary key                              |
+| company\_code       | String (20)  | Yes, Unique | Short code identifier                    |
+| company\_name       | String (100) | Yes         | Legal name                               |
+| legal\_entity\_type | Enum         | Yes         | Sole Proprietor, Pvt Ltd, LLP, Franchise |
+| address             | JSON         | No          | Registered address details               |
+| default\_currency   | String (10)  | Yes         | ISO currency code                        |
+| timezone            | String (50)  | Yes         | Olson timezone (e.g., Asia/Kolkata)      |
+| status              | Enum         | Yes         | Active / Inactive                        |
+
+#### 1.1.3 UI / UX Requirements
+
+- **List View:** Company Name, Code, Legal Entity Type, Default Currency, Status
+- **Filters:** status, legal\_entity\_type
+- **Form:** Basic fields only; no complexity
+- Auto-generate `company_code` from `company_name` (editable)
+
+#### 1.1.4 Validation Rules
+
+- `company_code` must be unique
+- At least one active company must exist
+- Changes to currency require confirmation (affects system-wide behavior)
+
+#### 1.1.5 Workflow
+
+No workflow required.
+
+#### 1.1.6 Module Metadata & Build Steps
+
+**Module Metadata**
+
+```yaml
+module_type: master
+complexity: simple
+
+template_ref: _mst_01
+
+extension_allowed: true
+
+depends_on: []
+used_by:
+  - Locations
+  - Item Master
+  - Business Partners
+  - Financial Config
+
+notes: >
+  Base simple master. CRUD only. Low business rules. Acts as system root.
+```
+
+**Build Step 1 – Simple Master Template (\_mst\_01\_prompt)**
+
+```text
+You are building a Simple Master Module for a Retail ERP platform.
+
+Generate:
+
+1) Backend (CRUD):
+   - Django model
+   - DRF serializer
+   - DRF viewset (list, filter, create, update, deactivate)
+   - URL routing entry
+   - Apply required validation rules
+
+2) Frontend (React + Vite + Tailwind):
+   - List page with filters and sorting
+   - Create/Edit modal form
+   - Input validation and field-level messages
+   - Toasts on success/error
+   - Pagination support
+
+3) Data handling:
+   - Axios-based API service file
+   - Local state with useState / useEffect
+   - Reusable hooks if needed (optional)
+
+4) UX behaviors:
+   - Auto-generate code from name if configured
+   - Disable destructive actions if rules prevent usage
+   - Accessible (ARIA labels, keyboard tab order)
+
+Keep code clean, modular, and production-structured.
+
+Do NOT invent fields.
+Use ONLY the fields, rules, and UI specs provided in the module specification below.
+```
+
+**Build Step 2 – Company Module Specification (from BBP 1.1)**
+
+```text
+MODULE NAME: Company
+TYPE: Simple Master (template_ref = _mst_01)
+
+DATA MODEL:
+
+- company_code (string, required, unique, max_length=20, auto-generate from company_name, editable)
+- company_name (string, required, max_length=100)
+- legal_entity_type (enum, required: ["Sole Proprietor","Partnership","LLP","Pvt Ltd","Franchise"])
+- address (json, optional)
+- default_currency (string, required, default="INR")
+- timezone (string, required, default="Asia/Kolkata")
+- status (enum, required: ["Active","Inactive"], default="Active")
+
+UI REQUIREMENTS:
+
+LIST VIEW:
+- Columns: company_name, company_code, legal_entity_type, default_currency, status
+- Filters: status, legal_entity_type
+- Sorting: company_name, company_code
+
+FORM VIEW:
+Sections:
+- Basic Info → company_name, company_code, legal_entity_type
+- Business Setup → default_currency, timezone
+- Address → address
+- Status → status
+
+BEHAVIOR:
+- company_code auto-generated from company_name (slug style) but editable
+- Prevent inactivation if this is the last active company
+
+VALIDATION RULES:
+- company_code must be globally unique
+- at least one active company must exist
+- change to default_currency requires confirmation modal
+```
+
+**Build Step 3 – Execution Instruction to AI**
+
+```text
+Use the template logic (_mst_01) and generate the complete Company module implementation.
+
+Output format:
+1) Django model + serializer + viewset + URL route
+2) React UI (list page + modal form)
+3) Axios service file
+4) Validation logic
+5) Example seed JSON data
+6) Brief instructions (how to integrate)
+
+Follow best practices and keep everything consistent with the template.
+```
+
+---
+
+### 1.2 Locations
+
+Locations
+
+#### 1.2.1 Business Rules
+
+- Each Location must belong to exactly one Company.
+- `location_code` must be unique per company.
+- A Location can represent: Store, Warehouse, Office, Franchise, Fulfillment Center.
+- If `is_pos_enabled = True`, then `location_type` must be `STORE`.
+- Location hierarchy must support nested regions or clusters using `parent_location`.
+- Deleting a location must use soft delete (`is_active = False`).
+- Prevent deletion if used in inventory, transactions, or POS configuration.
+- Location timezone may override the company's timezone.
+
+#### 1.2.2 Data Model
+
+| Field            | Type         | Required | Notes                                   |
+| ---------------- | ------------ | -------- | --------------------------------------- |
+| company          | FK           | ✔        | Parent organization                     |
+| location\_code   | string (20)  | ✔        | Unique per company                      |
+| name             | string (200) | ✔        | Full identifying name                   |
+| display\_name    | string (100) | ❓        | Short or storefront version             |
+| location\_type   | enum         | ✔        | STORE / WAREHOUSE / OFFICE / OTHER      |
+| channel\_type    | enum         | ❓        | RETAIL / ONLINE / WHOLESALE / FRANCHISE |
+| parent\_location | FK self      | ❓        | Enables hierarchy                       |
+| address\_line1   | string       | ✔        | Physical address                        |
+| address\_line2   | string       | ❓        | Additional details                      |
+| city             | string (100) | ✔        |                                         |
+| state            | string (100) | ✔        |                                         |
+| country          | string (100) | ✔        |                                         |
+| postal\_code     | string (20)  | ❓        |                                         |
+| phone            | string (30)  | ❓        |                                         |
+| email            | string (100) | ❓        |                                         |
+| timezone         | string (50)  | ❓        | Overrides company if set                |
+| opening\_date    | date         | ❓        | Store/DC start date                     |
+| closing\_date    | date         | ❓        | Closure or inactive date                |
+| is\_pos\_enabled | boolean      | ✔        | Store-only flag                         |
+| is\_dc           | boolean      | ❓        | Marks a distribution/warehouse location |
+| is\_active       | boolean      | ✔        | Soft delete flag                        |
+| created\_at      | datetime     | Auto     |                                         |
+| updated\_at      | datetime     | Auto     |                                         |
+
+#### 1.2.3 UI Specification
+
+**Screen Name:** Location Management **Navigation Path:** Admin → Organization → Locations
+
+**Features:**
+
+- Search and filter by Company, Location Type, Channel Type, and Active status.
+- Create, edit, deactivate locations.
+- Highlight POS-enabled and DC locations.
+- Hierarchical region-tree selector (optional future enhancement).
+
+**List View Columns:** | Company | Location Code | Name | Type | Channel | POS Enabled | Active | City | Actions |
+
+#### 1.2.4 API Specification
+
+- `GET /api/locations/` → List active locations
+- `GET /api/locations/?include_inactive=true` → List all
+- `GET /api/locations/?company_id=X` → Filter by company
+- `POST /api/locations/` → Create new location
+- `PUT/PATCH /api/locations/{id}/` → Update fields
+- `DELETE /api/locations/{id}/` → Soft delete
+
+API must enforce:
+
+- Unique (company, location\_code)
+- Parent-child validation
+- Conditional POS rule (`STORE` only)
+
+#### 1.2.5 Validation & Notes
+
+- Prevent multiple matching location codes under the same company.
+- If POS enabled, must validate terminal assignment later in POS module.
+- System must restrict editing of key identity fields if the location has operational dependencies.
+- Validation must support synchronous and async checks (in future no‑code UI layer).
+
+#### 1.2.6 Module Metadata & Build Steps
+
+**Module Metadata**
+```yaml
+module_type: master
+complexity: medium
+
+template_ref: _mst_02
+
+extension_allowed: true
+
+depends_on:
+  - Company
+used_by:
+  - POS Terminals
+  - Stock Ledger
+  - Store Operations
+  - Inventory & Procurement
+  - Reporting
+
+notes: >
+  Medium complexity master with conditional logic (POS enablement rules),
+  hierarchy support, and validation dependency on Company.
+```
+
+---
+**Build Step 1 — Template Prompt (_mst_02)**
+```text
+You are building a Medium Complexity Master module for a Retail ERP.
+
+Generate:
+
+1) Backend:
+   - Django model
+   - DRF serializer
+   - DRF viewset with filtering and dependency validation
+   - URL route
+   - Soft-delete logic and conditional rules
+
+2) Frontend (React + Vite + Tailwind):
+   - Paginated table list view with filters
+   - Create/Edit modal with field validation
+   - Conditional fields (POS toggle only when Location Type = STORE)
+   - Search, sort, and status badge UI
+   - Error, warning, and success toast states
+
+3) Data & Integration:
+   - Axios service file
+   - Async validation rule for unique (company + location_code)
+
+Follow all validation, UI rules, and business logic provided below.
+```
+
+---
+**Build Step 2 — Module Specification**
+```text
+MODULE: Locations
+TYPE: Medium Master
+
+DATA MODEL:
+- company (FK, required)
+- location_code (string 20, required, unique per company)
+- name (string 200, required)
+- display_name (string 100, optional)
+- location_type: STORE, WAREHOUSE, OFFICE, OTHER
+- channel_type: RETAIL, ONLINE, WHOLESALE, FRANCHISE (optional)
+- parent_location (self FK, optional)
+- address fields (required where applicable)
+- timezone override (optional)
+- is_pos_enabled (boolean, default false — only allowed when type=STORE)
+- is_dc (boolean, optional)
+- is_active (boolean, soft-delete)
+
+UI:
+- List view: searchable + filterable
+- Form modal with dynamic validation
+- Hierarchy selector for parent-location (optional UI enhancement)
+
+RULES:
+- Unique constraint: (company_id + location_code)
+- If POS enabled → location_type must be STORE.
+- Soft delete only (no hard delete)
+```
+
+---
+**Build Step 3 — Final Execution Command**
+```text
+Use template _mst_02 and generate:
+
+- Django model + serializer + viewset + URL
+- React list page + modal form
+- Axios API service
+- Validation logic
+- Example seed data
+
+Ensure conditional rules are enforced in backend and UI.
+```
+
+---
+
+## 2. Merchandise Setup
+
+### 2.1 Attributes
+
+#### 2.1.1 Business Purpose
+Defines logical characteristics used to describe products (e.g., Color, Size, Brand, Fit). Attributes are reusable across categories and drive search, filters, variant behavior, and reporting.
+
+#### 2.1.2 Data Model
+
+| Field            | Type         | Required | Description                           |
+|------------------|-------------|----------|---------------------------------------|
+| id               | UUID        | Yes      | Primary key                           |
+| company_id       | FK          | Yes      | Company scope                         |
+| attribute_code   | String(50)  | Yes      | System code (e.g., COLOR, SIZE)      |
+| attribute_name   | String(100) | Yes      | Display name                          |
+| input_type       | Enum        | Yes      | TEXT, NUMBER, BOOLEAN, LIST, MULTI   |
+| value_source     | Enum        | Yes      | FIXED_LIST, FREE_TEXT, DERIVED       |
+| is_variant_dimension | Boolean | No       | Can be used for SKU variants          |
+| is_search_facet  | Boolean     | No       | Use in search filters                 |
+| is_active        | Boolean     | Yes      | Soft delete flag                      |
+
+#### 2.1.3 UI / UX
+- Attribute list: code, name, input type, active, flags.
+- Attribute form: basic info + behavior flags.
+- Prevent editing of core/system attributes.
+
+#### 2.1.4 Validation
+- `attribute_code` unique per company.
+- LIST/MULTI types must use Attribute Values (2.2).
+
+#### 2.1.5 Workflow
+- Simple Active/Inactive; no complex workflow.
+
+#### 2.1.6 Module Metadata
+```yaml
+module_type: master
+complexity: medium
+
+template_ref: _mst_02
+
+depends_on:
+  - Company
+used_by:
+  - Attribute Values
+  - Product Attribute Template
+  - Item Master
+  - Pricing & Promotions
+```
+
+---
+
+### 2.2 Attribute Values
+
+#### 2.2.1 Business Purpose
+Stores allowed values for attributes that use lists (e.g., Color → Red/Blue/Green, Size → S/M/L). Used for product definition, filters, and variant generation.
+
+#### 2.2.2 Data Model
+
+| Field         | Type         | Required | Description                         |
+|---------------|-------------|----------|-------------------------------------|
+| id            | UUID        | Yes      | Primary key                         |
+| company_id    | FK          | Yes      | Company scope                       |
+| attribute_id  | FK          | Yes      | Link to Attribute (2.1)            |
+| value_code    | String(50)  | Yes      | Code (`RED`, `XL`)                  |
+| value_label   | String(100) | Yes      | Label (`Red`, `Extra Large`)        |
+| sort_order    | Integer     | No       | UI ordering                         |
+| is_default    | Boolean     | No       | Optional default value              |
+| is_active     | Boolean     | Yes      | Active/Inactive                     |
+
+#### 2.2.3 UI / UX
+- Typically managed in context of an Attribute ("Manage Values").
+- Inline add/edit values with drag-to-reorder (optional).
+
+#### 2.2.4 Validation
+- Unique `(attribute_id + value_code)`.
+- For variant dimensions: require ≥ 2 active values.
+
+#### 2.2.5 Workflow
+- Direct CRUD; no approvals.
+
+#### 2.2.6 Module Metadata
+```yaml
+module_type: master
+complexity: simple
+
+template_ref: _mst_01
+
+depends_on:
+  - Attributes
+used_by:
+  - Product Attribute Template
+  - Item Master (Variants)
+  - Filters & Search
+```
+
+---
+
+### 2.3 Product Attribute Template
+
+#### 2.3.1 Business Purpose
+Defines reusable sets of attributes and variant behavior applied to items during creation. Supports both simple and variant items by grouping attributes and marking which act as variant dimensions.
+
+#### 2.3.2 Data Model (Header)
+
+| Field                | Type         | Required | Description                              |
+|----------------------|-------------|----------|------------------------------------------|
+| id                   | UUID        | Yes      | Primary key                               |
+| company_id           | FK          | Yes      | Scope                                    |
+| template_code        | String(50)  | Yes      | Unique per company (`APPAREL_STD`)       |
+| template_name        | String(100) | Yes      | Display name                             |
+| description          | Text        | No       | Usage description                        |
+| template_mode        | Enum        | Yes      | SIMPLE, VARIANT_MATRIX, HYBRID          |
+| is_core_template     | Boolean     | Yes      | System-delivered flag                    |
+| is_editable          | Boolean     | Yes      | Allow editing?                           |
+| item_type_scope      | Enum        | No       | APPAREL, ELECTRONICS, etc.              |
+| category_scope_id    | FK          | No       | Merchandise hierarchy (optional)        |
+| is_active            | Boolean     | Yes      | Active/Inactive                          |
+| version_no           | Integer     | Yes      | Versioning                               |
+
+#### 2.3.3 Data Model (Lines)
+
+| Field                 | Type             | Required | Description                                  |
+|-----------------------|------------------|----------|----------------------------------------------|
+| id                    | UUID             | Yes      | Primary key                                   |
+| template_id           | FK               | Yes      | Header link                                   |
+| attribute_id          | FK (Attribute)   | Yes      | Attribute reference                           |
+| is_required           | Boolean          | Yes      | Required for items using this template        |
+| is_variant_dimension  | Boolean          | Yes      | Drives SKU variant generation                 |
+| value_mode            | Enum             | Yes      | SINGLE, MULTI, DERIVED                        |
+| default_value_id      | FK (Attr Value)  | No       | Optional default                              |
+| sequence_no           | Integer          | Yes      | Display order                                 |
+| is_search_facet       | Boolean          | No       | Use in filters/search                         |
+| is_pricing_relevant   | Boolean          | No       | Consider in pricing rules                     |
+| is_reporting_relevant | Boolean          | No       | Reporting relevance                           |
+| is_pos_visible        | Boolean          | No       | Show in POS UI                                |
+
+#### 2.3.4 Rules
+- SIMPLE templates: no `is_variant_dimension = true`.
+- VARIANT/HYBRID templates: at least one variant dimension.
+- Deactivate template only if not used by active items.
+
+#### 2.3.5 Workflow
+- Draft → Active → Deprecated.
+
+#### 2.3.6 Module Metadata
+```yaml
+module_type: master
+complexity: complex
+
+template_ref: _mst_03
+
+depends_on:
+  - Attributes
+  - Attribute Values
+  - Company
+used_by:
+  - Item Master
+  - Pricing & Promotions
+  - POS (for display)
+```
+
+---
+
+### 2.4 Unit of Measure (UOM)
+
+#### 2.4.1 Business Purpose
+Defines how quantities are measured, purchased, stocked, and sold. Supports UOM types (Stock, Purchase, Sales) and conversion relationships, including barcode and price per UOM.
+
+#### 2.4.2 Data Model
+
+**UOM Master**
+
+| Field           | Type         | Required | Description                          |
+|-----------------|-------------|----------|--------------------------------------|
+| id              | UUID        | Yes      | Primary key                          |
+| company_id      | FK          | Yes      | Scope                                |
+| uom_code        | String(20)  | Yes      | EA, CTN, KG, LTR, etc.              |
+| uom_name        | String(100) | Yes      | Piece, Case, Kilogram, Liter        |
+| uom_type        | Enum        | Yes      | STOCK, PURCHASE, SALES, GENERIC     |
+| decimal_allowed | Boolean     | Yes      | Whether fractions allowed            |
+| rounding_precision | Integer  | No       | Decimal precision                    |
+| is_core_uom     | Boolean     | Yes      | Protect base system UOMs             |
+| is_active       | Boolean     | Yes      | Active/Inactive                      |
+
+**UOM Conversion**
+
+| Field            | Type     | Required | Description                                     |
+|------------------|----------|----------|-------------------------------------------------|
+| id               | UUID     | Yes      | Primary key                                     |
+| company_id       | FK       | Yes      | Scope                                           |
+| from_uom_id      | FK       | Yes      | Input UOM                                       |
+| to_uom_id        | FK       | Yes      | Target UOM                                      |
+| conversion_factor| Decimal  | Yes      | e.g. 1 CTN = 12 EA → 12.0                       |
+| applies_to_item_id | FK     | No       | Optional item-specific mapping                  |
+| barcode          | String   | No       | Barcode for this UOM/pack                       |
+| retail_price     | Decimal  | No       | Optional price per UOM (baseline)               |
+| status           | Enum     | Yes      | Active/Inactive                                 |
+
+#### 2.4.3 UI / UX
+- UOM list screen.
+- Conversion mapping screen (inline editable grid, optional item filter).
+- Only Sales UOMs appear in POS; Stock UOM used for inventory postings.
+
+#### 2.4.4 Validation
+- Unique `uom_code` per company.
+- Prevent inactivation of UOMs used by active items or transactions.
+- For each item, ensure at least one Stock UOM.
+
+#### 2.4.5 Workflow
+- Simple; Active/Inactive with guard rails.
+
+#### 2.4.6 Module Metadata
+```yaml
+module_type: master
+complexity: medium
+
+template_ref: _mst_02
+
+depends_on:
+  - Company
+used_by:
+  - Item Master
+  - POS Billing
+  - Purchase/GRN
+  - Stock Transactions
+  - Pricing
+```
+
+---
+
+### 2.5 Item Master (Parent + Variant SKUs)
+
+#### 2.5.1 Business Purpose
+Defines all products and SKUs using a parent (style/product) + variant model. Integrates with attribute templates, UOM, barcodes, and pricing, and is the core reference for all transactions.
+
+#### 2.5.2 Data Model
+
+**Item (Parent)**
+
+| Field                 | Type         | Required | Description                    |
+|-----------------------|-------------|----------|--------------------------------|
+| id                    | UUID        | Yes      | Primary key                    |
+| company_id            | FK          | Yes      | Scope                          |
+| item_code             | String(50)  | Yes      | Unique product/style code      |
+| item_name             | String(200) | Yes      | Name                           |
+| short_name            | String(100) | No       | POS-friendly name              |
+| item_type             | Enum        | Yes      | STOCKED, SERVICE, KIT, GIFT    |
+| attribute_template_id | FK          | Yes      | Link to Product Attr Template  |
+| category_id           | FK          | No       | Merchandise hierarchy          |
+| brand_id              | FK          | No       | Brand                          |
+| stock_uom_id          | FK          | Yes      | Base stock UOM                 |
+| tax_class_id          | FK          | No       | Tax logic (future)             |
+| is_serialized         | Boolean     | No       | Serial tracking                |
+| is_lot_tracked        | Boolean     | No       | Batch/lot tracking             |
+| status                | Enum        | Yes      | DRAFT, ACTIVE, BLOCKED, etc.   |
+
+**Item Variant (SKU)**
+
+| Field              | Type         | Required | Description                      |
+|--------------------|-------------|----------|----------------------------------|
+| id                 | UUID        | Yes      | Primary key                      |
+| item_id            | FK          | Yes      | Parent item                      |
+| sku_code           | String(80)  | Yes      | Unique SKU code                  |
+| variant_name       | String(200) | Yes      | e.g. "Red / M"                  |
+| is_default_variant | Boolean     | No       | Default for simple use           |
+| sales_uom_id       | FK          | Yes      | Default sales UOM                |
+| purchase_uom_id    | FK          | No       | Default PO UOM                   |
+| stock_uom_id       | FK          | Yes      | Usually same as parent           |
+| is_active          | Boolean     | Yes      | Active flag                      |
+
+**Variant Attributes**
+
+| Field              | Type     | Required | Description                       |
+|--------------------|----------|----------|-----------------------------------|
+| id                 | UUID     | Yes      | Primary key                       |
+| item_variant_id    | FK       | Yes      | SKU                               |
+| attribute_id       | FK       | Yes      | Attribute (Color, Size, etc.)     |
+| attribute_value_id | FK       | Yes      | Selected value                    |
+
+**Variant UOM/Barcode/Price**
+
+| Field            | Type     | Required | Description                            |
+|------------------|----------|----------|----------------------------------------|
+| id               | UUID     | Yes      | Primary key                            |
+| item_variant_id  | FK       | Yes      | SKU                                    |
+| uom_id           | FK       | Yes      | UOM                                    |
+| is_default_sales | Boolean  | No       | Default POS UOM                        |
+| barcode          | String   | No       | Barcode per UOM                        |
+| retail_price     | Decimal  | No       | Base price per UOM (seed for pricing)  |
+| status           | Enum     | Yes      | Active/Inactive                        |
+
+#### 2.5.3 UI / UX
+- Item list screen (parent-level).
+- Item edit with tabs:
+  - General (header)
+  - Variants (grid/list; optionally auto-generated from template)
+  - UOM/Barcode mapping per variant.
+
+#### 2.5.4 Validation & Lifecycle
+- `item_code` unique per company.
+- `sku_code` unique per company.
+- Enforce required attributes from template for each active variant.
+- Ensure at least one stock UOM mapping per variant.
+- Lifecycle: DRAFT → ACTIVE → BLOCKED → DISCONTINUED → ARCHIVED.
+
+#### 2.5.5 Module Metadata
+```yaml
+module_type: master
+complexity: complex
+
+template_ref: _mst_03
+
+depends_on:
+  - Company
+  - Product Attribute Template
+  - Attributes
+  - Attribute Values
+  - Units of Measure
+used_by:
+  - All transactional modules
+  - Pricing
+  - POS
+  - Reporting
+```
+
+---
+
+### 2.6 Pricing Foundation (Price Lists)
+
+#### 2.6.1 Business Purpose
+Defines structured base prices for item variants and UOMs, by price list, channel, and optional zone/location. Serves as the base layer for promotions and discounts.
+
+#### 2.6.2 Data Model
+
+**Price List (Header)**
+
+| Field            | Type        | Required | Description                            |
+|------------------|-------------|----------|----------------------------------------|
+| id               | UUID        | Yes      | Primary key                            |
+| company_id       | FK          | Yes      | Scope                                  |
+| price_list_code  | String(50)  | Yes      | Unique list code                       |
+| price_list_name  | String(100) | Yes      | Name                                   |
+| currency         | String(10)  | Yes      | ISO currency                           |
+| price_list_type  | Enum        | Yes      | RETAIL, WHOLESALE, EMPLOYEE, etc.     |
+| channel          | Enum        | No       | STORE, ONLINE, WHOLESALE, ALL         |
+| valid_from       | Date        | Yes      | Start date                             |
+| valid_to         | Date        | No       | End date (optional)                   |
+| is_default       | Boolean     | No       | Default flag                           |
+| status           | Enum        | Yes      | DRAFT, ACTIVE, EXPIRED, ARCHIVED      |
+
+**Price List Line**
+
+| Field             | Type              | Required | Description                                   |
+|-------------------|-------------------|----------|-----------------------------------------------|
+| id                | UUID              | Yes      | Primary key                                   |
+| price_list_id     | FK                | Yes      | Header                                        |
+| item_id           | FK                | Yes      | Parent item                                   |
+| item_variant_id   | FK                | Yes      | SKU                                           |
+| uom_id            | FK                | Yes      | UOM                                           |
+| base_price        | Decimal           | Yes      | Base selling price                            |
+| tax_inclusive     | Boolean           | Yes      | Price includes tax?                           |
+| location_scope_id | FK (Location)     | No       | Optional location-specific scope              |
+| status            | Enum              | Yes      | Active/Inactive                               |
+
+#### 2.6.3 UI / UX
+- Price list header list + detail.
+- Line editor grid with search, inline editing, and CSV import (future).
+
+#### 2.6.4 Validation & Workflow
+- Unique `price_list_code` per company.
+- DRAFT → ACTIVE → EXPIRED/ARCHIVED.
+- Only one active line per (price_list, item_variant, UOM, location_scope).
+
+#### 2.6.5 Module Metadata
+```yaml
+module_type: master
+complexity: complex
+
+template_ref: _mst_03
+
+depends_on:
+  - Company
+  - Item Master
+  - Item Variant
+  - Units of Measure
+  - Locations (optional)
+used_by:
+  - POS Billing
+  - Sales
+  - Promotions & Campaigns
+  - Reporting
+```
+
+---
+
+## 3. Business Partners
+
+### 3.1 Customers
+
+#### 3.1.1 Business Purpose
+Defines end customers (individuals or businesses) used in POS, orders, campaigns, and analytics.
+
+#### 3.1.2 Data Model
+
+| Field          | Type         | Required | Description                           |
+|----------------|-------------|----------|---------------------------------------|
+| id             | UUID        | Yes      | Primary key                           |
+| company_id     | FK          | Yes      | Scope                                 |
+| customer_code  | String(50)  | Yes      | Unique per company                    |
+| customer_name  | String(200) | Yes      | Name / business name                  |
+| customer_type  | Enum        | Yes      | INDIVIDUAL, BUSINESS                  |
+| phone          | String(30)  | No       | Primary phone                         |
+| email          | String(100) | No       | Primary email                         |
+| tax_id         | String(50)  | No       | GST/VAT/PAN etc.                      |
+| billing_address| JSON        | No       | Billing address                       |
+| shipping_address| JSON       | No       | Shipping address                      |
+| credit_limit   | Decimal     | No       | Credit limit (B2B)                    |
+| credit_blocked | Boolean     | No       | Block credit-based transactions       |
+| status         | Enum        | Yes      | ACTIVE, INACTIVE, BLACKLISTED         |
+
+#### 3.1.3 UI / UX
+- List with search by code, name, phone, email.
+- Form for contact, tax, address, credit flags.
+
+#### 3.1.4 Validation & Workflow
+- Unique `customer_code` per company.
+- `BLACKLISTED` not allowed in new transactions.
+- Simple lifecycle: ACTIVE → INACTIVE / BLACKLISTED.
+
+#### 3.1.5 Module Metadata
+```yaml
+module_type: master
+complexity: medium
+
+template_ref: _mst_02
+
+depends_on:
+  - Company
+used_by:
+  - POS Billing
+  - Orders (future)
+  - Campaigns & Analytics
+```
+
+---
+
+### 3.2 Suppliers
+
+#### 3.2.1 Business Purpose
+Defines suppliers/vendors for procurement flows: Purchase Orders, GRN, returns, and vendor performance.
+
+#### 3.2.2 Data Model
+
+| Field          | Type         | Required | Description                           |
+|----------------|-------------|----------|---------------------------------------|
+| id             | UUID        | Yes      | Primary key                           |
+| company_id     | FK          | Yes      | Scope                                 |
+| supplier_code  | String(50)  | Yes      | Unique per company                    |
+| supplier_name  | String(200) | Yes      | Legal/trade name                      |
+| contact_person | String(100) | No       | Main contact                          |
+| phone          | String(30)  | No       | Phone                                 |
+| email          | String(100) | No       | Email                                 |
+| gst_vat_no     | String(50)  | No       | Tax registration                      |
+| pan_no         | String(20)  | No       | PAN (where applicable)                |
+| address        | JSON        | No       | Address                               |
+| payment_terms  | String(100) | No       | Payment terms                         |
+| currency       | String(10)  | No       | Preferred currency                    |
+| lead_time_days | Integer     | No       | Avg. delivery lead time               |
+| is_preferred   | Boolean     | No       | Preferred supplier flag               |
+| status         | Enum        | Yes      | ACTIVE, INACTIVE, BLOCKED             |
+
+#### 3.2.3 UI / UX
+- Supplier list with filters by status, preferred, payment terms.
+- Form capturing contact, tax, payment, and operational info.
+
+#### 3.2.4 Validation & Workflow
+- Unique `supplier_code` per company.
+- `BLOCKED` suppliers cannot be used on new POs.
+- Non-negative `lead_time_days`.
+
+#### 3.2.5 Module Metadata
+```yaml
+module_type: master
+complexity: medium
+
+template_ref: _mst_02
+
+depends_on:
+  - Company
+used_by:
+  - Purchase Order
+  - GRN
+  - Supplier Returns
+  - Vendor Analytics
+```
+
+---
+

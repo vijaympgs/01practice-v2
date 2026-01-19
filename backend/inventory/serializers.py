@@ -1,22 +1,22 @@
 from rest_framework import serializers
 from django.db import transaction
 from .models import Inventory, StockMovement, PurchaseOrder, PurchaseOrderItem, StockAlert
-from products.models import Product
+from products.models import ItemVariant
 from suppliers.models import Supplier
 
 
 class InventorySerializer(serializers.ModelSerializer):
     """Serializer for inventory management"""
     
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_sku = serializers.CharField(source='product.sku', read_only=True)
-    # category_name = serializers.CharField(source='product.category.name', read_only=True)
+    product_name = serializers.CharField(source='product.variant_name', read_only=True)
+    product_sku = serializers.CharField(source='product.sku_code', read_only=True)
+    # category_name = serializers.CharField(source='product.item.category.name', read_only=True)
     stock_status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
         model = Inventory
         fields = [
-            'id', 'product', 'product_name', 'product_sku', # 'category_name',
+            'id', 'company', 'product', 'product_name', 'product_sku', # 'category_name',
             'current_stock', 'reserved_stock', 'available_stock',
             'min_stock_level', 'max_stock_level', 'reorder_point', 'reorder_quantity',
             'cost_price', 'selling_price', 'location', 'bin_location',
@@ -43,9 +43,9 @@ class InventorySerializer(serializers.ModelSerializer):
 class InventoryListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for inventory listing"""
     
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_sku = serializers.CharField(source='product.sku', read_only=True)
-    # category_name = serializers.CharField(source='product.category.name', read_only=True)
+    product_name = serializers.CharField(source='product.variant_name', read_only=True)
+    product_sku = serializers.CharField(source='product.sku_code', read_only=True)
+    # category_name = serializers.CharField(source='product.item.category.name', read_only=True)
     value_total = serializers.SerializerMethodField()
     
     class Meta:
@@ -64,8 +64,8 @@ class InventoryListSerializer(serializers.ModelSerializer):
 class StockMovementSerializer(serializers.ModelSerializer):
     """Serializer for stock movements"""
     
-    product_name = serializers.CharField(source='inventory.product.name', read_only=True)
-    product_sku = serializers.CharField(source='inventory.product.sku', read_only=True)
+    product_name = serializers.CharField(source='inventory.product.variant_name', read_only=True)
+    product_sku = serializers.CharField(source='inventory.product.sku_code', read_only=True)
     supplier_name = serializers.CharField(source='supplier.name', read_only=True, allow_null=True)
     created_by_name = serializers.SerializerMethodField()
     movement_type_display = serializers.CharField(source='get_movement_type_display', read_only=True)
@@ -82,7 +82,7 @@ class StockMovementSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockMovement
         fields = [
-            'id', 'inventory', 'product_name', 'product_sku',
+            'id', 'company', 'inventory', 'product_name', 'product_sku',
             'movement_type', 'movement_type_display', 'quantity_change',
             'quantity_before', 'quantity_after', 'unit_cost', 'total_cost',
             'reference_number', 'supplier', 'supplier_name',
@@ -107,8 +107,8 @@ class StockMovementSerializer(serializers.ModelSerializer):
 class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     """Serializer for purchase order items"""
     
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_sku = serializers.CharField(source='product.sku', read_only=True)
+    product_name = serializers.CharField(source='product.variant_name', read_only=True)
+    product_sku = serializers.CharField(source='product.sku_code', read_only=True)
     line_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     
     class Meta:
@@ -148,7 +148,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseOrder
         fields = [
-            'id', 'po_number', 'supplier', 'supplier_name', 'supplier_code',
+            'id', 'company', 'po_number', 'supplier', 'supplier_name', 'supplier_code',
             'status', 'status_display', 'priority', 'priority_display',
             'order_date', 'expected_delivery_date', 'actual_delivery_date',
             'total_amount', 'tax_amount', 'discount_amount',
@@ -177,7 +177,7 @@ class PurchaseOrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseOrder
         fields = [
-            'supplier', 'priority', 'expected_delivery_date',
+            'company', 'supplier', 'priority', 'expected_delivery_date',
             'notes', 'terms_conditions', 'items'
         ]
 
@@ -196,8 +196,8 @@ class PurchaseOrderCreateSerializer(serializers.ModelSerializer):
 class StockAlertSerializer(serializers.ModelSerializer):
     """Serializer for stock alerts"""
     
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_sku = serializers.CharField(source='product.sku', read_only=True)
+    product_name = serializers.CharField(source='product.variant_name', read_only=True)
+    product_sku = serializers.CharField(source='product.sku_code', read_only=True)
     alert_type_display = serializers.CharField(source='get_alert_type_display', read_only=True)
     severity_display = serializers.CharField(source='get_severity_display', read_only=True)
     resolved_by_name = serializers.CharField(source='resolved_by.full_name', read_only=True)
@@ -205,7 +205,7 @@ class StockAlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockAlert
         fields = [
-            'id', 'product', 'product_name', 'product_sku',
+            'id', 'company', 'product', 'product_name', 'product_sku',
             'alert_type', 'alert_type_display', 'severity', 'severity_display',
             'message', 'current_stock', 'threshold_value',
             'is_active', 'is_resolved', 'resolved_by', 'resolved_by_name',
@@ -268,5 +268,3 @@ class InventoryStatsSerializer(serializers.Serializer):
     out_of_stock_items = serializers.IntegerField()
     alert_count = serializers.IntegerField()
     recent_movements = serializers.IntegerField()
-
-
